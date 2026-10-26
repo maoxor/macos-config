@@ -70,8 +70,9 @@ def main():
         # and a second Ghostty instance opens no window at all after a reboot. Ghostty may carry a Claude
         # child marker in its environment, so the typed command clears it first.
         cmd = f"unset {' '.join(CLEAN)}; "
+        # Set for this command only: exported, it stayed in the shell and a later plain `claude` there ran account 2.
         if s.get("config"):
-            cmd += f"export CLAUDE_CONFIG_DIR={shlex.quote(s['config'])}; "
+            cmd += f"CLAUDE_CONFIG_DIR={shlex.quote(s['config'])} "
         cmd += f"claude --resume {s['sessionId']}"
         before = {x["id"] for x in ghostty_windows()}
         script = ('tell application "Ghostty"\n set cfg to new surface configuration\n'
