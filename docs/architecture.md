@@ -26,6 +26,7 @@ OmniWM details: `docs/omniwm.md`. Shortcuts: `docs/shortcuts.md`. macOS settings
 | Window placement / tiling | OmniWM, local build | Raycast window commands, Hammerspoon `hs.window`, macOS edge tiling |
 | Workspaces | OmniWM (Focus, Web, Messages, Atelier, 5–9) | macOS Spaces (a single native Space) |
 | App → workspace | OmniWM rules | Hammerspoon |
+| Playwright test browsers (Claude Code experiments) | OmniWM rules → W4 Atelier; `test-browsers.lua` sends later windows there and gives focus back | — |
 | Contexts (workspace + resources) | Hammerspoon `poweruser.lua` | — |
 | Window borders / workspace bar | OmniWM, disabled by choice | JankyBorders, SketchyBar |
 | Keyboard navigation (hints) | Neru | Raycast |

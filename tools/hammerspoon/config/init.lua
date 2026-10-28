@@ -22,3 +22,5 @@ functionKeys = require("function-keys")
 wallpaperCycle = require("wallpaper-cycle")
 -- F4: cleaning mode, keyboard locked until a click on the banner (or 2 min).
 keyboardClean = require("keyboard-clean")
+-- Playwright browsers (workspace 4 by OmniWM rule) never pull the user off their workspace.
+testBrowsers = require("test-browsers")

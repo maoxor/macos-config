@@ -20,3 +20,4 @@ hammerspoon	file	~/.hammerspoon/function-keys.lua	tools/hammerspoon/config/funct
 hammerspoon	file	~/.hammerspoon/wallpaper-cycle.lua	tools/hammerspoon/config/wallpaper-cycle.lua	copy	
 hammerspoon	file	~/.hammerspoon/keyboard-clean.lua	tools/hammerspoon/config/keyboard-clean.lua	copy	
 hammerspoon	file	~/.hammerspoon/keyboard-clean.html	tools/hammerspoon/config/keyboard-clean.html	copy	
+hammerspoon	file	~/.hammerspoon/test-browsers.lua	tools/hammerspoon/config/test-browsers.lua	copy	
