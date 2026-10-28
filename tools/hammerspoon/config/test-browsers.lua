@@ -3,7 +3,7 @@
 -- focus goes straight back to the app that had it, so the user stays on their workspace. Clicking into such a
 -- browser on workspace 4 still works. (Polled: these apps are often not reported by hs.application.watcher.)
 -- The OmniWM rule only places an app's first window; later ones (new pages) are moved to workspace 4 on each
--- OmniWM windows-changed event.
+-- OmniWM windows-changed event, with Safari windows a session forced to float.
 local M = {}
 M.bundles = {
   ["com.google.chrome.for.testing"] = true, ["org.chromium.Chromium"] = true,
@@ -34,7 +34,10 @@ local function sweep()
     local ids = {}
     if ok and data and data.result then
       for _, w in ipairs(data.result.payload.windows or {}) do
-        if M.bundles[w.app.bundleId or ""] and w.workspace and w.workspace.number ~= 4 then ids[#ids + 1] = w.id end
+        -- Safari windows that a session forced to float (AppleScript + toggle-focused-window-floating) go too.
+        local driven = M.bundles[w.app.bundleId or ""]
+          or (w.app.bundleId == "com.apple.Safari" and w.manualOverride == "force-float")
+        if driven and w.workspace and w.workspace.number ~= 4 then ids[#ids + 1] = w.id end
       end
     end
     for _, id in ipairs(ids) do hs.task.new(CTL, nil, { "window", "move-to-workspace", id, "4" }):start() end
