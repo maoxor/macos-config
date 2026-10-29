@@ -1,9 +1,9 @@
--- Browsers driven by Playwright (Claude Code experiments) open on workspace 4 (OmniWM rule), but they take focus
--- and OmniWM follows them there. When one becomes frontmost without a click from the user in the last second,
--- focus goes straight back to the app that had it, so the user stays on their workspace. Clicking into such a
--- browser on workspace 4 still works. (Polled: these apps are often not reported by hs.application.watcher.)
--- The OmniWM rule only places an app's first window; later ones (new pages) are moved to workspace 4 on each
--- OmniWM windows-changed event, with Safari windows a session forced to float.
+-- Browsers driven by Playwright (Claude Code experiments) open on workspace 4: OmniWM rules, and patch 0029
+-- for their later windows and to keep the view where it is. macOS still hands them the keyboard: when one
+-- becomes frontmost without a click from the user in the last second, focus goes straight back to the app that
+-- had it. Clicking into such a browser on workspace 4 still works. (Polled: these apps are often not reported
+-- by hs.application.watcher.) Safari windows a session forces to float are moved to
+-- workspace 4 on each OmniWM windows-changed event.
 local M = {}
 M.bundles = {
   ["com.google.chrome.for.testing"] = true, ["org.chromium.Chromium"] = true,
@@ -34,9 +34,8 @@ local function sweep()
     local ids = {}
     if ok and data and data.result then
       for _, w in ipairs(data.result.payload.windows or {}) do
-        -- Safari windows that a session forced to float (AppleScript + toggle-focused-window-floating) go too.
-        local driven = M.bundles[w.app.bundleId or ""]
-          or (w.app.bundleId == "com.apple.Safari" and w.manualOverride == "force-float")
+        -- Safari windows that a session forced to float (AppleScript + toggle-focused-window-floating).
+        local driven = w.app.bundleId == "com.apple.Safari" and w.manualOverride == "force-float"
         if driven and w.workspace and w.workspace.number ~= 4 then ids[#ids + 1] = w.id end
       end
     end
@@ -45,9 +44,11 @@ local function sweep()
   end, { "query", "windows", "--format", "json" }):start()
 end
 
+M.debounce = hs.timer.delayed.new(0.4, sweep)
+
 local function subscribe()
-  M.sub = hs.task.new(CTL, function() hs.timer.doAfter(5, subscribe) end, function(_, out)
-    sweep()
+  M.sub = hs.task.new(CTL, function() hs.timer.doAfter(5, subscribe) end, function()
+    M.debounce:start() -- one query per burst of window events
     return true
   end, { "subscribe", "windows-changed", "--no-send-initial", "--format", "ndjson" })
   M.sub:start()

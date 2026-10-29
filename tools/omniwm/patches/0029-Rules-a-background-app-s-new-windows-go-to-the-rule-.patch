@@ -1,0 +1,208 @@
+From 494b6421551ac7a84200a624d47cffccf3e97790 Mon Sep 17 00:00:00 2001
+From: maoxor <118530756+maoxor@users.noreply.github.com>
+Date: Thu, 29 Oct 2026 01:08:47 +0100
+Subject: [PATCH] Rules: a background app's new windows go to the rule
+ workspace without pulling the view there
+
+---
+ .../AXEventHandler+AppActivation.swift        |  5 ++
+ .../AXEventHandler+ManagedActivation.swift    |  4 ++
+ .../Core/Workspace/PlacementResolver.swift    | 25 ++++++++--
+ .../Core/Workspace/WorkspaceManager.swift     | 13 +++++
+ .../FloatingCreatePlacementTests.swift        | 50 ++++++++++++++++++-
+ 5 files changed, 92 insertions(+), 5 deletions(-)
+
+diff --git a/Sources/OmniWM/Core/Controller/AXEventHandler+AppActivation.swift b/Sources/OmniWM/Core/Controller/AXEventHandler+AppActivation.swift
+index 5cc636d3..0c3be02b 100644
+--- a/Sources/OmniWM/Core/Controller/AXEventHandler+AppActivation.swift
++++ b/Sources/OmniWM/Core/Controller/AXEventHandler+AppActivation.swift
+@@ -17,6 +17,11 @@ extension AXEventHandler {
+         guard let controller else { return false }
+         guard controller.hasStartedServices else { return false }
+         guard !controller.workspaceManager.isAppHidden(pid: pid) else { return false }
++        // An app a workspace rule just sent to a hidden workspace (a script-launched browser) does not pull the
++        // user's view there when it takes focus.
++        if origin == .external, controller.workspaceManager.wasRecentlyRuleRoutedToHiddenWorkspace(pid: pid) {
++            return false
++        }
+         guard acceptsActivationObservation(
+             pid: pid,
+             source: source,
+diff --git a/Sources/OmniWM/Core/Controller/AXEventHandler+ManagedActivation.swift b/Sources/OmniWM/Core/Controller/AXEventHandler+ManagedActivation.swift
+index 96542355..03c91f2a 100644
+--- a/Sources/OmniWM/Core/Controller/AXEventHandler+ManagedActivation.swift
++++ b/Sources/OmniWM/Core/Controller/AXEventHandler+ManagedActivation.swift
+@@ -38,6 +38,10 @@ extension AXEventHandler {
+         callbackGeneration: UInt64? = nil
+     ) {
+         guard let controller else { return }
++        // A window a workspace rule just sent to a hidden workspace takes focus as it opens: the view stays.
++        if !isWorkspaceActive, controller.workspaceManager.wasRecentlyRuleRoutedToHiddenWorkspace(pid: entry.pid) {
++            return
++        }
+         let request = ManagedActivationRequest(
+             source: source,
+             confirmRequest: confirmRequest,
+diff --git a/Sources/OmniWM/Core/Workspace/PlacementResolver.swift b/Sources/OmniWM/Core/Workspace/PlacementResolver.swift
+index c95abe25..2d02502d 100644
+--- a/Sources/OmniWM/Core/Workspace/PlacementResolver.swift
++++ b/Sources/OmniWM/Core/Workspace/PlacementResolver.swift
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ // Copyright (C) 2026 BarutSRB — https://github.com/OmniNull/OmniWM
+ 
++import AppKit
+ import CoreGraphics
+ import Foundation
+ 
+@@ -12,9 +13,15 @@ final class PlacementResolver {
+     }
+ 
+     private let workspaceManager: WorkspaceManager
++    /// The frontmost app, to tell a window the user opened from one an app opened in the background.
++    private let frontmostPid: () -> pid_t?
+ 
+-    init(workspaceManager: WorkspaceManager) {
++    init(
++        workspaceManager: WorkspaceManager,
++        frontmostPid: @escaping () -> pid_t? = { NSWorkspace.shared.frontmostApplication?.processIdentifier }
++    ) {
+         self.workspaceManager = workspaceManager
++        self.frontmostPid = frontmostPid
+     }
+ 
+     func monitorForInteraction() -> Monitor? {
+@@ -69,9 +76,16 @@ final class PlacementResolver {
+                 for: workspaceName,
+                 createIfMissing: false
+             )
+-            if !shouldApplyWorkspaceRule(pid: window.pid, context: context.reevaluation) {
++            if !shouldApplyWorkspaceRule(
++                pid: window.pid,
++                ruleWorkspaceId: resolvedRuleWorkspaceId,
++                context: context.reevaluation
++            ) {
+                 ruleSkipReason = .appAlreadyHasEntries
+             } else if let resolvedRuleWorkspaceId {
++                if let pid = window.pid, existingEntry == nil, !workspaceManager.isWorkspaceVisible(resolvedRuleWorkspaceId) {
++                    workspaceManager.ruleRoutedToHiddenWorkspaceAt[pid] = Date()
++                }
+                 return WorkspacePlacementResolution(
+                     workspaceId: resolvedRuleWorkspaceId,
+                     rung: .workspaceRule
+@@ -106,13 +120,18 @@ final class PlacementResolver {
+ 
+     private func shouldApplyWorkspaceRule(
+         pid: pid_t?,
++        ruleWorkspaceId: WorkspaceDescriptor.ID?,
+         context: WindowRuleReevaluationContext
+     ) -> Bool {
+         if context == .explicitRuleApply {
+             return true
+         }
+         guard let pid else { return true }
+-        return !workspaceManager.hasEntries(forPid: pid)
++        // The rule places an app's first window. A later window follows the user (it opens where they work
++        // with that app), unless the app is in the background: then a script opened it (a test browser's new
++        // page, an AppleScript Safari window) and it goes to the rule's workspace instead of over the user's.
++        guard workspaceManager.hasEntries(forPid: pid) else { return true }
++        return ruleWorkspaceId != nil && frontmostPid() != pid
+     }
+ 
+     func floatingSpawnMonitorId(pid: pid_t) -> Monitor.ID? {
+diff --git a/Sources/OmniWM/Core/Workspace/WorkspaceManager.swift b/Sources/OmniWM/Core/Workspace/WorkspaceManager.swift
+index 635c4d28..14dc4052 100644
+--- a/Sources/OmniWM/Core/Workspace/WorkspaceManager.swift
++++ b/Sources/OmniWM/Core/Workspace/WorkspaceManager.swift
+@@ -32,6 +32,19 @@ final class WorkspaceManager {
+         save: { [unowned self] in self.settings.savePersistedWindowRestoreCatalog($0) }
+     )
+     var persistedRestoreBundleIdProvider: ((pid_t) -> String?)?
++    /// Apps whose new window a workspace rule just sent to a workspace that is not visible: their activation
++    /// in the next seconds must not pull the user there (a browser launched by a script takes focus).
++    var ruleRoutedToHiddenWorkspaceAt: [pid_t: Date] = [:]
++
++    func isWorkspaceVisible(_ workspaceId: WorkspaceDescriptor.ID) -> Bool {
++        guard let monitorId = monitorId(for: workspaceId) else { return false }
++        return visibleWorkspaceId(on: monitorId) == workspaceId
++    }
++
++    func wasRecentlyRuleRoutedToHiddenWorkspace(pid: pid_t, within seconds: TimeInterval = 4) -> Bool {
++        guard let at = ruleRoutedToHiddenWorkspaceAt[pid], Date().timeIntervalSince(at) < seconds else { return false }
++        return !entries(forPid: pid).contains { isWorkspaceVisible($0.workspaceId) }
++    }
+ 
+     private lazy var projections = WorkspaceProjectionCache(manager: self)
+ 
+diff --git a/Tests/OmniWMTests/FloatingCreatePlacementTests.swift b/Tests/OmniWMTests/FloatingCreatePlacementTests.swift
+index fe5df999..b8b2437d 100644
+--- a/Tests/OmniWMTests/FloatingCreatePlacementTests.swift
++++ b/Tests/OmniWMTests/FloatingCreatePlacementTests.swift
+@@ -852,6 +852,48 @@ final class FloatingCreatePlacementTests: XCTestCase {
+         XCTAssertEqual(resolved.rung, .interactionWorkspace)
+     }
+ 
++    func testWorkspaceRuleStillPlacesLaterWindowsOfABackgroundApp() throws {
++        let fixture = try makeTwoMonitorFixture()
++        let pid: pid_t = 6_130
++        let context = placementContext(
++            interactionWorkspaceId: fixture.primaryWorkspace,
++            interactionMonitorId: fixture.primary.id
++        )
++        let first = resolvePlacement(
++            fixture,
++            workspaceName: "6",
++            pid: pid,
++            placementMode: .tiling,
++            origin: .liveCreate,
++            createPlacementContext: context,
++            windowFrame: fixture.primary.frame,
++            fallbackWorkspaceId: fixture.primaryWorkspace,
++            appInBackground: true
++        )
++        _ = fixture.controller.workspaceManager.addWindow(
++            axRef(pid, 577),
++            pid: pid,
++            windowId: 577,
++            to: first.workspaceId,
++            mode: .tiling
++        )
++        let second = resolvePlacement(
++            fixture,
++            workspaceName: "6",
++            pid: pid,
++            placementMode: .tiling,
++            origin: .liveCreate,
++            createPlacementContext: context,
++            windowFrame: fixture.primary.frame,
++            fallbackWorkspaceId: fixture.primaryWorkspace,
++            appInBackground: true
++        )
++
++        XCTAssertEqual(first.workspaceId, fixture.secondaryWorkspace)
++        XCTAssertEqual(second.workspaceId, fixture.secondaryWorkspace)
++        XCTAssertEqual(second.rung, .workspaceRule)
++    }
++
+     func testWorkspaceRuleAppliesOnlyWhileAppHasNoTrackedWindows() throws {
+         let fixture = try makeTwoMonitorFixture()
+         let pid: pid_t = 6_130
+@@ -1392,9 +1434,13 @@ final class FloatingCreatePlacementTests: XCTestCase {
+         windowFrame: CGRect?,
+         existingEntry: WindowState? = nil,
+         fallbackWorkspaceId: WorkspaceDescriptor.ID?,
+-        context: WindowRuleReevaluationContext = .automatic
++        context: WindowRuleReevaluationContext = .automatic,
++        appInBackground: Bool = false
+     ) -> WorkspacePlacementResolution {
+-        PlacementResolver(workspaceManager: fixture.controller.workspaceManager).resolveWorkspacePlacement(
++        PlacementResolver(
++            workspaceManager: fixture.controller.workspaceManager,
++            frontmostPid: { appInBackground ? nil : pid }
++        ).resolveWorkspacePlacement(
+             window: WorkspacePlacementWindow(
+                 axRef: axRef(pid, 10_000),
+                 pid: pid,
+-- 
+2.54.0 (Apple Git-157)
+
