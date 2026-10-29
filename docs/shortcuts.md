@@ -45,7 +45,7 @@ Two deliberate exceptions: Option+Tab (types nothing) and Option+F (costs the `�
 | Cmd+E | Hammerspoon | bring Finder to front (opens ~ if no window); closing the last Finder window gives the focus back to the window under the mouse |
 | Cmd+← / Cmd+→ (Safari) | Hammerspoon | previous / next tab; inside a text field they keep start / end of line |
 | Cmd+F1 | Hammerspoon | paste the prompt-optimisation prompt at the cursor (text in `prompt-insert.lua`; clipboard restored after 0.5 s; works with or without fn) |
-| Cmd+F2 | Hammerspoon | paste the XAU/USD intraday analysis prompt at the cursor (`M.xau` in `prompt-insert.lua`; same paste as Cmd+F1, works with or without fn) |
+| Cmd+F2 | Hammerspoon | paste the XAU/USD analysis prompt (4 orders, morning / evening) at the cursor (`M.xau` in `prompt-insert.lua`; same paste as Cmd+F1, works with or without fn) |
 | F3 | Hammerspoon | next wallpaper among the images of `~/Pictures` (loops); the theme follows, with the saved palette of a wallpaper seen before (`wallpaper-cycle.lua`; works with or without fn) |
 | Cmd+F5 | Hammerspoon | after a crash: reopen Ghostty, Safari, Discord and every Claude Code session (claude / claude2) of the last snapshot on its workspace (`scripts/restore-session.py`; snapshot every minute by `session-snapshot.py`; log `~/Library/Logs/restore-session.log`) |
 | F4 | Hammerspoon | cleaning mode: every key is blocked (trackpad still works) until a click on the card, or after 2 minutes; card image `~/.config/macos-config/keyboard-clean.jpg` (or .png), kept out of the repo (`keyboard-clean.lua`; works with or without fn) |

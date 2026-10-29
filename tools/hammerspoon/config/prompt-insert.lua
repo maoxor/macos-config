@@ -87,471 +87,230 @@ Retourne uniquement le prompt optimisé, adressé directement à Claude Code et 
 </prompt_original>]==]
 
 M.xau = [==[
-# PROMPT — ANALYSE XAU/USD INTRADAY EN TEMPS RÉEL
+# XAU/USD — ANALYSE EXPERTE & 4 ORDRES MATIN / SOIR
 
-## OBJECTIF
+## MISSION
 
-Analyse la situation actuelle du XAU/USD (or contre dollar américain) en utilisant les données de marché les plus récentes disponibles, les publications TradingView Minds, l'analyse technique, l'actualité économique et le sentiment des traders.
+Agis comme un analyste professionnel spécialisé dans le trading intraday du XAU/USD (or spot contre dollar américain).
 
-**Ta mission est de proposer deux stratégies intraday pour aujourd'hui :**
+Effectue une recherche web approfondie, confronte les données disponibles et identifie les meilleures opportunités de la session.
 
-1. **Stratégie agressive :** saisir rapidement une opportunité, notamment une cassure, sans confirmation excessive.
-2. **Stratégie conservatrice :** privilégier une entrée confirmée afin de limiter les faux signaux.
+**Objectif : produire 4 plans d'ordres précis à chaque analyse :**
 
-Les deux stratégies doivent comporter des prix précis, des conditions d'activation et d'invalidation définies à l'avance.
+- **A1 — Agressif :** saisir rapidement une cassure ou une accélération.
+- **A2 — Agressif :** exploiter une seconde opportunité réactive, distincte de A1.
+- **S1 — Safe :** privilégier une cassure confirmée, un retest ou une continuation validée.
+- **S2 — Safe :** rechercher une autre configuration à confirmation renforcée, avec une invalidation technique claire.
 
-**PRIORITÉ ABSOLUE : NE JAMAIS CONSTRUIRE DE STRATÉGIE À PARTIR D'UN PRIX ACTUEL NON VÉRIFIÉ OU OBSOLÈTE.**
+Les quatre ordres peuvent être acheteurs ou vendeurs, selon le marché. Ne force pas une répartition artificielle entre achats et ventes.
 
-Source principale :
-https://fr.tradingview.com/symbols/XAUUSD/minds/
+Recherche quatre configurations techniquement justifiées, pas quatre variantes presque identiques d'une seule idée.
 
----
+Adopte une analyse exigeante, précise et engagée. Prends position lorsqu'un scénario domine. Évite les généralités, les validations excessives, les précautions répétitives et les raisonnements interminables dans la réponse.
 
-## 0. ÉTAPE OBLIGATOIRE — VÉRIFICATION DU PRIX ACTUEL
+**Travail de fond approfondi. Résultat final court, chiffré et directement exploitable.**
 
-**CETTE ÉTAPE EST PRIORITAIRE SUR TOUTES LES AUTRES. ELLE DOIT ÊTRE EFFECTUÉE AVANT L'ANALYSE TECHNIQUE ET REFAITE AVANT LA RÉPONSE FINALE.**
+## 1. SESSION ET DONNÉES
 
-### A. Récupération du cours
+Détermine automatiquement la date et l'heure de Paris.
 
-Recherche activement la dernière cotation disponible du XAU/USD à l'aide de sources financières fiables :
+- **Matin :** 4 ordres pour la journée, avec clôture maximale par défaut à 20 h.
+- **Soir :** 4 ordres pour la nuit, avec clôture maximale par défaut à 8 h le lendemain.
 
-- TradingView (XAUUSD).
-- Investing.com (XAU/USD).
-- Autres fournisseurs de cotations financières reconnus.
-- Flux de prix du courtier, s'il est accessible.
+Adapte ces limites aux horaires de marché, à la liquidité et aux événements économiques.
 
-Ne te contente jamais d'une cotation affichée dans un article, une analyse technique ancienne ou un résultat de moteur de recherche.
+Recherche la dernière cotation XAU/USD spot disponible sur des sources fiables : TradingView, Investing.com ou fournisseurs financiers reconnus.
 
-Tu dois identifier :
+Une cotation horodatée datant de 5 à 10 minutes est acceptable pour préparer les scénarios. N'exige pas inutilement un flux temps réel à la seconde.
 
-- Le prix du XAU/USD.
-- Le Bid et l'Ask, lorsqu'ils sont disponibles.
-- La date exacte de la cotation.
-- Son heure exacte, convertie en heure de Paris.
-- La source et son lien.
-- L'heure actuelle à laquelle tu effectues la vérification.
-- L'âge réel de la cotation en secondes ou en minutes.
+Indique le dernier prix connu, sa source et son heure réelle lorsque disponible. Ne confonds jamais l'heure de consultation d'une page avec celle d'une cotation.
 
-**Important :** distingue l'heure de publication ou d'actualisation d'une page de l'heure réelle de sa dernière cotation.
+Ne fabrique jamais de prix, d'horodatage, de chandelier ou de confirmation technique.
 
-Ne considère jamais un prix comme actuel uniquement parce qu'une page Internet vient d'être consultée.
+## 2. RECHERCHE ET ANALYSE
 
-### B. Contrôle de fraîcheur obligatoire
+Analyse les unités **H4, H1, M15 et M5**.
 
-Applique les règles suivantes :
+Identifie notamment :
 
-1. La cotation principale doit idéalement dater de moins de **60 secondes**, et obligatoirement de moins de **120 secondes** pour être utilisée dans un plan d'ordres intraday.
-2. Recoupe le prix avec une deuxième source indépendante, si possible actualisée depuis moins de 3 minutes.
-3. Vérifie qu'il s'agit bien du **XAU/USD spot**, et non d'un contrat futures sur l'or, d'un ETF ou d'un instrument différent.
-4. Si deux cotations présentent un écart anormal, identifie la cause avant de poursuivre.
-5. Si les sources ne sont pas suffisamment récentes, cohérentes et horodatées, déclare explicitement que le prix actuel n'est pas vérifiable.
+- Tendance dominante, structure intraday et momentum.
+- Supports, résistances et niveaux de liquidité.
+- Cassures, retests, rejets et retournements potentiels.
+- Plus hauts et plus bas récents.
+- Volatilité, amplitude des mouvements et ATR si disponible.
+- Opportunités encore exploitables et signaux déjà consommés.
 
-**INTERDICTION ABSOLUE :**
-
-- D'utiliser le prix de ce matin, d'hier ou d'une analyse publiée plusieurs heures auparavant comme prix actuel.
-- De présenter une cotation non horodatée comme du temps réel.
-- D'estimer le prix actuel à partir d'un ancien cours.
-- De proposer des ordres numériques prétendument exécutables lorsque le prix actuel n'est pas vérifié.
-
-Si tu n'arrives pas à obtenir une cotation conforme à ces critères, **arrête la préparation des ordres exécutables**. Tu peux fournir une analyse indicative, mais tu dois annoncer clairement :
-
-**« PRIX ACTUEL NON VÉRIFIÉ — AUCUN ORDRE À DÉPOSER. »**
-
-Tu peux alors demander la dernière cotation Bid/Ask de mon courtier pour reprendre l'analyse.
-
-### C. Affichage obligatoire du prix
-
-Commence impérativement ta réponse par :
-
-**XAU/USD — COTATION VÉRIFIÉE**
-
-- Date du jour :
-- Heure actuelle de Paris :
-- Dernier prix vérifié :
-- Bid :
-- Ask :
-- Heure exacte de la cotation :
-- Âge de la cotation :
-- Source principale :
-- Source secondaire :
-- Statut : prix suffisamment récent / prix non vérifiable.
-
-Ne commence jamais par la tendance H4, des supports ou une stratégie : **commence toujours par le cours réel vérifié.**
-
----
-
-## 1. ANALYSE TECHNIQUE DU MARCHÉ ACTUEL
-
-Une fois le prix validé, analyse le XAU/USD sur :
-
-- **M5 :** dynamique immédiate et momentum.
-- **M15 :** tendance intraday, cassures et consolidations.
-- **H1 :** structure du mouvement et tendance de séance.
-- **H4 :** tendance dominante.
-
-Identifie :
-
-- Supports et résistances les plus proches du prix actuel.
-- Plus haut et plus bas du jour.
-- Zones de liquidité potentielles.
-- Zones de rejet et d'absorption éventuelles.
-- Niveaux de cassure.
-- Zones de retest.
-- Risques de fausses cassures.
-- Volatilité récente et amplitude des chandeliers.
-
-**RÈGLE ESSENTIELLE :**
-
-Tous les niveaux doivent être cohérents avec le prix actuel vérifié.
-
-Ne recycle pas automatiquement des supports ou résistances provenant d'analyses anciennes.
-
-Si le prix a déjà franchi un niveau technique, analyse son nouveau rôle potentiel.
-
-Distingue systématiquement :
-
-- Niveaux effectivement observés sur des données récentes.
-- Niveaux issus d'analyses externes.
-- Niveaux théoriques calculés.
-- Signaux non vérifiables.
-
-N'affirme jamais avoir confirmé une cassure M5 ou M15 si tu ne disposes pas des chandeliers correspondants.
-
----
-
-## 2. SENTIMENT DES TRADERS — TRADINGVIEW MINDS
-
-Consulte :
+Consulte également les publications récentes sur :
 
 https://fr.tradingview.com/symbols/XAUUSD/minds/
 
-Analyse les publications les plus récentes accessibles.
+Identifie les principaux biais, arguments et niveaux surveillés par les traders. Accorde plus de valeur aux analyses argumentées qu'au simple nombre d'opinions. N'invente pas de consensus si les données sont insuffisantes.
 
-Recherche :
+Vérifie les catalyseurs pertinents : DXY, rendements américains, Fed, statistiques économiques, géopolitique et calendrier des annonces.
 
-- Les opinions haussières.
-- Les opinions baissières.
-- Les niveaux fréquemment surveillés.
-- Les anticipations de cassure.
-- Les anticipations de retournement.
-- Les arguments techniques récurrents.
+Pour l'analyse nocturne, intègre les conditions de liquidité, le rollover et les événements susceptibles d'affecter la session asiatique.
 
-Vérifie autant que possible la date et l'heure des publications.
+Hiérarchise les informations : **prix et structure observables > contexte macroéconomique > sentiment externe**.
 
-Ne présente pas des messages anciens comme le sentiment actuel du marché.
+## 3. DIAGNOSTIC DE MARCHÉ
 
-Distingue clairement :
+Avant de construire les ordres, détermine :
 
-1. Opinion personnelle d'un trader.
-2. Analyse technique argumentée.
-3. Signal effectivement confirmé par les données de prix.
-4. Information impossible à vérifier.
+1. Biais principal : haussier, baissier ou neutre.
+2. Régime : tendance, range, cassure ou retournement.
+3. Les 2 à 4 niveaux techniques les plus importants.
+4. Les scénarios les plus crédibles pour la session.
+5. Les conditions précises qui invalideraient cette lecture.
 
-Si TradingView Minds est inaccessible ou si les publications récentes ne peuvent pas être datées, indique-le explicitement.
+Ne privilégie pas systématiquement la tendance H4 si les structures H1/M15 et le momentum immédiat la contredisent clairement.
 
-Ne fabrique jamais un consensus haussier ou baissier.
+Ne propose pas une entrée dont le mouvement est déjà consommé.
 
----
+## 4. CONSTRUIRE LES QUATRE ORDRES
 
-## 3. ACTUALITÉ ÉCONOMIQUE ET CATALYSEURS
+### A1 et A2 — AGRESSIFS
 
-Recherche les dernières actualités influençant l'or :
+Recherche deux opportunités réactives et réellement distinctes.
 
-- Dollar américain (DXY).
-- Rendements obligataires américains.
-- Anticipations de taux de la Fed.
-- Inflation et emploi américains.
-- Risques géopolitiques.
-- Demande de valeur refuge.
-- Déclarations des responsables monétaires.
+Privilégie les entrées rapides : cassure de niveau, accélération, impulsion naissante ou repli technique exploitable.
 
-Identifie les publications économiques du jour susceptibles de provoquer de la volatilité.
+N'impose pas de confirmation M15 si elle ferait perdre l'intérêt de la stratégie.
 
-Présente un tableau contenant :
+Prévois néanmoins une invalidation précise, une distance maximale d'entrée et un stop cohérent avec la volatilité.
 
-- Annonce.
-- Heure exacte de Paris.
-- Importance.
-- Résultat attendu.
-- Résultat publié, s'il est disponible et vérifié.
-- Influence potentielle sur le XAU/USD.
+### S1 et S2 — SAFE / CONSERVATEURS
 
-Précise si une annonce est imminente, vient de se produire ou est déjà intégrée dans le mouvement récent.
+Recherche deux opportunités plus sélectives.
 
-N'invente jamais un résultat économique non encore publié.
+Privilégie les signaux vérifiables : clôture M5/M15, retest, rejet confirmé, continuation structurée ou retournement validé.
 
----
+Définis exactement la confirmation nécessaire.
 
-## 4. CONTRÔLE DE COHÉRENCE AVANT DE CHOISIR UNE DIRECTION
+Si le scénario exige un retest, ne supprime pas cette condition pour rattraper un mouvement.
 
-Avant de proposer les deux stratégies :
+Les stratégies safe réduisent certains risques de faux signal, mais ne garantissent ni le déclenchement ni un résultat positif.
 
-1. Compare le prix actuel avec les supports et résistances les plus proches.
-2. Détermine si le prix est en tendance, en range, en cassure ou en retournement.
-3. Identifie les mouvements qui ont déjà eu lieu aujourd'hui.
-4. Vérifie qu'une opportunité envisagée n'a pas déjà été déclenchée.
-5. Vérifie si le marché vient de réagir à une annonce.
-6. Mesure la distance entre le prix actuel et les entrées envisagées.
+### PARAMÈTRES OBLIGATOIRES POUR CHAQUE ORDRE
 
-**Ne recommande pas une vente simplement parce que H4 est baissier si le marché est actuellement en forte impulsion haussière non invalidée.**
-
-Inversement, ne recommande pas automatiquement un achat après un rebond si la structure intraday reste baissière.
-
-Détermine la direction en fonction des conditions présentes, pas uniquement de la tendance historique.
-
----
-
-## 5. STRATÉGIE AGRESSIVE — RÉACTIVITÉ PRIORITAIRE
-
-Propose une stratégie conçue pour saisir rapidement un mouvement.
-
-Indique obligatoirement :
-
-- Direction : achat ou vente.
-- Type d'ordre : Buy Stop, Sell Stop, Buy Limit ou Sell Limit.
+- Direction : BUY ou SELL.
+- Type : Buy Stop, Sell Stop, Buy Limit ou Sell Limit.
 - **Prix d'entrée exact.**
-- Stop-loss exact.
-- Take-profit exact.
+- **Stop-Loss exact.**
+- **Take-Profit exact.**
 - Ratio rendement/risque.
-- Distance entre le prix actuel et l'entrée.
-- Condition de déclenchement.
-- Conditions d'invalidation.
-- Heure d'activation.
-- Heure d'expiration de l'ordre en attente.
-- Heure maximale de clôture d'une position déclenchée.
+- Distance SL en dollars.
+- Distance maximale autorisée entre le prix de marché et l'entrée.
+- Condition de placement ou de déclenchement.
+- Niveau d'invalidation.
+- Heure d'expiration et clôture maximale.
 
-### Règles spécifiques
+Choisis les niveaux à partir de la structure technique réellement documentée.
 
-Si l'entrée repose sur une cassure :
+Privilégie un ratio brut d'au moins 2:1 lorsqu'il est compatible avec des objectifs réalistes. N'invente jamais un TP éloigné uniquement pour améliorer le ratio.
 
-- Privilégie un Buy Stop ou un Sell Stop lorsque cela est pertinent.
-- N'ajoute pas une confirmation M15 susceptible de faire manquer le mouvement.
-- Autorise une entrée conditionnelle immédiatement après validation des critères.
-- Prévois un filtre contre les faux déclenchements, sans rendre la stratégie inutilement lente.
+Chaque ordre doit avoir une logique propre et une justification courte.
 
-**Distance maximale à l'entrée :**
+## 5. VÉRIFICATIONS ET GESTION DU RISQUE
 
-Définis une distance maximale précise, en dollars, cohérente avec la volatilité M5 et le stop-loss.
+Avant la décision finale :
 
-Si le marché a déjà atteint l'entrée, ne replace jamais mécaniquement le même ordre en espérant une nouvelle cassure.
+- Contrôle la compatibilité de chaque type d'ordre avec le dernier marché connu et, si disponibles, le Bid/Ask.
+- Vérifie que les niveaux n'ont pas déjà été atteints ou invalidés.
+- Compare la distance d'entrée à la tolérance définie.
+- Évalue la cohérence du stop, du TP, du spread et du risque de slippage.
+- Identifie les ordres concurrents, incompatibles ou susceptibles de se déclencher ensemble.
+- Ne réajuste pas arbitrairement une entrée pour poursuivre le prix.
 
-Si le mouvement est déjà trop avancé, annule le scénario.
+**Risque :**
 
-Explique les risques de faux signal, de slippage et de déclenchement pendant une mèche.
+- Maximum théorique : 0,5 % du capital par trade.
+- Budget de risque cumulé par session : 1 % maximum, en tenant compte des ordres susceptibles d'être exécutés ensemble.
+- Éviter de cumuler plusieurs positions XAU/USD corrélées.
+- Utiliser des ordres OCO ou une annulation des ordres concurrents lorsque le courtier le permet.
+- Prévoir SL et TP pour chaque position, avec fermeture à l'heure limite si celle-ci est prise en charge.
+- Ne pas élargir un stop après déclenchement.
 
----
+Les **quatre plans proposés ne signifient pas quatre positions simultanées**. Distingue les ordres pouvant être déposés ensemble de ceux qui sont alternatifs.
 
-## 6. STRATÉGIE CONSERVATRICE — CONFIRMATION PRIORITAIRE
+Une cotation web datant de dix minutes permet de préparer les niveaux, mais leur exécution nécessite de vérifier le prix, le spread et les règles du courtier au moment du dépôt.
 
-Propose une stratégie privilégiant un signal confirmé.
+Si certaines données sont indisponibles, travaille avec les éléments fiables et précise les limites réellement importantes. N'interromps pas inutilement l'ensemble de l'analyse.
 
-Indique obligatoirement :
+## 6. FORMAT DE RÉPONSE
 
-- Direction.
-- Type d'ordre.
-- **Prix d'entrée exact.**
-- Stop-loss.
-- Take-profit.
-- Ratio rendement/risque.
-- Confirmation attendue en M5 ou M15.
-- Nécessité ou non d'un retest.
-- Distance maximale autorisée entre prix et entrée.
-- Heure d'activation.
-- Heure d'expiration.
-- Heure maximale de clôture.
-- Conditions d'invalidation.
+### A. SYNTHÈSE DU MARCHÉ
 
-### Règles spécifiques
+Indique :
+- Date, heure de Paris et session JOUR/NUIT.
+- Dernier prix XAU/USD connu, source et ancienneté.
+- Biais dominant et force de ce biais.
+- Principaux niveaux techniques.
+- Catalyseurs et risques de la session.
 
-Définis dès le départ :
+Maximum 8 lignes de synthèse.
 
-- Le niveau exact devant être franchi.
-- L'unité de temps de confirmation.
-- Le type de clôture attendu.
-- La zone éventuelle de retest.
-- Les conditions permettant de placer l'ordre.
+### B. LES 4 ORDRES
 
-Si un retest est obligatoire, ne recommande pas une entrée au marché sans retest après avoir défini la stratégie.
+Présente un tableau unique :
 
-Si le prix part directement vers l'objectif sans revenir au point d'entrée, considère l'opportunité comme manquée.
+| Paramètre | A1 Agressif | A2 Agressif | S1 Safe | S2 Safe |
+|---|---|---|---|---|
+| BUY / SELL | | | | |
+| Type d'ordre | | | | |
+| Entrée | | | | |
+| Stop-Loss | | | | |
+| Take-Profit | | | | |
+| Ratio R/R | | | | |
+| Distance SL ($) | | | | |
+| Distance max. d'entrée | | | | |
+| Condition d'activation | | | | |
+| Invalidation | | | | |
+| Expiration | | | | |
+| Clôture maximale | | | | |
+| Statut | | | | |
 
-**Indique explicitement que la confirmation peut faire manquer le mouvement.**
+Ajoute sous le tableau **une justification de 2 à 3 phrases par ordre**, expliquant l'opportunité, le choix des niveaux et le principal risque.
 
-Ne modifie pas arbitrairement les règles pour essayer de récupérer une entrée manquée.
+### C. CLASSEMENT ET DÉCISION OPÉRATIONNELLE
 
----
+Classe les quatre plans du meilleur au moins intéressant selon :
 
-## 7. VÉRIFICATION DES ORDRES AVANT PUBLICATION
+- Solidité technique.
+- Probabilité relative de déclenchement et de réussite, sans inventer de pourcentage statistique.
+- Rendement/risque.
+- Proximité de l'entrée et conditions de liquidité.
 
-**ÉTAPE OBLIGATOIRE : UNE FOIS LES STRATÉGIES CALCULÉES, RÉCUPÈRE UNE NOUVELLE COTATION DU XAU/USD.**
+Indique clairement :
 
-Cette deuxième vérification est indispensable car le prix peut avoir fortement changé pendant la recherche et l'analyse.
+**ORDRE PRIORITAIRE :** celui présentant le meilleur compromis global.
 
-Affiche :
+**MEILLEUR AGRESSIF :** A1 ou A2.
 
-- Prix vérifié au début de l'analyse.
-- Prix vérifié à la fin.
-- Heure exacte de chaque cotation.
-- Variation entre les deux.
-- Source utilisée.
+**MEILLEUR SAFE :** S1 ou S2.
 
-Applique ensuite les tests suivants.
+**ORDRES À PRÉPARER :** niveaux et conditions exacts.
 
-### Test A — Position de l'ordre
+**ORDRES À NE PAS CUMULER :** conflits et annulations nécessaires.
 
-Vérifie que le type d'ordre est compatible avec le marché actuel et les règles du courtier :
+Utilise les statuts :
+- **PRÊT À SAISIR :** plan cohérent avec les dernières données connues, soumis au contrôle du courtier.
+- **CONDITIONNEL :** confirmation ou événement précis encore nécessaire.
+- **ANNULÉ :** signal consommé ou invalidé.
+- **DONNÉES INSUFFISANTES :** niveaux non justifiables de manière fiable.
 
-- Buy Stop : prix de déclenchement au-dessus du marché.
-- Sell Stop : prix de déclenchement en dessous du marché.
-- Buy Limit : prix limite inférieur au marché pour une entrée sur repli.
-- Sell Limit : prix limite supérieur au marché pour une entrée sur rebond.
+Termine par une **décision concrète de quelques lignes**, sans conclusion générique ni répétition de l'analyse.
 
-Tiens compte du Bid, de l'Ask, du spread et des règles de déclenchement propres au courtier.
+Cite 3 à 5 sources majeures réellement consultées.
 
-### Test B — Entrée déjà atteinte
+## INSTRUCTION FINALE
 
-Si le prix a déjà touché ou dépassé le niveau d'entrée depuis le moment où le scénario a été défini :
+Recherche prioritairement **4 plans distincts : 2 agressifs et 2 safe**, à chaque exécution du prompt.
 
-- Vérifie si la condition d'entrée a déjà été réalisée.
-- Ne présente pas l'ordre comme s'il attendait encore une première cassure.
-- Annule le scénario s'il est déjà consommé.
-- Ne recalcule pas arbitrairement l'entrée pour poursuivre le prix.
+Sois décisif sans inventer de certitudes. Privilégie la qualité des configurations, la cohérence des niveaux, des déclencheurs explicites et une gestion mesurée de l'exposition.
 
-Un nouveau scénario ne peut être proposé que s'il repose sur un nouvel élément technique identifié et vérifiable.
+Si moins de quatre opportunités sont justifiables, conserve les quatre emplacements, mais marque les configurations non valides au lieu d'inventer des ordres.
 
-### Test C — Distance maximale
-
-Calcule explicitement :
-
-**Distance = valeur absolue (prix actuel − prix d'entrée).**
-
-Compare cette distance à la limite définie pour chaque stratégie.
-
-Si la distance dépasse la limite, considère l'ordre comme non admissible.
-
-### Test D — Fraîcheur finale
-
-Si la dernière cotation a plus de 120 secondes ou n'est plus vérifiable, **ne valide aucun ordre**.
-
-### Test E — Qualité du plan
-
-Vérifie :
-
-- Stop-loss cohérent avec l'invalidation technique.
-- Take-profit cohérent avec les obstacles présents.
-- Ratio rendement/risque calculé correctement.
-- Spread et frais pris en compte.
-- Risque raisonnable par rapport à la volatilité.
-- Aucune condition contradictoire.
-
-Ne force pas un ratio de 2:1 en plaçant artificiellement un take-profit irréaliste.
-
-Si un ordre échoue aux vérifications, indique **ANNULÉ** ou **NON ACTIVABLE**, plutôt que de le maintenir artificiellement.
-
----
-
-## 8. GESTION DU RISQUE
-
-Applique les règles suivantes :
-
-- Risque maximal : **0,5 % du capital par trade**.
-- Ratio rendement/risque brut privilégié : **2:1 minimum**, lorsqu'il est techniquement justifié.
-- Ne pas élargir le stop-loss pour éviter une perte.
-- Ne pas poursuivre un mouvement déjà engagé.
-- Ne pas entrer si le spread est anormal.
-- Éviter une nouvelle entrée immédiatement autour d'une publication économique majeure si les conditions d'exécution sont instables.
-- Annuler un ordre en attente à son heure d'expiration.
-- Clôturer toute position au plus tard à l'heure limite déterminée.
-- Les deux stratégies sont alternatives : ne pas exposer simultanément le compte aux deux scénarios.
-
-Si le capital, la taille du contrat ou les spécifications du courtier sont inconnus, présente un calcul théorique de volume en explicitant tes hypothèses.
-
-Le risque réalisé peut dépasser 0,5 % en présence de gaps ou de slippage.
-
----
-
-## 9. TABLEAU COMPARATIF OBLIGATOIRE
-
-Présente un tableau contenant :
-
-| Paramètre | Agressif | Conservateur |
-|---|---|---|
-| Direction | | |
-| Type d'ordre | | |
-| Prix d'entrée | | |
-| Stop-loss | | |
-| Take-profit | | |
-| Ratio rendement/risque | | |
-| Distance du prix actuel à l'entrée | | |
-| Distance maximale autorisée | | |
-| Confirmation requise | | |
-| Risque | | |
-| Heure d'activation | | |
-| Expiration de l'ordre | | |
-| Clôture maximale si déclenché | | |
-| Statut actuel : activable / conditionnel / annulé | | |
-
-Les niveaux doivent être issus des données effectivement disponibles au moment de la vérification.
-
-Un niveau théorique ne doit jamais être présenté comme un ordre immédiatement exécutable.
-
----
-
-## 10. DÉCISION FINALE — ORDRES À DÉPOSER OU NON
-
-Termine par une rubrique :
-
-**« DÉCISION OPÉRATIONNELLE — XAU/USD »**
-
-Précise :
-
-1. Le dernier prix XAU/USD vérifié, son heure et sa source.
-2. L'heure actuelle à laquelle la recommandation est finalisée.
-3. Le biais dominant du marché.
-4. L'ordre agressif à préparer.
-5. L'ordre conservateur à préparer.
-6. Les conditions exactes avant placement.
-7. Les ordres qui peuvent être déposés maintenant.
-8. Les ordres qui nécessitent encore une confirmation.
-9. Les ordres annulés parce que leur signal est déjà passé.
-10. La stratégie privilégiée et la raison.
-
-Attribue un statut explicite à chaque stratégie :
-
-- **DÉPOSABLE MAINTENANT :** conditions vérifiées, prix récent, ordre cohérent avec le marché.
-- **CONDITIONNEL :** attendre uniquement le déclencheur déjà défini.
-- **ANNULÉ :** mouvement déjà passé, ordre dépassé ou scénario invalidé.
-- **NON VÉRIFIABLE :** données récentes insuffisantes.
-
-Ne présente jamais un ordre conditionnel comme immédiatement dépos able.
-
-Si aucune stratégie ne respecte les conditions, conclus :
-
-**« AUCUN ORDRE À DÉPOSER ACTUELLEMENT. »**
-
----
-
-# RÈGLES ABSOLUES — À RESPECTER SANS EXCEPTION
-
-1. **VÉRIFIER LE PRIX ACTUEL AVANT TOUTE ANALYSE.**
-2. **REVÉRIFIER LE PRIX JUSTE AVANT DE PUBLIER LES ORDRES.**
-3. Ne jamais considérer le prix d'un article ou d'une ancienne analyse comme une cotation actuelle.
-4. Ne pas fabriquer de cotation, d'heure, de chandelier ou de confirmation TradingView.
-5. Ne pas construire de niveaux d'entrée déconnectés du marché actuel.
-6. Vérifier que chaque type d'ordre est compatible avec le prix actuel.
-7. Annuler les scénarios déjà déclenchés ou dépassés.
-8. Respecter les distances maximales à l'entrée.
-9. Ne pas attendre systématiquement une confirmation dans la stratégie agressive.
-10. Ne pas supprimer une confirmation obligatoire de la stratégie conservatrice.
-11. Ne pas modifier les niveaux en cours d'analyse sans élément nouveau et vérifié.
-12. Ne pas présenter des opportunités théoriques comme des ordres exécutables.
-13. Privilégier une bonne opportunité réelle plutôt que deux stratégies artificiellement construites.
-14. Si une seule stratégie est valide, présenter l'autre comme non activable.
-15. Si le prix actuel ne peut pas être vérifié de manière fiable, **ne proposer aucun ordre exécutable**.
-
-**PRINCIPE FONDAMENTAL : LA QUALITÉ ET LA FRAÎCHEUR DE LA COTATION PRIMENT SUR LA NÉCESSITÉ DE PRODUIRE DEUX ORDRES.**
-
-**RÉSULTAT ATTENDU :** une analyse XAU/USD fondée sur les conditions effectivement observées aujourd'hui, accompagnée de deux plans intraday précis lorsque les données le permettent, avec une vérification initiale et finale du prix, des niveaux cohérents avec le marché et une décision claire concernant les ordres qui peuvent réellement être déposés.]==]
+**Résultat recherché : quatre scénarios hiérarchisés, des prix précis fondés sur des données vérifiables, et une décision opérationnelle facile à appliquer.**]==]
 
 local restoreTimer
 
