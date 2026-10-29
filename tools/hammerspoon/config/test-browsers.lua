@@ -3,7 +3,7 @@
 -- becomes frontmost without a click from the user in the last second, focus goes straight back to the app that
 -- had it. Clicking into such a browser on workspace 4 still works. (Polled: these apps are often not reported
 -- by hs.application.watcher.) Safari windows a session forces to float are moved to
--- workspace 4 on each OmniWM windows-changed event.
+-- workspace 4 (checked every 2 s).
 local M = {}
 M.bundles = {
   ["com.google.chrome.for.testing"] = true, ["org.chromium.Chromium"] = true,
@@ -34,34 +34,24 @@ M.timer = hs.timer.doEvery(0.25, function()
 end)
 
 local CTL = os.getenv("HOME") .. "/.local/bin/omniwmctl"
-local moving = false
+-- Every 2 s, a short query of the floating Safari windows only. Not "omniwmctl subscribe": hs.task keeps the
+-- whole output of a task that never ends, and that stream grew Hammerspoon to 4.6 GB (2026-10-29).
+local busy = false
 local function sweep()
-  if moving then return end
-  moving = true
-  hs.task.new(CTL, function(_, out)
+  if busy then return end
+  busy = true
+  M.task = hs.task.new(CTL, function(_, out)
+    busy = false
     local ok, data = pcall(hs.json.decode, out or "")
-    local ids = {}
-    if ok and data and data.result then
-      for _, w in ipairs(data.result.payload.windows or {}) do
-        -- Safari windows that a session forced to float (AppleScript + toggle-focused-window-floating).
-        local driven = w.app.bundleId == "com.apple.Safari" and w.manualOverride == "force-float"
-        if driven and w.workspace and w.workspace.number ~= 4 then ids[#ids + 1] = w.id end
+    if not (ok and data and data.result) then return end
+    for _, w in ipairs(data.result.payload.windows or {}) do
+      if w.manualOverride == "force-float" and w.workspace and w.workspace.number ~= 4 then
+        hs.task.new(CTL, nil, { "window", "move-to-workspace", w.id, "4" }):start()
       end
     end
-    for _, id in ipairs(ids) do hs.task.new(CTL, nil, { "window", "move-to-workspace", id, "4" }):start() end
-    moving = false
-  end, { "query", "windows", "--format", "json" }):start()
+  end, { "query", "windows", "--bundle-id", "com.apple.Safari", "--floating", "--format", "json" })
+  M.task:start()
 end
-
-M.debounce = hs.timer.delayed.new(0.4, sweep)
-
-local function subscribe()
-  M.sub = hs.task.new(CTL, function() hs.timer.doAfter(5, subscribe) end, function()
-    M.debounce:start() -- one query per burst of window events
-    return true
-  end, { "subscribe", "windows-changed", "--no-send-initial", "--format", "ndjson" })
-  M.sub:start()
-end
-subscribe()
+M.sweepTimer = hs.timer.doEvery(2, sweep)
 
 return M
