@@ -2,8 +2,8 @@
 // Agents' test browsers kept flashing windows (B19) that were gone before anyone could look; this records them for
 // later: owner, bundle, frame, uncovered area (Ghostty is translucent, so a window behind it counts as seen), how long
 // it stayed, and the process chain that launched it (pid, name, working directory: the project).
-// Polls the window list every 250 ms, every 16 ms while a test browser or driver process runs (the first window of a
-// launch comes ~0.5 s after its process). JSON lines in ~/Library/Logs/macos-config/windows/YYYY-MM-DD.jsonl, 7 days.
+// Polls the window list every 250 ms, every 16 ms while a test browser or driver process is starting or working (the
+// first window of a launch comes ~0.5 s after its process). JSON lines in ~/Library/Logs/macos-config/windows/YYYY-MM-DD.jsonl, 7 days.
 // Run: scripts/window-journal.sh (launchd agent window-journal); `scripts/window-journal.sh report [hours]` summarises.
 import AppKit
 import Darwin
@@ -13,8 +13,10 @@ import IOKit
 let home = FileManager.default.homeDirectoryForCurrentUser.path
 let env = ProcessInfo.processInfo.environment
 let dir = env["WINDOW_JOURNAL_DIR"] ?? home + "/Library/Logs/macos-config/windows"
-// pt²: below it (a 40x41 corner, a 1 pt parked edge) nobody sees a window. WINDOW_JOURNAL_MIN_AREA for tests.
+// pt²: below it (a 40x41 corner, a 1 pt parked edge) nobody sees a window. WINDOW_JOURNAL_MIN_AREA and _MIN_SIDE
+// for tests.
 let minArea = Double(env["WINDOW_JOURNAL_MIN_AREA"] ?? "") ?? 5000
+let minSide = Double(env["WINDOW_JOURNAL_MIN_SIDE"] ?? "") ?? 50   // strips are not screens
 let seeThrough: Set<String> = ["com.mitchellh.ghostty"]    // background-opacity < 1: what is behind shows through
 let testExecutables = ["Google Chrome for Testing", "/Chromium.app/", "/ms-playwright/", "chromedriver", "geckodriver",
                        "/Nightly.app/", "/Playwright.app/", "chrome-headless-shell"]
@@ -54,17 +56,32 @@ func idleSeconds() -> Double {
     return ((v as? NSNumber)?.doubleValue ?? 0) / 1e9
 }
 var isTest: [pid_t: Bool] = [:]     // a pid's executable is read once
-func testProcessRunning() -> Bool {
+var testCPU: [pid_t: (seen: Date, cpu: UInt64)] = [:]
+let timebase: Double = { var t = mach_timebase_info_data_t(); mach_timebase_info(&t); return Double(t.numer) / Double(t.denom) }()
+func cpuNanoseconds(_ pid: pid_t) -> UInt64? {
+    var info = proc_taskinfo()
+    let n = proc_pidinfo(pid, PROC_PIDTASKINFO, 0, &info, Int32(MemoryLayout<proc_taskinfo>.size))
+    return n > 0 ? UInt64(Double(info.pti_total_user + info.pti_total_system) * timebase) : nil
+}
+/// A test browser or driver that is working: started in the last 30 s, or used more than 5 ms of CPU since the last
+/// check (250 ms). An idle leftover (an orphan browser kept for hours) does not keep the fast polling on.
+func testProcessActive() -> Bool {
     let n = proc_listallpids(nil, 0)
     var pids = [pid_t](repeating: 0, count: Int(n) + 64)
     let got = Int(max(proc_listallpids(&pids, Int32(pids.count * MemoryLayout<pid_t>.size)), 0))
-    var known: [pid_t: Bool] = [:], any = false
+    var known: [pid_t: Bool] = [:], active = false
+    let now = Date()
+    var cpus: [pid_t: (seen: Date, cpu: UInt64)] = [:]
     for pid in pids.prefix(got) where pid > 0 {
         let test = isTest[pid] ?? { let path = pidPath(pid); return testExecutables.contains { path.contains($0) } }()
-        known[pid] = test; any = any || test
+        known[pid] = test
+        guard test, let cpu = cpuNanoseconds(pid) else { continue }
+        let before = testCPU[pid] ?? (seen: now, cpu: cpu)
+        cpus[pid] = (seen: before.seen, cpu: cpu)
+        if now.timeIntervalSince(before.seen) < 30 || cpu - min(cpu, before.cpu) > 5_000_000 { active = true }
     }
-    isTest = known
-    return any
+    isTest = known; testCPU = cpus
+    return active
 }
 
 // MARK: journal
@@ -128,7 +145,7 @@ func scan() {
         s.frame = r; s.lastPresent = now
         let young = now.timeIntervalSince(s.first) < 10
         // Strips (the 8 pt margin veil, a parked edge) are not screens: at least 50 pt both ways.
-        let large = alpha > 0.05 && !vis.isNull && vis.width * vis.height >= minArea && min(vis.width, vis.height) >= 50
+        let large = alpha > 0.05 && !vis.isNull && vis.width * vis.height >= minArea && min(vis.width, vis.height) >= minSide
         if s.shownSince == nil && !(young && large) { seen[num] = s; continue }
         // Uncovered share of the on-screen part, sampled on a 24x24 grid against the windows in front of it.
         var shown = 0, through = Set<String>()
@@ -218,7 +235,7 @@ prune()
 var fast = false, lastCheck = Date.distantPast, lastPrune = Date(), lastIds = Set<Int>(), lastScan = Date.distantPast
 func tick() {
     let now = Date()
-    if now.timeIntervalSince(lastCheck) >= 0.25 { fast = testProcessRunning() || !seen.values.allSatisfy { $0.shownSince == nil }; lastCheck = now }
+    if now.timeIntervalSince(lastCheck) >= 0.25 { fast = testProcessActive() || !seen.values.allSatisfy { $0.shownSince == nil }; lastCheck = now }
     if now.timeIntervalSince(lastPrune) > 86400 { prune(); lastPrune = now }
     // The window numbers alone are cheap; the full descriptions (~5 ms) are read only when a window appeared or a
     // young window is being followed.
