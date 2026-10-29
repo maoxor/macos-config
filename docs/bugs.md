@@ -206,7 +206,17 @@ Before changing anything listed here, read the entry and keep its verification p
   all copies and runs every 5 minutes (~5 s of CPU). Verified: 122 fps, clicks, WebGL and screenshots unchanged.
 - **Left:** a persistent context's first window (`launchPersistentContext`) is the browser's startup window, born in
   front (measured 80 ms, 86 % visible); no project uses it. Real Chrome launched headed by a script has no OmniWM rule
-  (`com.google.Chrome` is the user's browser) and would land on the current workspace.
+  (`com.google.Chrome` is the user's browser) and would land on the current workspace. Checked the same evening: the
+  Selenium runs (Dash tests, real Chrome through chromedriver) all passed `--headless`; `chrome-devtools-mcp` is set
+  headed in one project but its profile was last used on 2026-10-12.
+- **Journal (2026-10-29):** the `window-journal` agent (`scripts/window-journal.swift`) records every new window
+  that shows over the user's work (>= 5000 pt2 uncovered; behind Ghostty counts as shown), how long, and the process
+  chain with working directories (the project). `window-journal report [hours]`; files in
+  `~/Library/Logs/macos-config/windows/`. Cost: the window numbers only every 250 ms (16 ms while a test browser
+  runs); full descriptions only when a window appears. Durations are to +/- 250 ms outside test runs. Verified: a
+  300x300 panel shown 300 ms and a 40x40 panel moved to the middle are logged with their chain; the corner page
+  windows stay under the threshold (1298 pt2 at most, 0-25 ms). Notification Center keeps a transparent full-screen
+  window (layer 21) while a banner shows: only layers 0-19 count as covering (counting it hid everything).
 
 ### B17 — Process incidents (rules that came out of them)
 - The full OmniWM test suite froze the Mac: run targeted `--filter` tests only.

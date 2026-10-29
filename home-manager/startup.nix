@@ -108,6 +108,20 @@ in {
         StandardErrorPath = "${logs}/perf-journal.log";
       };
     };
+    # Every window that shows over the user's work, and the process (project) that opened it; one week kept
+    # (scripts/window-journal.swift; `window-journal report` summarises). Polls every 250 ms, every 16 ms while a
+    # test browser runs.
+    window-journal = {
+      enable = true;
+      config = {
+        ProgramArguments = [ "/bin/bash" "${identity.repoDir}/scripts/window-journal.sh" ];
+        RunAtLoad = true;
+        KeepAlive = { SuccessfulExit = false; };
+        ThrottleInterval = 30;
+        ProcessType = "Standard";
+        StandardErrorPath = "${logs}/window-journal.log";
+      };
+    };
     logrotate = {
       enable = true;
       config = {
@@ -125,4 +139,6 @@ in {
   # jobgate: heavy jobs wait for real free memory and pause only while the Mac thrashes (docs/performance.md).
   home.file.".local/bin/jobgate".source =
     config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/jobgate.py";
+  home.file.".local/bin/window-journal".source =
+    config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/window-journal.sh";
 }

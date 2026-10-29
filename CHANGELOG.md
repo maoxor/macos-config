@@ -4,6 +4,9 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Window journal: the `window-journal` agent records every new window that shows over the user's work, for how
+  long, and the process (project) that opened it; `window-journal report [hours]` (B19). Rollback: remove the
+  agent and the `.local/bin/window-journal` entry from `home-manager/startup.nix` and re-apply.
 - Playwright test pages are born in the bottom-right corner as well as behind the user's windows: Ghostty is
   translucent, so a 1200x1257 page window behind the terminals still showed through for 20-85 ms (Chrome keeps
   40 x 41 pt of a window on screen, OmniWM parks it in ~20 ms). The patch now also covers Python Playwright, the
