@@ -18,72 +18,15 @@ Why these measures (2026-10-29 audit):
   perf-journal.py now          one sample printed, nothing written
 
 Journal: ~/Library/Logs/macos-config/perf/YYYY-MM-DD.jsonl, 8 days kept (about 2 MB a day)."""
-import ctypes, ctypes.util, datetime, glob, json, os, re, subprocess, sys, time
+import datetime, glob, json, os, re, sys, time
+
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+from macstat import TICK_NS, args, cpu_ticks, cwd, gpu, name, pids, run, rusage  # noqa: E402
 
 DIR = os.environ.get("PERF_JOURNAL_DIR") or os.path.expanduser("~/Library/Logs/macos-config/perf")
 STATE = os.path.join(DIR, ".state.json")  # previous cumulative CPU/GPU times, for the per-minute deltas
 KEEP_DAYS = 8
 TOP = 12
-
-libc = ctypes.CDLL(ctypes.util.find_library("c"), use_errno=True)
-libproc = ctypes.CDLL("/usr/lib/libproc.dylib", use_errno=True)
-
-
-class RusageV2(ctypes.Structure):
-    _fields_ = [("uuid", ctypes.c_uint8 * 16)] + [(n, ctypes.c_uint64) for n in (
-        "user_time", "system_time", "pkg_idle_wkups", "interrupt_wkups", "pageins", "wired_size", "resident_size",
-        "phys_footprint", "proc_start_abstime", "proc_exit_abstime", "child_user_time", "child_system_time",
-        "child_pkg_idle_wkups", "child_interrupt_wkups", "child_pageins", "child_elapsed_abstime",
-        "diskio_bytesread", "diskio_byteswritten")]
-
-
-class Timebase(ctypes.Structure):
-    _fields_ = [("numer", ctypes.c_uint32), ("denom", ctypes.c_uint32)]
-
-
-_tb = Timebase()
-libc.mach_timebase_info(ctypes.byref(_tb))
-TICK_NS = _tb.numer / _tb.denom  # rusage times are mach ticks (125/3 ns on Apple silicon)
-
-
-def pids():
-    n = libproc.proc_listallpids(None, 0)
-    buf = (ctypes.c_int * (n + 64))()
-    n = libproc.proc_listallpids(buf, ctypes.sizeof(buf))
-    return [p for p in buf[:n] if p > 0]
-
-
-def name(pid):
-    buf = ctypes.create_string_buffer(4096)
-    if libproc.proc_pidpath(pid, buf, 4096) > 0:
-        path = buf.value.decode(errors="replace")
-        if "/claude/versions/" in path:  # the Claude Code binary is named after its version (2.1.310)
-            return "claude"
-        return os.path.basename(path)
-    buf = ctypes.create_string_buffer(64)
-    libproc.proc_name(pid, buf, 64)
-    return buf.value.decode(errors="replace") or "?"
-
-
-def args(pid):
-    """argv of a process (KERN_PROCARGS2), to tell apart the pythons, nodes and rubys."""
-    mib = (ctypes.c_int * 3)(1, 49, pid)  # CTL_KERN, KERN_PROCARGS2
-    size = ctypes.c_size_t(1 << 16)
-    buf = ctypes.create_string_buffer(size.value)
-    if libc.sysctl(mib, 3, buf, ctypes.byref(size), None, 0) != 0:
-        return ""
-    raw = buf.raw[:size.value]
-    argc = int.from_bytes(raw[:4], "little")
-    parts = [p for p in raw[4:].split(b"\0") if p][1:argc + 1]  # skip the exec path
-    return " ".join(p.decode(errors="replace") for p in parts)[:160]
-
-
-def cwd(pid):
-    """Working directory (PROC_PIDVNODEPATHINFO: vnode_info_path cdir = 152-byte vnode_info + 1024-byte path)."""
-    buf = ctypes.create_string_buffer(2352)
-    if libproc.proc_pidinfo(pid, 9, ctypes.c_uint64(0), buf, 2352) <= 0:
-        return ""
-    return buf.raw[152:1176].split(b"\0", 1)[0].decode(errors="replace")
 
 
 def short(pid, fallback):
@@ -103,30 +46,10 @@ def short(pid, fallback):
 
 def processes():
     out = {}
-    ru = RusageV2()
     for pid in pids():
-        if libproc.proc_pid_rusage(pid, 2, ctypes.byref(ru)) != 0:
-            continue
-        out[pid] = (ru.phys_footprint, (ru.user_time + ru.system_time) * TICK_NS / 1e9, ru.proc_start_abstime)
+        if ru := rusage(pid):
+            out[pid] = (ru.phys_footprint, (ru.user_time + ru.system_time) * TICK_NS / 1e9, ru.proc_start_abstime)
     return out
-
-
-def run(*cmd):
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=20).stdout
-
-
-def gpu():
-    stats = run("/usr/sbin/ioreg", "-r", "-d1", "-c", "IOAccelerator")
-    num = lambda k: int(m.group(1)) if (m := re.search(rf'"{re.escape(k)}"=(\d+)', stats)) else None
-    per_pid = {}
-    clients = run("/usr/sbin/ioreg", "-r", "-c", "AGXDeviceUserClient", "-l")
-    for block in clients.split("+-o AGXDeviceUserClient")[1:]:
-        m = re.search(r'"IOUserClientCreator" = "pid (\d+), ([^"]*)"', block)
-        if m:
-            t = sum(int(x) for x in re.findall(r'"accumulatedGPUTime"=(\d+)', block))
-            per_pid[int(m.group(1))] = per_pid.get(int(m.group(1)), 0) + t
-    return {"util": num("Device Utilization %"), "inuse_gb": round((num("In use system memory") or 0) / 1e9, 2),
-            "alloc_gb": round((num("Alloc system memory") or 0) / 1e9, 2)}, per_pid
 
 
 def memory():
@@ -142,24 +65,6 @@ def memory():
             "swap_gb": round(float(used.group(1)) / 1024, 2) if used else None,
             "load": [float(x) for x in sc[2].strip("{} ").split()[:3]],
             "_counters": {k: p.get(k, 0) for k in ("Compressions", "Decompressions", "Swapins", "Swapouts")}}
-
-
-class _Host:
-    count = ctypes.c_uint32()
-    info = ctypes.POINTER(ctypes.c_int32)()
-    n = ctypes.c_uint32()
-
-
-def cpu_ticks():
-    """Whole-machine user/system/idle ticks (host_processor_info). kernel_task (pid 0) is not readable without
-    root; the system share carries its work, memory compression included."""
-    h = _Host()
-    libc.host_processor_info(libc.mach_host_self(), 2, ctypes.byref(h.count), ctypes.byref(h.info), ctypes.byref(h.n))
-    t = [0, 0, 0, 0]  # CPU_STATE_USER, SYSTEM, IDLE, NICE
-    for i in range(h.count.value * 4):
-        t[i % 4] += h.info[i]
-    libc.vm_deallocate(ctypes.c_uint.in_dll(libc, "mach_task_self_"), ctypes.cast(h.info, ctypes.c_void_p), ctypes.c_size_t(h.n.value * 4))
-    return t
 
 
 def cpu_split(ticks, before):

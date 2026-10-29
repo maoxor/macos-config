@@ -68,6 +68,10 @@ reg=$(OMNIWM_SCREEN=2074x1340 python3 -I tools/omniwm/apply-registry.py "$t/omni
 if [ "$reg" = "0 change(s)" ]; then echo "  ok    OmniWM registry matches tools/omniwm/config/settings.toml"
 else fail "apply-registry.py would change the captured settings.toml ($reg): update the registry or the capture"; fi
 
+# jobgate's decisions (admission, PyTorch watermarks, pause choice, USL fit) on fixed inputs.
+if out=$(python3 -I scripts/jobgate.py self-test 2>&1); then echo "  ok    jobgate decisions ($(echo "$out" | grep -c '^  ok') cases)"
+else fail "jobgate self-test:"; echo "$out" | grep FAIL | sed 's/^/        /'; fi
+
 # Portability: no code file may hardcode a user home or the original clone location (install.sh
 # writes identity.nix; scripts find the repo from their own path; Lua reads ~/.config/macos-config/repo).
 hard=$(files '*.sh' '*.lua' '*.py' '*.nix' | grep -vE '/identity.nix$|^scripts/check.sh$' \

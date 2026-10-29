@@ -4,6 +4,11 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- `jobgate` (scripts/jobgate.py, on PATH): heavy jobs start as soon as the memory they need is really free (kernel
+  free memory and real footprints, learnt needs), PyTorch MPS jobs get watermarks sized to that free memory, and
+  concurrency is reduced only while the Mac thrashes (youngest job paused, oldest resumed first). Compatible with
+  the projects' `heavy.py` lock. `scripts/macstat.py` holds the measures shared with `perf-journal.py`.
+  Rollback: remove the `.local/bin/jobgate` entry from `home-manager/startup.nix`; jobs keep working without it.
 - Performance journal: the `perf-journal` agent samples memory pressure, wired/compressor/swap, CPU user/system,
   GPU and the top processes by real footprint every minute (8 days kept; `scripts/perf-journal.py report`).
   `docs/performance.md` records what was measured, what is worth changing and what was rejected. Rollback:

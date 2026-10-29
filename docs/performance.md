@@ -2,7 +2,8 @@
 
 A knowledge base built from measurements on the machine (MacBook Pro M5 Max, 18 cores = 6 P + 12 E, 64 GB
 unified memory, macOS 26.6) and from sources cross-checked against them. Rule: **no optimisation without a
-measured need, a before/after number and a rollback.** Reliability: **M** = measured here, **D** = official
+measured need, a before/after number and a rollback.** The goal is work done, not resources saved: a job that
+needs 50 GB gets 50 GB; concurrency is reduced only when it is measured to be counter-productive. Reliability: **M** = measured here, **D** = official
 documentation, **C** = community reports (useful, not proof).
 
 ## 1. Measure first: `scripts/perf-journal.py`
@@ -44,40 +45,82 @@ What it records and why:
   its compressor line reads "100% of segments limit (BAD) with 70 swapfiles" (M). Watchdog panics have other
   causes too (C: [Apple forums](https://developer.apple.com/forums/thread/835414)); this one's log names memory.
 
-## 3. Levers, ranked by measured benefit
+## 3. Principle: orchestrate, do not cap
 
-| Lever | Benefit | Risk / cost | Status |
-|---|---|---|---|
-| **Admit heavy jobs by memory** (one ML job at a time, and only if its need fits) | avoids thrashing and panics | jobs wait | a shared lock exists in the projects; it must measure footprint, not RSS (§4) |
-| **Cap PyTorch MPS** (`PYTORCH_MPS_HIGH_WATERMARK_RATIO` + `PYTORCH_MPS_LOW_WATERMARK_RATIO`) | a job that outgrows RAM fails cleanly instead of freezing the Mac | a job needing more than the cap fails | proposed (§5) |
-| **Fewer simultaneous copies of the same data** | one Python object per M1 candle costs 212 bytes against 40 in an array (M): a replay loading 20 pairs is 6.4 GB in objects, 1.2 GB in arrays | code change in the project | proposed to the project |
-| **Bound parallel workers** (`PARALLEL_PROCESSOR_COUNT=N` for RuboCop, `n_jobs` for joblib) | each lot spawns one worker per core (D: [RuboCop CLI](https://docs.rubocop.org/rubocop/usage/cli_reference.html)); several lots at once multiply memory | slower single lot | proposed |
-| Background QoS for batch jobs (`taskpolicy -b <cmd>`) | confines them to the E cores, P cores stay free for interactive work (D/C: [Eclectic Light, QoS](https://eclecticlight.co/2025/05/09/what-is-quality-of-service-and-how-does-it-matter/)) | the job runs slower; `nice` alone does not change the core type | optional |
-| Ghostty opaque, no blur | Ghostty measured 2-7 % GPU time, 12-60 % CPU with 11 windows (M); blur goes through a private WindowServer API (C) | visual change | A/B test to run with the user |
-| Spotlight privacy for big generated-data folders | `mds_stores` averaged 3 % of a core over 4 days (M); `.metadata_never_index` no longer works, use System Settings or a `.noindex` suffix (C: [Eclectic Light, Spotlight](https://eclecticlight.co/2024/11/29/using-and-troubleshooting-spotlight-in-sequoia-summary/)) | lost search results there | low priority |
-| Quit Docker Desktop when unused | about 2 GB (VM 1.4 GB + app) (M) | none | the user's choice |
+Throughput rises with concurrency until the working sets of the running jobs no longer fit in memory; past that
+point the machine thrashes and every job slows down (Denning's working-set theory: load control suspends
+processes to restore throughput, as 4.4BSD, AIX and HP-UX did; D/C:
+[Denning & Graham 1975](https://typeset.io/pdf/multiprogrammed-memory-management-5fpbbollr8.pdf),
+[USENIX 2001](https://usenix.org/legacy/publications/library/proceedings/als01/full_papers/jiang/jiang_html/node9.html)).
+CPU oversubscription alone is cheap (context switches cost 1-2 µs, C:
+[HPDC 2021](https://ranger.uta.edu/~jiang/publication/Conferences/2021/HPDC2021.pdf)); memory oversubscription is
+what costs here (§2: 31 % of the cores in the kernel). Hence:
+- **admit by real free memory**, not by a fixed number of jobs (GNU parallel `--memfree` / `--memsuspend`, Ray's
+  memory monitor and Dask's pause threshold follow the same idea; D:
+  [Ray OOM prevention](https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html));
+- **reduce concurrency only while thrashing is measured**, by pausing the youngest job (cheaper than killing it,
+  its pages are compressed or swapped once and stay quiet), and resume when it is calm;
+- **find the best parallelism by measuring throughput** at several levels and fitting the Universal Scalability
+  Law, X(N) = λN / (1 + α(N−1) + βN(N−1)), peak at N* = √((1−α)/β) (D:
+  [Gunther](https://arxiv.org/pdf/0809.2541.pdf)); more workers are kept as long as they add throughput.
 
-Rejected (no measured need, or harmful): memory "cleaners" and `purge` (they empty a useful cache),
-disabling swap/compressor/SIP/services, `ulimit -v` (RLIMIT_AS is not enforced on macOS; C:
-[Fast Downward issue 825](https://ai-fast-downward.dmi.unibas.ch/issue825)), raising `iogpu.wired_limit_mb`
-(lets the GPU wire even more of the RAM that is already short), more oversubscription (the context-switch
-cost is small, C: [HPDC 2021](https://ranger.uta.edu/~jiang/publication/Conferences/2021/HPDC2021.pdf);
-on this machine the cost of extra parallel jobs is their memory, not their scheduling).
+## 4. `jobgate`: the shared orchestrator (`scripts/jobgate.py`, on PATH as `jobgate`)
 
-## 4. The shared heavy-job lock (`heavy.py` / `lourd.py` copies in the projects)
+```sh
+jobgate run [--mem GB] [--gpu] [--name KEY] -- CMD...   # wait for room, run at full power, supervise, record
+PARALLEL_PROCESSOR_COUNT=$(jobgate workers --per-worker 0.5) rubocop --parallel   # workers that fit now
+jobgate bench --levels 1,2,4,8,12,18 -- CMD {i}         # throughput per level + USL optimum (run on an idle Mac)
+jobgate status | jobgate history [KEY]
+```
+- **Admission**: need ≤ kernel free memory − what admitted jobs will still grow into − a reserve (8 % of RAM).
+  Need = `--mem`, else the 95th percentile of the job's past peaks ×1.1 (learnt from `history`), else 4 GB.
+  FIFO; a younger job may overtake while older waiters have waited under 10 min (no starvation).
+- **GPU**: a `--gpu` job also waits while the GPU is already ≥ 70 % busy (two jobs on a saturated GPU share it,
+  neither finishes sooner) and gets **PyTorch MPS watermarks sized to the memory free at its start**: high =
+  room / recommendedMaxWorkingSetSize (read from Metal), low = 0.8 × high. Not a fixed cap: with 57 GB free a
+  job may use 57 GB; it only cannot ask for the ~95 GB the default 1.7 allows on 64 GB (§6).
+- **Thrashing guard**: pressure warn/critical, or swap-ins > 2,000 pages/s with kernel CPU > 15 %, for 10 s →
+  the youngest running pausable job is paused (SIGSTOP; never the last running one; GPU jobs are not pausable,
+  their wired memory would not be freed); after 20 s of calm the oldest paused job resumes.
+- **Compatibility**: it honours the projects' `heavy.py` / `lourd.py` lock (`~/.cache/gpu-lourd.lock`): a
+  `--gpu` job waits for a live legacy holder and for older legacy tickets, and holds the lock while it runs,
+  so the legacy copies keep working unchanged.
+- Measures footprint (Metal buffers and compressed pages included: a 2 GB MPS tensor read 2.32 GB) where
+  `heavy.py` read RSS (§5). Tests: `jobgate self-test` (in `scripts/check.sh`); live tests 2026-10-29: learnt need,
+  exit codes, youngest-paused / oldest-resumed, legacy lock wait and hand-over, a real torch job under the
+  dynamic watermarks.
+
+## 5. The legacy lock (`heavy.py` / `lourd.py` copies in the projects)
 
 Sessions agreed on a lock (`~/.cache/gpu-lourd.lock` + a queue) after the 2026-10-12 panic. Two measurement
 errors make it admit jobs that do not fit (M, 2026-10-29):
 - "no other process above 6 GB" reads **RSS**: the 7.6-8 GB replays (RSS 1.3-1.5 GB) and a 30 GB MPS job
-  (RSS 0.2 GB) are invisible to it. Fix: `ri_phys_footprint` (as `perf-journal.py` does).
+  (RSS 0.2 GB) are invisible to it.
 - "available" = free + inactive + speculative + purgeable from `vm_stat`, which ignores what the compressor and
-  the GPU already hold. Fix: `kern.memorystatus_level` × RAM, or require the job's need below it.
-There are about ten diverging copies; one shared implementation would keep them consistent.
+  the GPU already hold.
+About ten diverging copies exist; replacing them with a call to `jobgate run --gpu --mem N -- …` keeps their
+behaviour (one heavy GPU job at a time while the GPU is saturated) with correct measures.
 
-## 5. PyTorch MPS cap: tested
+## 6. PyTorch MPS memory: tested
 
 `recommended_max_memory` is 55.7 GB here and the default high watermark is 1.7×, so **an MPS job may allocate
 up to ~95 GB on a 64 GB Mac** (D: [PyTorch MPS variables](https://docs.pytorch.org/docs/2.14/mps_environment_variables.html)).
 Setting only the high ratio below 1.4 fails with "invalid low watermark ratio 1.4": the low ratio (default 1.4)
 must be set too. Test (torch 2.14.1, high 0.03, low 0.02): 1.5 GB allocated, the next 512 MB refused with a
-clean "MPS backend out of memory" error (M). Suggested values for 64 GB: high 0.8 (~44 GB), low 0.65 (~36 GB).
+clean "MPS backend out of memory" error (M). MLX has its own limits (`set_memory_limit`, default 1.5 × the
+recommended working set; `set_wired_limit`; D: [mlx-c memory.h](https://forge.lthn.ai/core/go-mlx/src/branch/main/dist/include/mlx/memory.h)).
+
+## 7. Other levers, by measured benefit
+
+| Lever | Measure | Verdict |
+|---|---|---|
+| Energy mode | AC: High Power (`powermode 2`), battery: Automatic (M). On M5 Max, High Power holds ~70 W sustained against ~54 W, +8 % Cinebench multi-core (C: [Notebookcheck](https://www.notebookcheck.net/Did-Apple-reduce-the-performance-of-the-M5-Max-via-software-update-Yes-and-no.1376940.0.html)) | keep: already the full-power setting |
+| Background QoS (`taskpolicy -b`) | confines a job to the E cores (D/C: [Eclectic Light, QoS](https://eclecticlight.co/2025/05/09/what-is-quality-of-service-and-how-does-it-matter/)); a load that takes ~3 min on P cores took 10 min (M) | only for jobs nobody waits for; not a default |
+| Ghostty opaque, no blur | 2-7 % GPU time, 12-60 % CPU with 11 windows (M) | negligible next to the jobs: keep the look |
+| Spotlight privacy for generated-data folders | `mds_stores` 3 % of a core averaged over 4 days (M); `.metadata_never_index` no longer works (C: [Eclectic Light, Spotlight](https://eclecticlight.co/2024/11/29/using-and-troubleshooting-spotlight-in-sequoia-summary/)) | low priority |
+| Docker Desktop idle | about 2 GB (M) | the user's choice |
+
+Rejected (no measured need, or harmful): memory "cleaners" and `purge` (they empty a useful cache), disabling
+swap/compressor/SIP/services, `ulimit -v` (RLIMIT_AS is not enforced on macOS; C:
+[Fast Downward issue 825](https://ai-fast-downward.dmi.unibas.ch/issue825)), raising `iogpu.wired_limit_mb`
+(lets the GPU wire even more of a RAM that is already short), fixed caps on workers or memory.

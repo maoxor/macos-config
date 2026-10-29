@@ -122,4 +122,7 @@ in {
   # omniwmctl (OmniWM's CLI) lives inside the locally built app: expose it on PATH (~/.local/bin).
   home.file.".local/bin/omniwmctl".source =
     config.lib.file.mkOutOfStoreSymlink "/Applications/OmniWM.app/Contents/MacOS/omniwmctl";
+  # jobgate: heavy jobs wait for real free memory and pause only while the Mac thrashes (docs/performance.md).
+  home.file.".local/bin/jobgate".source =
+    config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/jobgate.py";
 }
