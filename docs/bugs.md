@@ -222,18 +222,21 @@ Before changing anything listed here, read the entry and keep its verification p
   windows stay under the threshold (1298 pt2 at most, 0-25 ms). Notification Center keeps a transparent full-screen
   window (layer 21) while a banner shows: only layers 0-19 count as covering (counting it hid everything).
 
-### B20 — Hammerspoon grows to several GB (2026-10-29, cause not found yet)
-- **Symptom:** footprint 1-3.9 GB (peak 4.8 GB) after 8 h, back to ~30 MB after a restart; perf journal.
-- **Measured:** the memory is native, not Lua (`collectgarbage("count")` ~1.5 MB): `heap` shows 3.9 GB of untyped
-  blocks of fixed sizes (13 x 162 MB, 3 x 256 MB, 8 x 64 MB, 8 x 40.5 MB purgeable).
-- **Ruled out:** the `omniwmctl subscribe` stream. Hammerspoon's `hs.task` source hands each output chunk to the
-  streaming callback and keeps nothing (the earlier "hs.task keeps the whole output" explanation was wrong); the
-  stream carries ~0.1 MB per test run (11 events / 20 s); 60 workspace switches with the old subscriber running,
-  then without it: +0 and +1 MB. `ws-hide` now reads OmniWM's IPC socket directly anyway (one process less, no
-  5-min restart; falls back to `omniwmctl` if the request is refused).
-- **To attribute it:** start Hammerspoon with `open -g -a Hammerspoon --env MallocStackLogging=lite`; once the
-  footprint passes 1 GB, `malloc_history $(pgrep -x Hammerspoon) -allBySize | head -60` names the allocating code.
-  `heap`/`malloc_history` pause Hammerspoon 2-4 s (its event taps too): only while the user is away.
+### B20 — Hammerspoon grows to several GB (2026-10-29)
+- **Symptom:** footprint 1-4.7 GB (peak 5.7 GB), back to ~30 MB after a restart; perf journal.
+- **Cause (established, `MallocStackLogging=lite` + `malloc_history`):** agents' window captures through `hs -c`
+  (`hs.window:snapshot()` / `hs.screen:snapshot()` then `saveToFile`, e.g. a session's Safari-driving `nav.py`).
+  `saveToFile` makes three autoreleased copies of the image (`TIFFRepresentation`, `imageRepWithData:`,
+  `representationUsingType:`), and `hs.ipc` runs commands with no autorelease pool of its own: one full-screen
+  capture added 517 MB that `collectgarbage()` does not free. They go only when Hammerspoon, a background app,
+  handles some real event (the footprint drops now and then). An empty modifier event posted to Hammerspoon did not
+  drain it (tested twice; a first drop of 650 MB was a coincidence).
+- **Ruled out:** the `omniwmctl subscribe` stream (`hs.task` keeps nothing: source read; 60 workspace switches with
+  and without it: +0 / +1 MB). `ws-hide` reads OmniWM's socket directly anyway (one process less).
+- **What is in place:** GC every 10 s (frees the image objects themselves sooner); `scripts/restart-hammerspoon.sh`
+  (retries the launch: an `open` right after the quit failed with -600 and left Hammerspoon down ~2 min).
+- **Left:** captures should not go through Hammerspoon: `screencapture -x -o -l <CGWindowID> file.png` writes a
+  window to a file in its own process. `heap`/`malloc_history` pause Hammerspoon 2-4 s: only while the user is away.
 
 ### B17 — Process incidents (rules that came out of them)
 - The full OmniWM test suite froze the Mac: run targeted `--filter` tests only.

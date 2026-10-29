@@ -37,6 +37,7 @@ testBrowsers = timed("test-browsers")
 -- the wallpaper, the slowest step (~1.5 s), so it comes last.
 wsHide = timed("ws-hide")
 marginVeil = timed("margin-veil")
--- hs.image / canvas / task objects hold native memory the Lua GC does not count, so it rarely runs on its own.
-gcTimer = hs.timer.doEvery(300, function() collectgarbage() end)
+-- hs.image / canvas / task objects hold native memory the Lua GC does not count, so it rarely runs on its own:
+-- collect every 10 s (~1 ms). What `hs -c` image captures autorelease is not freed by it (docs/bugs.md B20).
+gcTimer = hs.timer.doEvery(10, function() collectgarbage() end)
 startupTimes[#startupTimes + 1] = string.format("total %.0f ms", (hs.timer.absoluteTime() - t0) / 1e6)

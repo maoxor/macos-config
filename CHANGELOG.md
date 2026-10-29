@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Hammerspoon memory (B20): cause found, agents' `hs -c` window captures (`saveToFile` autoreleases ~500 MB per
+  capture, never drained in a background app); GC every 10 s; `scripts/restart-hammerspoon.sh` restarts it reliably.
 - `playwright-watch` agent (FSEvents): every Playwright copy is patched ~0.7 s after it is written instead of up to
   5 minutes later (sessions test right after installing); the full walk becomes hourly. `scripts/swift-tool.sh`
   builds and runs the Swift helpers. Rollback: remove the agent from `home-manager/startup.nix`, set the walk back

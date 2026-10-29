@@ -52,7 +52,7 @@ Authority: the real machine (checked by `scripts/verify.sh` / `scripts/doctor.sh
   workspace). `omniwmctl command …` and read-only queries are fine.
 - Admin passwords, TCC permissions (Accessibility, Screen Recording) and keychain prompts are the user's:
   print the command or open the pane, never work around them. Do not touch SIP, SSV, boot-args, sudoers.
-- Quit OmniWM before writing `settings.toml` (it rewrites the file). Restart Hammerspoon rather than
+- Quit OmniWM before writing `settings.toml` (it rewrites the file). Restart Hammerspoon with `scripts/restart-hammerspoon.sh` rather than
   `hs.reload()` through `hs -c`; wrap `hs -c` in `timeout`. Always `/usr/bin/log` (zsh `log` is a builtin).
 - TCC-gated apps must be launched directly by a LaunchAgent, never via a parent script.
 - Do not change the wallpaper as a side effect: it triggers `theme-auto` (palette + registry + commit).
