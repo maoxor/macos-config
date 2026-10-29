@@ -78,7 +78,7 @@ jobgate status | jobgate history [KEY]
 - **GPU**: a `--gpu` job also waits while the GPU is already ≥ 70 % busy (two jobs on a saturated GPU share it,
   neither finishes sooner) and gets **PyTorch MPS watermarks sized to the memory free at its start**: high =
   room / recommendedMaxWorkingSetSize (read from Metal), low = 0.8 × high. Not a fixed cap: with 57 GB free a
-  job may use 57 GB; it only cannot ask for the ~95 GB the default 1.7 allows on 64 GB (§6).
+  job may use 57 GB; it only cannot ask for the ~95 GB the default 1.7 allows on 64 GB (§7).
 - **Thrashing guard**: pressure warn/critical, or swap-ins > 2,000 pages/s with kernel CPU > 15 %, for 10 s →
   the youngest running pausable job is paused (SIGSTOP; never the last running one; GPU jobs are not pausable,
   their wired memory would not be freed); after 20 s of calm the oldest paused job resumes.
