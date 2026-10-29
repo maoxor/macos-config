@@ -4,6 +4,12 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Performance journal: the `perf-journal` agent samples memory pressure, wired/compressor/swap, CPU user/system,
+  GPU and the top processes by real footprint every minute (8 days kept; `scripts/perf-journal.py report`).
+  `docs/performance.md` records what was measured, what is worth changing and what was rejected. Rollback:
+  remove the agent from `home-manager/startup.nix` and re-apply.
+- `restore-session.py` and `session-restore.lua` find the repo from the clone instead of a fixed path
+  (`scripts/check.sh` failed on it).
 - Browser tests of Claude Code sessions no longer show over the user's windows: Playwright pages open behind
   them (`scripts/playwright-background-pages.py`, hourly agent; rollback: `--undo`), OmniWM rules send the
   test browsers to workspace 4 and patch 0029 keeps their later windows there without switching the view;

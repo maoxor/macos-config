@@ -10,6 +10,7 @@ English.
 3. `docs/bugs.md` — every known bug, its cause, its fix, its check. **Do not reintroduce any of them.**
 4. `docs/architecture.md` — one owner per function; `docs/shortcuts.md` — the shortcut registry.
 5. `docs/macos.md` — macOS settings, permissions, login items, secrets policy.
+6. `docs/performance.md` — how the Mac uses memory/CPU/GPU; measure with `scripts/perf-journal.py report` before optimising.
 Authority: the real machine (checked by `scripts/verify.sh` / `scripts/doctor.sh`) > this repo.
 
 ## 2. Where to change what

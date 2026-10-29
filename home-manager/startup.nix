@@ -97,6 +97,17 @@ in {
         ProcessType = "Background";
       };
     };
+    # Every minute: memory, CPU and GPU per process, one week kept (scripts/perf-journal.py; `report` summarises).
+    perf-journal = {
+      enable = true;
+      config = {
+        ProgramArguments = [ "/usr/bin/python3" "-I" "${identity.repoDir}/scripts/perf-journal.py" ];
+        RunAtLoad = true;
+        StartInterval = 60;
+        ProcessType = "Background";
+        StandardErrorPath = "${logs}/perf-journal.log";
+      };
+    };
     logrotate = {
       enable = true;
       config = {
