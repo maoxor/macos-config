@@ -43,7 +43,7 @@ local function paint(rect, slicePath)
   c:canvasMouseEvents(true, true, false, false)
   c:mouseCallback(function() end)
   if image then
-    c[1] = { type = "image", image = image, imageScaling = "scaleToFill", frame = { x = 0, y = 0, w = rect.w, h = rect.h } }
+    c[1] = { type = "image", image = image, imageScaling = "scaleToFit", frame = { x = 0, y = 0, w = rect.w, h = rect.h } }
   else
     c[1] = { type = "rectangle", action = "fill", fillColor = { white = 0.05 } }
   end
