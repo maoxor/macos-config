@@ -1,4 +1,4 @@
-From 494b6421551ac7a84200a624d47cffccf3e97790 Mon Sep 17 00:00:00 2001
+From c60629837704b1177d7aab7804cd7bd62209f759 Mon Sep 17 00:00:00 2001
 From: maoxor <118530756+maoxor@users.noreply.github.com>
 Date: Thu, 29 Oct 2026 01:08:47 +0100
 Subject: [PATCH] Rules: a background app's new windows go to the rule
@@ -7,10 +7,10 @@ Subject: [PATCH] Rules: a background app's new windows go to the rule
 ---
  .../AXEventHandler+AppActivation.swift        |  5 ++
  .../AXEventHandler+ManagedActivation.swift    |  4 ++
- .../Core/Workspace/PlacementResolver.swift    | 25 ++++++++--
+ .../Core/Workspace/PlacementResolver.swift    | 28 +++++++++-
  .../Core/Workspace/WorkspaceManager.swift     | 13 +++++
- .../FloatingCreatePlacementTests.swift        | 50 ++++++++++++++++++-
- 5 files changed, 92 insertions(+), 5 deletions(-)
+ .../FloatingCreatePlacementTests.swift        | 56 +++++++++++++++++--
+ 5 files changed, 99 insertions(+), 7 deletions(-)
 
 diff --git a/Sources/OmniWM/Core/Controller/AXEventHandler+AppActivation.swift b/Sources/OmniWM/Core/Controller/AXEventHandler+AppActivation.swift
 index 5cc636d3..0c3be02b 100644
@@ -44,7 +44,7 @@ index 96542355..03c91f2a 100644
              source: source,
              confirmRequest: confirmRequest,
 diff --git a/Sources/OmniWM/Core/Workspace/PlacementResolver.swift b/Sources/OmniWM/Core/Workspace/PlacementResolver.swift
-index c95abe25..2d02502d 100644
+index c95abe25..97b88f78 100644
 --- a/Sources/OmniWM/Core/Workspace/PlacementResolver.swift
 +++ b/Sources/OmniWM/Core/Workspace/PlacementResolver.swift
 @@ -1,6 +1,7 @@
@@ -90,7 +90,7 @@ index c95abe25..2d02502d 100644
                  return WorkspacePlacementResolution(
                      workspaceId: resolvedRuleWorkspaceId,
                      rung: .workspaceRule
-@@ -106,13 +120,18 @@ final class PlacementResolver {
+@@ -106,13 +120,21 @@ final class PlacementResolver {
  
      private func shouldApplyWorkspaceRule(
          pid: pid_t?,
@@ -103,10 +103,13 @@ index c95abe25..2d02502d 100644
          guard let pid else { return true }
 -        return !workspaceManager.hasEntries(forPid: pid)
 +        // The rule places an app's first window. A later window follows the user (it opens where they work
-+        // with that app), unless the app is in the background: then a script opened it (a test browser's new
-+        // page, an AppleScript Safari window) and it goes to the rule's workspace instead of over the user's.
-+        guard workspaceManager.hasEntries(forPid: pid) else { return true }
-+        return ruleWorkspaceId != nil && frontmostPid() != pid
++        // with that app), unless the app is in the background (a script opened it: an AppleScript Safari
++        // window) or all its windows are still on the rule's workspace (a test browser that stole focus for
++        // its new page): then it goes to the rule's workspace instead of over the user's.
++        let entries = workspaceManager.entries(forPid: pid)
++        guard !entries.isEmpty else { return true }
++        guard let ruleWorkspaceId else { return false }
++        return frontmostPid() != pid || entries.allSatisfy { $0.workspaceId == ruleWorkspaceId }
      }
  
      func floatingSpawnMonitorId(pid: pid_t) -> Monitor.ID? {
@@ -135,10 +138,24 @@ index 635c4d28..14dc4052 100644
      private lazy var projections = WorkspaceProjectionCache(manager: self)
  
 diff --git a/Tests/OmniWMTests/FloatingCreatePlacementTests.swift b/Tests/OmniWMTests/FloatingCreatePlacementTests.swift
-index fe5df999..b8b2437d 100644
+index fe5df999..205749aa 100644
 --- a/Tests/OmniWMTests/FloatingCreatePlacementTests.swift
 +++ b/Tests/OmniWMTests/FloatingCreatePlacementTests.swift
-@@ -852,6 +852,48 @@ final class FloatingCreatePlacementTests: XCTestCase {
+@@ -827,11 +827,12 @@ final class FloatingCreatePlacementTests: XCTestCase {
+     func testResolveLaterTiledWindowIgnoresInitialWorkspaceRule() throws {
+         let fixture = try makeTwoMonitorFixture()
+         let pid: pid_t = 6_129
++        // The user keeps a window of the app outside the rule's workspace ("1"): new windows follow them.
+         _ = fixture.controller.workspaceManager.addWindow(
+             axRef(pid, 575),
+             pid: pid,
+             windowId: 575,
+-            to: fixture.primaryWorkspace
++            to: fixture.secondaryWorkspace
+         )
+ 
+         let resolved = resolvePlacement(
+@@ -852,6 +853,48 @@ final class FloatingCreatePlacementTests: XCTestCase {
          XCTAssertEqual(resolved.rung, .interactionWorkspace)
      }
  
@@ -187,7 +204,21 @@ index fe5df999..b8b2437d 100644
      func testWorkspaceRuleAppliesOnlyWhileAppHasNoTrackedWindows() throws {
          let fixture = try makeTwoMonitorFixture()
          let pid: pid_t = 6_130
-@@ -1392,9 +1434,13 @@ final class FloatingCreatePlacementTests: XCTestCase {
+@@ -869,11 +912,12 @@ final class FloatingCreatePlacementTests: XCTestCase {
+             windowFrame: fixture.primary.frame,
+             fallbackWorkspaceId: fixture.primaryWorkspace
+         )
++        // The user moved that window off the rule's workspace: the app's next window follows them.
+         _ = fixture.controller.workspaceManager.addWindow(
+             axRef(pid, 576),
+             pid: pid,
+             windowId: 576,
+-            to: first.workspaceId,
++            to: fixture.primaryWorkspace,
+             mode: .floating
+         )
+         let second = resolvePlacement(
+@@ -1392,9 +1436,13 @@ final class FloatingCreatePlacementTests: XCTestCase {
          windowFrame: CGRect?,
          existingEntry: WindowState? = nil,
          fallbackWorkspaceId: WorkspaceDescriptor.ID?,

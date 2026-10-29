@@ -17,11 +17,20 @@ M.clicks = hs.eventtap.new({ hs.eventtap.event.types.leftMouseDown }, function()
 end)
 M.clicks:start()
 
+local testSeen = 0 -- last time a test browser was frontmost
 M.timer = hs.timer.doEvery(0.25, function()
   local app = hs.application.frontmostApplication()
   if not app then return end
-  if not M.bundles[app:bundleID() or ""] then last = app return end
-  if hs.timer.secondsSinceEpoch() - lastClick > 1 and last and last:isRunning() then last:activate() end
+  local now = hs.timer.secondsSinceEpoch()
+  if M.bundles[app:bundleID() or ""] then
+    testSeen = now
+    if now - lastClick > 1 and last and last:isRunning() then last:activate() end
+  elseif now - testSeen < 3 and app ~= last and now - lastClick > 1 and last and last:isRunning() then
+    -- A test browser that just quit leaves the keyboard to whatever macOS picks (often a menu bar app).
+    last:activate()
+  else
+    last = app
+  end
 end)
 
 local CTL = os.getenv("HOME") .. "/.local/bin/omniwmctl"
