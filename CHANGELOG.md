@@ -5,6 +5,8 @@ is not a plain `git revert`.
 
 ## Unreleased
 - Home Manager installs gitleaks (the projects' pre-commit hooks refused every commit without it).
+- `docs/performance.md` §6: best parallelism measured (RuboCop: the default 18 workers is optimal, ×7.8; replays
+  with the shared cache: ×7.1 at 12 at once).
 - `docs/performance.md` §6: measured structural wins (shared mmap'd cache of preprocessed data: a replay 408 → 147 s,
   peak 8.4 → 0.23 GB, identical outputs).
 - `jobgate` (scripts/jobgate.py, on PATH): heavy jobs start as soon as the memory they need is really free (kernel

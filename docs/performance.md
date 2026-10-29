@@ -114,6 +114,19 @@ errors make it admit jobs that do not fit (M, 2026-10-29):
 | Element access through `memoryview` instead of `array` | 8.5 s full pass | 8.8 s (+3 %) | the price of sharing, far below the load saved |
 | Background QoS (`taskpolicy -b`) on the same load | ~4.4 min on P cores | 10 min on E cores | keep it for jobs nobody waits for |
 
+**Best parallelism, measured** (2026-10-29, user away, other agents' jobs running: load 3-54; `jobgate bench`-style
+runs, minimum of 3 wall times, ±0.5 s for RuboCop):
+
+| Workload | 1 | 2 | 4 | 6 | 9 | 12 | 18 | 24 | Verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| RuboCop, 957 files, all cops, cold cache (wall s) | 15.6 | 17.6 | 4.5 | 4.0 | 3.0 | 2.5 | 2.0 | 2.0 | the default (one worker per core = 18) is the optimum: ×7.8; **a cap at 6 would double the time** |
+| Data replays with the shared cache (wall s for N at once) | 118 | 123 | 122 | 145 | 189 | 200 | — | — | throughput ×7.1 at 12 (×1.84 over the former fixed cap of 4); still rising (USL α 0.09, β 0) |
+
+RuboCop parallelises through its result cache: `--cache false` silently disables `--parallel` ("-P/--parallel is
+being ignored because it is not compatible with --cache false"); benchmark it with a fresh `--cache-root`. Without
+the shared cache, 12 replays would have needed ~100 GB of peaks: the structural change is what makes the
+parallelism usable.
+
 Pattern: when N processes read the same large derived data, compute it once, store it in a native layout and map
 it; the page cache shares it, the memory pressure of N copies disappears, and start-up staggering becomes useless.
 
