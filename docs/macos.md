@@ -64,7 +64,7 @@ One mechanism per tool. Login items are Home Manager LaunchAgents declared in `h
 | `stats` | Stats |
 | `theme-auto` | `scripts/theme-auto.sh` when the wallpaper changes |
 | `session-snapshot` | `scripts/session-snapshot.py` every minute (open Claude Code sessions, for Cmd+F5) |
-| `playwright-background-pages` | `scripts/playwright-background-pages.py` hourly: Playwright test pages open behind the user's windows |
+| `playwright-background-pages` | `scripts/playwright-background-pages.py` every 5 minutes: Playwright test pages (npm and Python, session scratchpads included) open behind the user's windows, in the bottom-right corner |
 | `perf-journal` | `scripts/perf-journal.py` every minute: memory, CPU, GPU per process, one week kept (`docs/performance.md`) |
 
 A log-rotation agent also trims `~/Library/Logs/macos-config/`. Raycast uses its own "Open at Login" setting.

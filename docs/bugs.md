@@ -187,6 +187,27 @@ Before changing anything listed here, read the entry and keep its verification p
   talagent) but off the main thread, with no measured effect on scrolling; re-enabling talagent once froze app
   switching (B14), so services are re-enabled one at a time, only with evidence.
 
+### B19 — Test browser windows seen through the terminals (2026-10-29)
+- **Symptom:** test "screens" (dark this time) appearing and disappearing again, after the background-pages fix.
+- **Measured** (40 min, window watcher at 15 ms with the share of each window not covered by others; ~30 agent
+  pages): every headed Chrome for Testing page window was born at 22,61 (1200x1257) behind the user's windows, 0 %
+  uncovered, and OmniWM parked it on workspace 4 in 20-85 ms; the dark test pages painted ~20 ms after the parking.
+  Headless runs (real Chrome `channel: 'chrome'`, Firefox, WebKit at -10000,-10000) never put a window on screen;
+  Blender runs are all `-b`; the `xctest` runs had no UI. OmniWM's full-screen level-1000 panel is the swipe
+  preview, shown only during trackpad swipes.
+- **Cause (established for the part measured):** behind is not hidden. Ghostty is translucent
+  (`background-opacity = 0.88`, blur), so a page window behind the terminals shows through them until OmniWM parks it;
+  under load the parking is slower and the dark page can paint first. Also, the patch only covered `~/dev` and
+  `~/.npm/_npx` hourly: Python Playwright (`.venv`, `.tox`), the Codex runtime and the session scratchpads
+  (`/private/tmp/claude-$UID`) kept the stock behaviour (79 of 101 copies). The black screens themselves were not
+  seen during the measurement (the user was on workspace 2, opaque Safari).
+- **Fix:** `left/top` on `Target.createTarget` for a new context: Chrome clamps it to the bottom-right corner and keeps
+  40 x 41 pt on screen (any position is clamped: right 2034, left -760, measured), parked in ~20 ms; the scan covers
+  all copies and runs every 5 minutes (~5 s of CPU). Verified: 122 fps, clicks, WebGL and screenshots unchanged.
+- **Left:** a persistent context's first window (`launchPersistentContext`) is the browser's startup window, born in
+  front (measured 80 ms, 86 % visible); no project uses it. Real Chrome launched headed by a script has no OmniWM rule
+  (`com.google.Chrome` is the user's browser) and would land on the current workspace.
+
 ### B17 — Process incidents (rules that came out of them)
 - The full OmniWM test suite froze the Mac: run targeted `--filter` tests only.
 - A simulated drag landed on the user's active workspace: never simulate input while the user works.

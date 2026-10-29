@@ -40,14 +40,14 @@ in {
     safari = openApp "Safari";
     discord = openApp "Discord";
     # Every minute: open Claude Code sessions and their workspace, for Cmd+F5 (restore-session.py) after a crash.
-    # Playwright test pages open behind the user's windows (scripts/playwright-background-pages.py); hourly,
-    # since projects reinstall playwright-core.
+    # Playwright test pages open behind the user's windows, in a screen corner (scripts/playwright-background-pages.py);
+    # every 5 minutes (~5 s of CPU), since projects and session scratchpads reinstall Playwright.
     playwright-background-pages = {
       enable = true;
       config = {
         ProgramArguments = [ "/usr/bin/python3" "-I" "${identity.repoDir}/scripts/playwright-background-pages.py" ];
         RunAtLoad = true;
-        StartInterval = 3600;
+        StartInterval = 300;
         ProcessType = "Background";
       };
     };

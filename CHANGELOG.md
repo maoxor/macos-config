@@ -4,6 +4,11 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Playwright test pages are born in the bottom-right corner as well as behind the user's windows: Ghostty is
+  translucent, so a 1200x1257 page window behind the terminals still showed through for 20-85 ms (Chrome keeps
+  40 x 41 pt of a window on screen, OmniWM parks it in ~20 ms). The patch now also covers Python Playwright, the
+  Codex runtime and the Claude Code session scratchpads (101 copies instead of 22) and runs every 5 minutes instead
+  of hourly. Rollback: `scripts/playwright-background-pages.py --undo`.
 - Home Manager installs gitleaks (the projects' pre-commit hooks refused every commit without it).
 - `docs/performance.md` §6: best parallelism measured (RuboCop: the default 18 workers is optimal, ×7.8; replays
   with the shared cache: ×7.1 at 12 at once).
