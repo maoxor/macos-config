@@ -4,6 +4,17 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Browser tests of Claude Code sessions no longer show over the user's windows: Playwright pages open behind
+  them (`scripts/playwright-background-pages.py`, hourly agent; rollback: `--undo`), OmniWM rules send the
+  test browsers to workspace 4 and patch 0029 keeps their later windows there without switching the view;
+  `test-browsers.lua` gives the keyboard back and moves force-floated Safari windows to workspace 4.
+- Hammerspoon memory: the margin veil keeps only the wallpaper slice and a 5 min GC runs (was 3.5 GB);
+  no never-ending `hs.task` (a `subscribe` stream had grown it to 4.6 GB).
+- Wallpaper: every Space gets the current wallpaper (`scripts/wallpaper-all-spaces.py`, backup
+  `Index.plist.bak`); the screen saver shows it through `~/Pictures/Veille` (one manual setting, `docs/macos.md`).
+- Cmd+F5 session restore: an empty snapshot at shutdown keeps the last list; a restored account-2 session no
+  longer leaves `CLAUDE_CONFIG_DIR` exported in its shell.
+- Shortcuts: Cmd+F2 pastes the XAU/USD analysis prompt; F3 next wallpaper; F4 keyboard cleaning mode.
 - Audio files open in QuickTime Player, not Apple Music (`swift scripts/default-audio-app.swift`; rollback:
   Finder > Get Info > Open with > Music > Change All).
 - `/delete` (Claude Code skill, both accounts) ends the current session and moves it to the Trash; `claude-rm`
@@ -12,7 +23,7 @@ is not a plain `git revert`.
 - OmniWM patch 0028: Option+F works again after leaving macOS fullscreen (an unanswered size write is no
   longer learned as a minimum size).
 - Theme follows the wallpaper again when it is set for one display (`theme-auto.sh` fingerprints the whole
-  wallpaper index); Cmd+F3 restores Claude Code sessions; optional lock-down (`profile.local.nix`).
+  wallpaper index); Cmd+F5 restores Claude Code sessions; optional lock-down (`profile.local.nix`).
 - OmniWM patches 0020–0027: fullscreen exit keeps the column width and its gaps; scroll animation stops
   re-writing window sizes; workspace restore survives a quit during startup and a locked screen; leaving a
   full-width Niri column takes the same gesture as a half-width one; a reproducible scroll bench. The column-scroll

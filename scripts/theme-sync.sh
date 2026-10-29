@@ -29,8 +29,6 @@ PY
   tmpimg="$tmpdir/w.png"; sips -s format png "$src" --out "$tmpimg" >/dev/null
   if cmp -s "$tmpimg" "$REPO/wallpapers/actuel.png"; then echo "wallpaper: unchanged"
   else cp "$tmpimg" "$REPO/wallpapers/actuel.png"; echo "wallpaper: copied from $src"; fi
-  # The screen saver (Photos, folder ~/Pictures/Veille) shows the current wallpaper, not Apple's default aerial.
-  mkdir -p "$HOME/Pictures/Veille" && cmp -s "$tmpimg" "$HOME/Pictures/Veille/fond.png" || cp "$tmpimg" "$HOME/Pictures/Veille/fond.png"
   # A wallpaper seen before gets back the palette it had (home-manager/palettes/<sha256 of the image>.nix):
   # a later change of the generator never alters the theme of an image already validated.
   saved="$REPO/home-manager/palettes/$(shasum -a 256 "$src" | cut -c1-64).nix"

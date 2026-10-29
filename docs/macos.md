@@ -30,7 +30,8 @@ every app. Rollback: previous Home Manager generation (`docs/recovery.md`).
 |---|---|---|
 | Keyboard layout | System Settings → Keyboard → Input Sources | French (AZERTY), the shortcut registry assumes it |
 | Display resolution | System Settings → Displays | "More Space" on a 16" MacBook Pro; `apply-registry.py` adapts window sizes to any resolution |
-| Wallpaper | System Settings → Wallpaper | any image: the colour palette is derived from it |
+| Wallpaper | System Settings → Wallpaper | any image: the colour palette is derived from it; `theme-auto` then gives every Space the same image (`scripts/wallpaper-all-spaces.py`) |
+| Screen saver | System Settings → Wallpaper → Screen Saver… → Photos → Options… → Source: folder `~/Pictures/Veille` | once: `theme-auto` keeps a copy of the current wallpaper there, so the saver shows it instead of Apple's aerial |
 | Permissions | System Settings → Privacy & Security | see "Permissions" below |
 | Accounts, Dock apps, iCloud, login items of your own apps | — | personal, not part of this setup |
 
@@ -62,10 +63,13 @@ One mechanism per tool. Login items are Home Manager LaunchAgents declared in `h
 | `neru` | `neru launch`, restarted after an abnormal exit (ThrottleInterval 30 s), not after Quit |
 | `stats` | Stats |
 | `theme-auto` | `scripts/theme-auto.sh` when the wallpaper changes |
+| `session-snapshot` | `scripts/session-snapshot.py` every minute (open Claude Code sessions, for Cmd+F5) |
+| `playwright-background-pages` | `scripts/playwright-background-pages.py` hourly: Playwright test pages open behind the user's windows |
 
 A log-rotation agent also trims `~/Library/Logs/macos-config/`. Raycast uses its own "Open at Login" setting.
 Do not also enable "launch at login" inside OmniWM, Hammerspoon, Neru or Stats. In System Settings > General > Login Items
-the agents appear as **"sh"** (they start via `/bin/sh -c "wait4path /nix/store && exec …"`); this is expected.
+the agents appear as **"sh"** (they start via `/bin/sh -c "wait4path /nix/store && exec …"`); this is expected, and so is the
+"« sh » can run in the background" notification shown once when an activation adds an agent.
 Plists are rewritten on every `home-manager switch`, so editing `startup.nix` takes effect on activation.
 Check: `launchctl list | grep org.nix-community.home`.
 

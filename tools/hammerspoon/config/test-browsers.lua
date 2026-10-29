@@ -1,8 +1,8 @@
--- Browsers driven by Playwright (Claude Code experiments) open on workspace 4: OmniWM rules, and patch 0029
--- for their later windows and to keep the view where it is. macOS still hands them the keyboard: when one
--- becomes frontmost without a click from the user in the last second, focus goes straight back to the app that
--- had it. Clicking into such a browser on workspace 4 still works. (Polled: these apps are often not reported
--- by hs.application.watcher.) Safari windows a session forces to float are moved to
+-- Playwright test browsers (Claude Code experiments) live on workspace 4: OmniWM rules place them there, patch
+-- 0029 keeps their later windows there without switching the view, and scripts/playwright-background-pages.py
+-- opens their pages behind the user's windows. macOS still hands them the keyboard: when one becomes frontmost
+-- without a click from the user in the last second, focus goes back to the app that had it (polled: these apps
+-- are often not reported by hs.application.watcher). Also moves Safari windows a session forced to float to
 -- workspace 4 (checked every 2 s).
 local M = {}
 M.bundles = {
