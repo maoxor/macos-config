@@ -106,7 +106,18 @@ errors make it admit jobs that do not fit (M, 2026-10-29):
 `jobgate run --gpu --mem NEED_GB`; without jobgate (another Mac) the command runs directly. Originals backed up in
 `~/.local/state/macos-power-user-deploy/backups/jobgate-migration-20261029-145221/` (`ROLLBACK.txt`).
 
-## 6. PyTorch MPS memory: tested
+## 6. Structural wins measured (do more with the same machine)
+
+| Change | Before | After | Check |
+|---|---|---|---|
+| Data replays: preprocessed series written once to a binary file and **mmap'd read-only** by every process (instead of each process parsing and cleaning the same CSV) | load 263 s, peak 9.2 GB per process; short replay 408 s, peak 8.4 GB | load 0.01 s; short replay **147 s, peak 0.23 GB**; 3 processes share one 1.06 GB copy (clean file pages: never compressed nor swapped, just dropped and re-read) | outputs identical except wall-clock timestamps; cache key = input content + all the code that transforms it |
+| Element access through `memoryview` instead of `array` | 8.5 s full pass | 8.8 s (+3 %) | the price of sharing, far below the load saved |
+| Background QoS (`taskpolicy -b`) on the same load | ~4.4 min on P cores | 10 min on E cores | keep it for jobs nobody waits for |
+
+Pattern: when N processes read the same large derived data, compute it once, store it in a native layout and map
+it; the page cache shares it, the memory pressure of N copies disappears, and start-up staggering becomes useless.
+
+## 7. PyTorch MPS memory: tested
 
 `recommended_max_memory` is 55.7 GB here and the default high watermark is 1.7×, so **an MPS job may allocate
 up to ~95 GB on a 64 GB Mac** (D: [PyTorch MPS variables](https://docs.pytorch.org/docs/2.14/mps_environment_variables.html)).
@@ -115,7 +126,7 @@ must be set too. Test (torch 2.14.1, high 0.03, low 0.02): 1.5 GB allocated, the
 clean "MPS backend out of memory" error (M). MLX has its own limits (`set_memory_limit`, default 1.5 × the
 recommended working set; `set_wired_limit`; D: [mlx-c memory.h](https://forge.lthn.ai/core/go-mlx/src/branch/main/dist/include/mlx/memory.h)).
 
-## 7. Other levers, by measured benefit
+## 8. Other levers, by measured benefit
 
 | Lever | Measure | Verdict |
 |---|---|---|

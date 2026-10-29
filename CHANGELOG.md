@@ -4,6 +4,9 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Home Manager installs gitleaks (the projects' pre-commit hooks refused every commit without it).
+- `docs/performance.md` §6: measured structural wins (shared mmap'd cache of preprocessed data: a replay 408 → 147 s,
+  peak 8.4 → 0.23 GB, identical outputs).
 - `jobgate` (scripts/jobgate.py, on PATH): heavy jobs start as soon as the memory they need is really free (kernel
   free memory and real footprints, learnt needs), PyTorch MPS jobs get watermarks sized to that free memory, and
   concurrency is reduced only while the Mac thrashes (youngest job paused, oldest resumed first). Compatible with
