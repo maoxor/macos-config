@@ -27,7 +27,7 @@ their memory is wired and pausing frees nothing); paused jobs resume oldest firs
 resort (the legacy watchdog's role): memory critical for 20 s → the youngest job is stopped, exit 75.
 Compatible with the projects' heavy.py / lourd.py lock (~/.cache/gpu-lourd.lock): a --gpu job waits while a
 live legacy job holds it and holds it while it runs, so legacy copies keep working."""
-import json, math, os, re, signal, subprocess, sys, time
+import fcntl, json, math, os, re, signal, subprocess, sys, time
 
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 import macstat  # noqa: E402
@@ -269,7 +269,10 @@ def cmd_run(argv):
             room = headroom(m["free"], admitted)
             if gpu:
                 gpu_hist = (gpu_hist + [macstat.gpu_util() or 0])[-5:]
-            gpu_busy = len(gpu_hist) < 3 or min(gpu_hist) >= 70  # 3 samples before deciding
+            # Busy GPU = saturated by a job we coordinate (gated or legacy holder): waiting for an outside user of
+            # the GPU (a WebGL test page) could last forever, and time-sharing with it is harmless.
+            gpu_jobs = any(j["gpu"] for j in others if j["state"] != "waiting") or bool(holder and not holder.get("jobgate"))
+            gpu_busy = gpu_jobs and (len(gpu_hist) < 3 or min(gpu_hist) >= 70)  # 3 samples before deciding
             blocked = None
             if thrashing(m["level"], m["swapins_s"], m["sys_pct"]):
                 blocked = "the machine is thrashing"
@@ -279,7 +282,21 @@ def cmd_run(argv):
                 blocked = "legacy heavy.py jobs queued before this one"
             waiting = [j for j in others if j["state"] == "waiting"]
             if not blocked and may_start(me, waiting, time.time(), room, need, gpu_busy, gpu):
-                break
+                # Decide again under the admission lock and mark this job running before releasing it: two waiters
+                # seeing the same free room in the same tick would otherwise both start.
+                admission = open(os.path.join(STATE, "admission.lock"), "w")
+                fcntl.flock(admission, fcntl.LOCK_EX)
+                others = jobs()
+                admitted = [(j["need"], macstat.tree_footprint(j["pid"])) for j in others if j["state"] != "waiting"]
+                if holder and holder.get("pid") != os.getpid() and not holder.get("jobgate"):
+                    admitted.append((float(holder.get("go", 0)) * GB, macstat.tree_footprint(int(holder["pid"]))))
+                room = headroom(m["free"], admitted)
+                if may_start(me, [j for j in others if j["state"] == "waiting"], time.time(), room, need):
+                    me.update(state="starting", started=time.time())
+                    write_json(mine, me)
+                    admission.close()
+                    break
+                admission.close()
             if time.time() - last_note > 300:
                 last_note = time.time()
                 log(f"{key} waits: needs {need / GB:.1f} GB, room {room / GB:.1f} GB"
