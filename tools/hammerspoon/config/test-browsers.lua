@@ -56,8 +56,8 @@ end)
 
 local CTL = os.getenv("HOME") .. "/.local/bin/omniwmctl"
 -- Safari windows a session forced to float go to workspace 4. Checked on every window list ws-hide.lua receives
--- from OmniWM (windows-changed events: no process); a query every 60 s covers a missed event. (It was a query
--- every 2 s: one omniwmctl process each time, most of Hammerspoon's idle CPU.)
+-- from OmniWM (windows-changed events: the move follows at once); a query every 60 s covers a missed event. (It
+-- was a query every 2 s: an omniwmctl process each time, ~2 ms of CPU, and up to 2 s of delay.)
 local moved = {}
 function M.onWindows(windows)
   for _, w in ipairs(windows or {}) do
