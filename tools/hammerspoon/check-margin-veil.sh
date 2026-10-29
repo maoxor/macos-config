@@ -10,8 +10,7 @@ out="$(timeout 8 hs -c '
 local v = marginVeil
 if not v or not v.canvas then return "FAIL veil not loaded" end
 local r = {}
-local path = v.url and hs.http.urlParts(v.url).path
-if not (path and hs.fs.attributes(path)) then r[#r+1] = "FAIL wallpaper file missing: " .. tostring(v.url) end
+if not (v.path and hs.fs.attributes(v.path)) then r[#r+1] = "FAIL wallpaper file missing: " .. tostring(v.path) end
 local down, up = v.canvas:canvasMouseEvents()
 if not (down and up) then r[#r+1] = "FAIL veil is click-through" end
 local f, full = v.canvas:frame(), hs.screen.mainScreen():fullFrame()
