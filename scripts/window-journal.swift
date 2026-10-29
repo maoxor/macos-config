@@ -215,7 +215,7 @@ if args.first == "report" { report(hours: Double(args.dropFirst().first ?? "24")
 setvbuf(stdout, nil, _IOLBF, 0)
 let start = Date()
 prune()
-var fast = false, lastCheck = Date.distantPast, lastPrune = Date(), lastIds = Set<Int>()
+var fast = false, lastCheck = Date.distantPast, lastPrune = Date(), lastIds = Set<Int>(), lastScan = Date.distantPast
 func tick() {
     let now = Date()
     if now.timeIntervalSince(lastCheck) >= 0.25 { fast = testProcessRunning() || !seen.values.allSatisfy { $0.shownSince == nil }; lastCheck = now }
@@ -223,9 +223,13 @@ func tick() {
     // The window numbers alone are cheap; the full descriptions (~5 ms) are read only when a window appeared or a
     // young window is being followed.
     let ids = windowNumbers()
-    if ids.isEmpty || !ids.subtracting(lastIds).isEmpty
-        || seen.values.contains(where: { now.timeIntervalSince($0.first) < 10 && now.timeIntervalSince($0.lastPresent) < 1 || $0.shownSince != nil }) {
-        scan()
+    // A young window is followed every tick for its first second (a flash lasts 20-100 ms), then every 100 ms.
+    let followed = seen.values.map { now.timeIntervalSince($0.first) }
+    let firstSecond = followed.contains { $0 < 1 }
+    let following = seen.values.contains { now.timeIntervalSince($0.first) < 10 && now.timeIntervalSince($0.lastPresent) < 1 || $0.shownSince != nil }
+    if ids.isEmpty || !ids.subtracting(lastIds).isEmpty || firstSecond
+        || following && now.timeIntervalSince(lastScan) >= 0.1 {
+        scan(); lastScan = now
     }
     lastIds = ids
     Timer.scheduledTimer(withTimeInterval: fast ? 0.016 : 0.25, repeats: false) { _ in tick() }
