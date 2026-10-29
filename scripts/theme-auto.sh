@@ -51,6 +51,8 @@ sum="$(shasum -a 256 "$src" | cut -c1-64)"
 [ "$sum" = "$(cat "$REPO/wallpapers/source.sha256" 2>/dev/null)" ] && { echo "$fp" > "$FP"; exit 0; }
 
 echo "$(date '+%F %T') new wallpaper: $src"
+# The screen saver (Photos, folder ~/Pictures/Veille) follows at once, even when the theme is not applied below.
+mkdir -p "$HOME/Pictures/Veille" && sips -s format png "$src" --out "$HOME/Pictures/Veille/fond.png" >/dev/null
 # Home Manager applies the working tree: never apply (and commit) half-finished edits of other files.
 if ! git -C "$REPO" diff --quiet HEAD -- home-manager ':!home-manager/palette.nix'; then
   echo "$(date '+%F %T') uncommitted changes in home-manager/: theme NOT applied"
