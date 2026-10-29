@@ -23,19 +23,13 @@ local function frameFor(screen)
   return { x = f.x + f.w - GAP, y = f.y + top, w = GAP, h = f.h - top }, f
 end
 
-function M.build()
-  local screen = hs.screen.mainScreen()
-  local rect, full = frameFor(screen)
-  -- macOS keeps showing a wallpaper whose source file was deleted (e.g. a cleaned Downloads
-  -- folder) while desktopImageURL still points at it: fall back to the copy theme-auto keeps in
-  -- the repo. Never draw the dark fallback fill: an opaque 8 px dark bar is the bug it fixes.
-  local url = screen:desktopImageURL()
-  local path = url and hs.http.urlParts(url).path
-  if not (path and hs.fs.attributes(path)) then url = "file://" .. M.FALLBACK end
-  if M.canvas and M.url == url and M.rect and M.rect.h == rect.h and M.rect.y == rect.y then return end
+local SLICE = os.getenv("HOME") .. "/Library/Caches/macos-config-margin-veil.png"
+
+-- The canvas shows only the gap slice of the wallpaper, cut by sips into a small file: decoding the full
+-- picture in Hammerspoon (3840x4267) left ~500 MB of image memory behind on every rebuild (2026-10-29).
+local function paint(rect, slicePath)
   if M.canvas then M.canvas:delete() end
-  M.url, M.rect = url, rect
-  local image = url and hs.image.imageFromURL(url)
+  local image = slicePath and hs.image.imageFromPath(slicePath)
   local c = hs.canvas.new(rect)
   -- Just above normal windows, BELOW OmniWM's overlays: raised to status level (2026-10-15) it
   -- painted over swipe previews and Niri columns sliding through the edge (a "transparent
@@ -49,25 +43,40 @@ function M.build()
   c:canvasMouseEvents(true, true, false, false)
   c:mouseCallback(function() end)
   if image then
-    -- Reproduce macOS "Fill screen": scale to cover, centered; then shift into canvas coordinates
-    -- so only the gap slice remains inside the canvas bounds.
-    local size = image:size()
-    local k = math.max(full.w / size.w, full.h / size.h)
-    local w, h = size.w * k, size.h * k
-    local x, y = (full.w - w) / 2 - (full.w - GAP), (full.h - h) / 2 - topFor(screen)
-    -- Keep only the gap slice of the image: the full decoded wallpaper (~100 MB for a 6K picture) was held
-    -- by the canvas, and every rebuild left another one to a Lua GC that never ran (3.4 GB on 2026-10-29).
-    local slice = image:croppedCopy({ x = -x / k, y = -y / k, w = rect.w / k, h = rect.h / k })
-    if slice then image, x, y, w, h = slice, 0, 0, rect.w, rect.h end
-    c[1] = { type = "image", image = image, imageScaling = "scaleToFit", frame = { x = x, y = y, w = w, h = h } }
+    c[1] = { type = "image", image = image, imageScaling = "scaleToFill", frame = { x = 0, y = 0, w = rect.w, h = rect.h } }
   else
     c[1] = { type = "rectangle", action = "fill", fillColor = { white = 0.05 } }
   end
   M.canvas = c
-  image = nil
-  collectgarbage() -- free the previous canvas and the full image now (native memory the Lua GC cannot see)
   M.shown = not M.suppressed
   if M.shown then c:show() end
+end
+
+function M.build()
+  local screen = hs.screen.mainScreen()
+  local rect, full = frameFor(screen)
+  -- macOS keeps showing a wallpaper whose source file was deleted (e.g. a cleaned Downloads
+  -- folder) while desktopImageURL still points at it: fall back to the copy theme-auto keeps in
+  -- the repo. Never draw the dark fallback fill: an opaque 8 px dark bar is the bug it fixes.
+  local url = screen:desktopImageURL()
+  local path = url and hs.http.urlParts(url).path
+  path = path and hs.http.convertHtmlEntities(path):gsub("%%20", " ")
+  if not (path and hs.fs.attributes(path)) then path = M.FALLBACK end
+  if M.canvas and M.path == path and M.rect and M.rect.h == rect.h and M.rect.y == rect.y then return end
+  M.path, M.rect = path, rect
+  local top = topFor(screen)
+  hs.task.new("/usr/bin/sips", function(_, out)
+    local pw, ph = tonumber(out:match("pixelWidth: (%d+)")), tonumber(out:match("pixelHeight: (%d+)"))
+    if not (pw and ph) then return paint(rect, nil) end
+    -- Reproduce macOS "Fill screen": scale to cover, centered; keep the pixels under the gap.
+    local k = math.max(full.w / pw, full.h / ph)
+    local x = math.floor(((full.w - GAP) - (full.w - pw * k) / 2) / k)
+    local y = math.floor((top - (full.h - ph * k) / 2) / k)
+    local w, h = math.max(1, math.ceil(GAP / k)), math.ceil(rect.h / k)
+    hs.task.new("/usr/bin/sips", function(code)
+      paint(rect, code == 0 and SLICE or nil)
+    end, { "-c", tostring(h), tostring(w), "--cropOffset", tostring(y), tostring(x), path, "--out", SLICE }):start()
+  end, { "-g", "pixelWidth", "-g", "pixelHeight", path }):start()
 end
 
 -- Called with the OmniWM window list of the active workspace (bottom-left origin frames).

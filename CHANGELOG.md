@@ -8,8 +8,10 @@ is not a plain `git revert`.
   them (`scripts/playwright-background-pages.py`, hourly agent; rollback: `--undo`), OmniWM rules send the
   test browsers to workspace 4 and patch 0029 keeps their later windows there without switching the view;
   `test-browsers.lua` gives the keyboard back and moves force-floated Safari windows to workspace 4.
-- Hammerspoon memory: the margin veil keeps only the wallpaper slice and a 5 min GC runs (was 3.5 GB);
-  no never-ending `hs.task` (a `subscribe` stream had grown it to 4.6 GB).
+- Hammerspoon memory (3.5–4.6 GB before, ~30 MB now): the margin veil shows a wallpaper slice cut by `sips`
+  (decoding the full picture left ~500 MB per rebuild); `ws-hide` restarts its OmniWM subscriber every 5 min
+  (`hs.task` keeps the whole output of a running task); a 5 min GC; Hammerspoon starts in 0.7 s instead of 23 s
+  (no `hs.window.filter`, shortcuts load first).
 - Wallpaper: every Space gets the current wallpaper (`scripts/wallpaper-all-spaces.py`, backup
   `Index.plist.bak`); the screen saver shows it through `~/Pictures/Veille` (one manual setting, `docs/macos.md`).
 - Cmd+F5 session restore: an empty snapshot at shutdown keeps the last list; a restored account-2 session no

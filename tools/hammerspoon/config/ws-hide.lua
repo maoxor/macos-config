@@ -125,6 +125,7 @@ function M.start()
   -- --reconnect only covers a connection lost after the first one: if OmniWM is not running,
   -- omniwmctl exits at once. Retry with a backoff (3 s doubling to 60 s, reset on the first event).
   M.sub = hs.task.new(CTL, function()
+    if M.recycling then M.recycling = false; M.start(); M.queryNow(M.activeId); return end
     M.restartTimer = hs.timer.doAfter(M.retryDelay, M.start)
     M.retryDelay = math.min(M.retryDelay * 2, 60)
   end, function(_, out)
@@ -161,4 +162,10 @@ end)
 M.appWatcher:start()
 
 M.start()
+-- hs.task keeps the whole output of a running task, and every windows-changed event carries the full
+-- window list: a subscriber left running grew Hammerspoon by ~500 MB an hour. Restart it every 5 min (the
+-- old task and its output are freed; a query resynchronises at once).
+M.recycleTimer = hs.timer.doEvery(300, function()
+  if M.sub and M.sub:isRunning() then M.recycling = true; M.sub:terminate() end
+end)
 return M
