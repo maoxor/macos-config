@@ -26,6 +26,8 @@ start_mtime="$(stat -f %m "$IDX")"
 rerun_if_changed() { rm -rf "$LOCK"; [ "$(stat -f %m "$IDX")" != "$start_mtime" ] && { echo "$(date '+%F %T') index changed during the run: running again"; exec /bin/bash "$0"; }; }
 trap rerun_if_changed EXIT
 sleep 1  # let macOS finish writing the index
+# Every Space shows the same wallpaper (macOS keeps an older choice per Space, seen on the lock screen).
+python3 -I "$REPO/scripts/wallpaper-all-spaces.py"
 
 src="$(python3 -I - "$HOME/Library/Application Support/com.apple.wallpaper/Store/Index.plist" <<'PY'
 import plistlib, re, sys, urllib.parse
