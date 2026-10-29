@@ -213,6 +213,12 @@ Before changing anything listed here, read the entry and keep its verification p
   ran every 5 minutes (and cost ~5 s of CPU over 166 000 directories). `playwright-watch` (FSEvents) hands each
   written `coreBundle.js` / `crBrowser.js` to the patcher: patched 0.7 s after the write (npm and `.venv` layouts
   tested); the walk is hourly.
+- **Real Chrome (2026-10-29, seen by the journal):** a session ran `chromium.launch({ channel: 'chrome', headless:
+  false })` three times (bot-protected site): the user's browser bundle has no rule, so OmniWM tiled the first window
+  (1025x1293) on the current workspace and Chrome took the keyboard (5.4 s); the next two showed through Ghostty for
+  9-10 s. Patch 0030: a Chrome, Edge or Brave started with `--enable-automation` (Playwright, Puppeteer, Selenium; the
+  user's Chrome and the business-lover Chrome do not have it) follows the Chrome for Testing rules (workspace 4);
+  `test-browsers.lua` gives the keyboard back from it too.
 - **Journal (2026-10-29):** the `window-journal` agent (`scripts/window-journal.swift`) records every new window
   that shows over the user's work (>= 5000 pt2 uncovered and 50 pt both ways; behind Ghostty counts as shown), how long, and the process
   chain with working directories (the project). `window-journal report [hours]`; files in

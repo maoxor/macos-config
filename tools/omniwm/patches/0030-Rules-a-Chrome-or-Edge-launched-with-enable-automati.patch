@@ -1,0 +1,208 @@
+From 33c55170d5d6de58a7044d640fc65b7e2dce18cc Mon Sep 17 00:00:00 2001
+From: maoxor <118530756+maoxor@users.noreply.github.com>
+Date: Thu, 29 Oct 2026 22:33:46 +0100
+Subject: [PATCH] Rules: a Chrome or Edge launched with --enable-automation
+ follows the test browser's rules
+
+---
+ .../Controller/WMController+WindowFacts.swift |  2 +-
+ .../OmniWM/Core/Rules/AutomationBrowser.swift | 97 +++++++++++++++++++
+ .../AutomationBrowserRuleTests.swift          | 69 +++++++++++++
+ 3 files changed, 167 insertions(+), 1 deletion(-)
+ create mode 100644 Sources/OmniWM/Core/Rules/AutomationBrowser.swift
+ create mode 100644 Tests/OmniWMTests/AutomationBrowserRuleTests.swift
+
+diff --git a/Sources/OmniWM/Core/Controller/WMController+WindowFacts.swift b/Sources/OmniWM/Core/Controller/WMController+WindowFacts.swift
+index 3d8e5d5b..849b7255 100644
+--- a/Sources/OmniWM/Core/Controller/WMController+WindowFacts.swift
++++ b/Sources/OmniWM/Core/Controller/WMController+WindowFacts.swift
+@@ -115,7 +115,7 @@ extension WMController {
+     ) -> WindowDecisionEvaluation {
+         let manualOverride = workspaceManager.manualLayoutOverride(for: token)
+         let baseDecision = windowRuleEngine.decision(
+-            for: facts,
++            for: AutomationBrowser.ruleFacts(facts, pid: token.pid),
+             token: token,
+             appFullscreen: appFullscreen
+         )
+diff --git a/Sources/OmniWM/Core/Rules/AutomationBrowser.swift b/Sources/OmniWM/Core/Rules/AutomationBrowser.swift
+new file mode 100644
+index 00000000..2e347e92
+--- /dev/null
++++ b/Sources/OmniWM/Core/Rules/AutomationBrowser.swift
+@@ -0,0 +1,97 @@
++// SPDX-License-Identifier: GPL-2.0-only
++// Copyright (C) 2026 BarutSRB — https://github.com/OmniNull/OmniWM
++
++import Darwin
++import Foundation
++
++/// A Chrome or Edge that a script launched for automation (Playwright `channel: "chrome"`, Puppeteer, Selenium:
++/// all pass `--enable-automation`; the user's own browser never does) follows the rules of the test browser
++/// (Chrome for Testing), not the user's browser: otherwise its windows were tiled over the user's workspace.
++@MainActor
++enum AutomationBrowser {
++    static let ruleBundleId = "com.google.chrome.for.testing"
++    private static let browserBundlePrefixes = ["com.google.chrome", "com.microsoft.edgemac", "com.brave.browser"]
++
++    /// Replaced by tests.
++    static var isLaunchedForAutomation: (pid_t) -> Bool = { pid in cachedArgumentCheck(pid) }
++
++    /// The bundle id the window rules see for an app.
++    static func ruleBundleId(pid: pid_t, bundleId: String?) -> String? {
++        guard let bundleId else { return nil }
++        let lowered = bundleId.lowercased()
++        guard lowered != ruleBundleId,
++              browserBundlePrefixes.contains(where: { lowered.hasPrefix($0) }),
++              isLaunchedForAutomation(pid)
++        else { return bundleId }
++        return ruleBundleId
++    }
++
++    static func ruleFacts(_ facts: WindowRuleFacts, pid: pid_t) -> WindowRuleFacts {
++        let mapped = ruleBundleId(pid: pid, bundleId: facts.ax.bundleId)
++        guard mapped != facts.ax.bundleId else { return facts }
++        let ax = facts.ax
++        return WindowRuleFacts(
++            appName: facts.appName,
++            ax: AXWindowFacts(
++                role: ax.role,
++                subrole: ax.subrole,
++                title: ax.title,
++                hasCloseButton: ax.hasCloseButton,
++                hasFullscreenButton: ax.hasFullscreenButton,
++                fullscreenButtonEnabled: ax.fullscreenButtonEnabled,
++                hasZoomButton: ax.hasZoomButton,
++                hasMinimizeButton: ax.hasMinimizeButton,
++                appPolicy: ax.appPolicy,
++                bundleId: mapped,
++                attributeFetchSucceeded: ax.attributeFetchSucceeded,
++                isMain: ax.isMain,
++                isModal: ax.isModal
++            ),
++            sizeConstraints: facts.sizeConstraints,
++            windowServer: facts.windowServer
++        )
++    }
++
++    /// Keyed by pid and start time: a reused pid is a different process.
++    private static var cache: [String: Bool] = [:]
++
++    private static func cachedArgumentCheck(_ pid: pid_t) -> Bool {
++        guard let start = startTime(pid) else { return false }
++        let key = "\(pid)-\(start)"
++        if let known = cache[key] { return known }
++        if cache.count > 512 { cache.removeAll() }
++        let result = arguments(pid)?.contains("--enable-automation") ?? false
++        cache[key] = result
++        return result
++    }
++
++    private static func startTime(_ pid: pid_t) -> UInt64? {
++        var info = kinfo_proc()
++        var size = MemoryLayout<kinfo_proc>.stride
++        var mib: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, pid]
++        guard sysctl(&mib, 4, &info, &size, nil, 0) == 0, size > 0 else { return nil }
++        let tv = info.kp_proc.p_un.__p_starttime
++        return UInt64(tv.tv_sec) * 1_000_000 + UInt64(tv.tv_usec)
++    }
++
++    /// argv of a process (KERN_PROCARGS2: argc, executable path, padding, then the arguments).
++    static func arguments(_ pid: pid_t) -> [String]? {
++        var mib: [Int32] = [CTL_KERN, KERN_PROCARGS2, pid]
++        var size = 0
++        guard sysctl(&mib, 3, nil, &size, nil, 0) == 0, size > MemoryLayout<Int32>.size else { return nil }
++        var buffer = [UInt8](repeating: 0, count: size)
++        guard sysctl(&mib, 3, &buffer, &size, nil, 0) == 0 else { return nil }
++        let argc = buffer.withUnsafeBytes { $0.load(as: Int32.self) }
++        var index = MemoryLayout<Int32>.size
++        while index < size, buffer[index] != 0 { index += 1 }   // executable path
++        while index < size, buffer[index] == 0 { index += 1 }   // padding
++        var args: [String] = []
++        while index < size, args.count < Int(argc) {
++            let begin = index
++            while index < size, buffer[index] != 0 { index += 1 }
++            args.append(String(decoding: buffer[begin ..< index], as: UTF8.self))
++            index += 1
++        }
++        return args
++    }
++}
+diff --git a/Tests/OmniWMTests/AutomationBrowserRuleTests.swift b/Tests/OmniWMTests/AutomationBrowserRuleTests.swift
+new file mode 100644
+index 00000000..138d28a9
+--- /dev/null
++++ b/Tests/OmniWMTests/AutomationBrowserRuleTests.swift
+@@ -0,0 +1,69 @@
++// SPDX-License-Identifier: GPL-2.0-only
++// Copyright (C) 2026 BarutSRB — https://github.com/OmniNull/OmniWM
++
++import AppKit
++@testable import OmniWM
++import XCTest
++
++@MainActor
++final class AutomationBrowserRuleTests: XCTestCase {
++    private var saved: ((pid_t) -> Bool)!
++
++    override func setUp() async throws {
++        saved = AutomationBrowser.isLaunchedForAutomation
++    }
++
++    override func tearDown() async throws {
++        AutomationBrowser.isLaunchedForAutomation = saved
++    }
++
++    private func facts(bundleId: String?) -> WindowRuleFacts {
++        WindowRuleFacts(
++            appName: "Browser",
++            ax: AXWindowFacts(
++                role: kAXWindowRole as String,
++                subrole: kAXStandardWindowSubrole as String,
++                title: "about:blank",
++                hasCloseButton: true,
++                hasFullscreenButton: true,
++                fullscreenButtonEnabled: true,
++                hasZoomButton: true,
++                hasMinimizeButton: true,
++                appPolicy: .regular,
++                bundleId: bundleId,
++                attributeFetchSucceeded: true
++            ),
++            sizeConstraints: nil,
++            windowServer: nil
++        )
++    }
++
++    func testAutomatedChromeFollowsTheTestBrowserRules() {
++        AutomationBrowser.isLaunchedForAutomation = { _ in true }
++        for bundleId in ["com.google.Chrome", "com.google.Chrome.canary", "com.microsoft.edgemac", "com.brave.Browser"] {
++            XCTAssertEqual(AutomationBrowser.ruleFacts(facts(bundleId: bundleId), pid: 1).ax.bundleId,
++                           AutomationBrowser.ruleBundleId, bundleId)
++        }
++    }
++
++    func testUserBrowserAndOtherAppsKeepTheirBundleId() {
++        AutomationBrowser.isLaunchedForAutomation = { _ in false }
++        XCTAssertEqual(AutomationBrowser.ruleFacts(facts(bundleId: "com.google.Chrome"), pid: 1).ax.bundleId,
++                       "com.google.Chrome")
++        AutomationBrowser.isLaunchedForAutomation = { _ in true }
++        XCTAssertEqual(AutomationBrowser.ruleFacts(facts(bundleId: "com.apple.Safari"), pid: 1).ax.bundleId,
++                       "com.apple.Safari")
++        XCTAssertNil(AutomationBrowser.ruleFacts(facts(bundleId: nil), pid: 1).ax.bundleId)
++    }
++
++    func testReadsTheArgumentsOfARealProcess() throws {
++        let child = Process()
++        child.executableURL = URL(fileURLWithPath: "/bin/sh")
++        child.arguments = ["-c", "sleep 5", "--enable-automation"]
++        try child.run()
++        defer { child.terminate() }
++        XCTAssertEqual(AutomationBrowser.arguments(child.processIdentifier)?.last, "--enable-automation")
++        XCTAssertTrue(saved(child.processIdentifier))
++        XCTAssertFalse(saved(ProcessInfo.processInfo.processIdentifier))
++    }
++}
+-- 
+2.54.0 (Apple Git-157)
+

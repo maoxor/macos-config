@@ -4,6 +4,10 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- OmniWM patch 0030: a Chrome, Edge or Brave started with `--enable-automation` (a script's real browser: Playwright
+  `channel: "chrome"`, Puppeteer, Selenium) follows the Chrome for Testing rules (workspace 4) instead of being tiled
+  over the user's workspace; `test-browsers.lua` gives the keyboard back from it and moves force-floated Safari
+  windows on each OmniWM window event (no query every 2 s). Rollback: remove the patch, rebuild OmniWM; `git revert`.
 - Hammerspoon memory (B20): cause found, agents' `hs -c` window captures (`saveToFile` autoreleases ~500 MB per
   capture, never drained in a background app); GC every 10 s; `scripts/restart-hammerspoon.sh` restarts it reliably.
 - `playwright-watch` agent (FSEvents): every Playwright copy is patched ~0.7 s after it is written instead of up to

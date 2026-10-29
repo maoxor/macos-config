@@ -3,7 +3,7 @@
 -- opens their pages behind the user's windows. macOS still hands them the keyboard: when one becomes frontmost
 -- without a click from the user in the last second, focus goes back to the app that had it (polled: these apps
 -- are often not reported by hs.application.watcher). Also moves Safari windows a session forced to float to
--- workspace 4 (checked every 2 s).
+-- workspace 4 (on each OmniWM window change).
 local M = {}
 M.bundles = {
   ["com.google.chrome.for.testing"] = true, ["org.chromium.Chromium"] = true,
@@ -17,12 +17,33 @@ M.clicks = hs.eventtap.new({ hs.eventtap.event.types.leftMouseDown }, function()
 end)
 M.clicks:start()
 
+-- A Chrome, Edge or Brave a script launched (--enable-automation: Playwright channel "chrome", Puppeteer, Selenium)
+-- is a test browser too; OmniWM patch 0030 sends its windows to workspace 4. Its arguments are read once a minute
+-- per pid (a pid can be reused).
+local automation = {}
+local function isTest(app)
+  local bid = app:bundleID() or ""
+  if M.bundles[bid] then return true end
+  if not (bid:find("^com%.google%.Chrome") or bid:find("^com%.microsoft%.edgemac") or bid:find("^com%.brave%.Browser")) then
+    return false
+  end
+  local pid, now = app:pid(), hs.timer.secondsSinceEpoch()
+  local known = automation[pid]
+  if not known or now - known.at > 60 then
+    local out = hs.execute("/bin/ps -ww -o args= -p " .. pid) or ""
+    known = { at = now, test = out:find("--enable-automation", 1, true) ~= nil }
+    automation[pid] = known
+  end
+  return known.test
+end
+M.isTest = isTest
+
 local testSeen = 0 -- last time a test browser was frontmost
 M.timer = hs.timer.doEvery(0.25, function()
   local app = hs.application.frontmostApplication()
   if not app then return end
   local now = hs.timer.secondsSinceEpoch()
-  if M.bundles[app:bundleID() or ""] then
+  if isTest(app) then
     testSeen = now
     if now - lastClick > 1 and last and last:isRunning() then last:activate() end
   elseif now - testSeen < 3 and app ~= last and now - lastClick > 1 and last and last:isRunning() then
@@ -34,8 +55,19 @@ M.timer = hs.timer.doEvery(0.25, function()
 end)
 
 local CTL = os.getenv("HOME") .. "/.local/bin/omniwmctl"
--- Every 2 s, a short query of the floating Safari windows only. Not "omniwmctl subscribe": Hammerspoon was at
--- 4.6 GB while that stream ran (2026-10-29; not hs.task buffering, which keeps nothing: docs/bugs.md B20).
+-- Safari windows a session forced to float go to workspace 4. Checked on every window list ws-hide.lua receives
+-- from OmniWM (windows-changed events: no process); a query every 60 s covers a missed event. (It was a query
+-- every 2 s: one omniwmctl process each time, most of Hammerspoon's idle CPU.)
+local moved = {}
+function M.onWindows(windows)
+  for _, w in ipairs(windows or {}) do
+    if w.manualOverride == "force-float" and w.app and w.app.bundleId == "com.apple.Safari"
+      and w.workspace and w.workspace.number ~= 4 and not moved[w.id] then
+      moved[w.id] = true
+      hs.task.new(CTL, function() moved[w.id] = nil end, { "window", "move-to-workspace", w.id, "4" }):start()
+    end
+  end
+end
 local busy = false
 local function sweep()
   if busy then return end
@@ -43,15 +75,10 @@ local function sweep()
   M.task = hs.task.new(CTL, function(_, out)
     busy = false
     local ok, data = pcall(hs.json.decode, out or "")
-    if not (ok and data and data.result) then return end
-    for _, w in ipairs(data.result.payload.windows or {}) do
-      if w.manualOverride == "force-float" and w.workspace and w.workspace.number ~= 4 then
-        hs.task.new(CTL, nil, { "window", "move-to-workspace", w.id, "4" }):start()
-      end
-    end
+    if ok and data and data.result then M.onWindows(data.result.payload.windows) end
   end, { "query", "windows", "--bundle-id", "com.apple.Safari", "--floating", "--format", "json" })
   M.task:start()
 end
-M.sweepTimer = hs.timer.doEvery(2, sweep)
+M.sweepTimer = hs.timer.doEvery(60, sweep)
 
 return M

@@ -108,7 +108,11 @@ local function handleLine(line)
   if not ok or type(ev) ~= "table" then return nil end
   local p = (ev.result and ev.result.payload) or ev.payload or ev
   if type(p) ~= "table" then return nil end
-  if p.windows then M.windows = p.windows; return nil end
+  if p.windows then
+    M.windows = p.windows
+    if testBrowsers and testBrowsers.onWindows then testBrowsers.onWindows(p.windows) end
+    return nil
+  end
   return p.workspace and p.workspace.id or nil
 end
 
