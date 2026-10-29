@@ -40,6 +40,16 @@ in {
     safari = openApp "Safari";
     discord = openApp "Discord";
     # Every minute: open Claude Code sessions and their workspace, for Cmd+F5 (restore-session.py) after a crash.
+    # A new Playwright browser download gets the corner start position (scripts/playwright-offscreen.sh).
+    playwright-offscreen = {
+      enable = true;
+      config = {
+        ProgramArguments = [ "/bin/bash" "${identity.repoDir}/scripts/playwright-offscreen.sh" ];
+        RunAtLoad = true;
+        WatchPaths = [ "${config.home.homeDirectory}/Library/Caches/ms-playwright" ];
+        ProcessType = "Background";
+      };
+    };
     session-snapshot = {
       enable = true;
       config = {
