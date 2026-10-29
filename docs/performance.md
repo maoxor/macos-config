@@ -100,8 +100,8 @@ errors make it admit jobs that do not fit (M, 2026-10-29):
   (RSS 0.2 GB) are invisible to it.
 - "available" = free + inactive + speculative + purgeable from `vm_stat`, which ignores what the compressor and
   the GPU already hold.
-**Migrated on 2026-10-29**: the 12 copies (`~/ai/veil-helpers/heavy.py`, `living-key-art/tools/heavy.py`, the
-`lourd.py` of the prototypes and mock-ups) are now `scripts/heavy-compat.py`: same command line
+**Migrated on 2026-10-29**: the 12 copies (a shared helper and the copies inside projects) are now
+`scripts/heavy-compat.py`: same command line
 (`python3 -S heavy.py NEED_GB cmd…`), same lock for scripts that write it by hand, decisions by
 `jobgate run --gpu --mem NEED_GB`; without jobgate (another Mac) the command runs directly. Originals backed up in
 `~/.local/state/macos-power-user-deploy/backups/jobgate-migration-20261029-145221/` (`ROLLBACK.txt`).

@@ -208,7 +208,7 @@ class Sampler:
 
 
 def job_key(cmd):
-    """'kwant/rejouer_kwant.py' for 'python -I scripts/mission/rejouer_kwant.py …' run in ~/dev/kwant."""
+    """'proj/replay.py' for 'python -I scripts/replay.py …' run in ~/dev/proj."""
     script = next((w for w in cmd[1:] if re.search(r"\.(py|mjs|cjs|js|ts|rb|sh)$", w) or "/exe/" in w), cmd[0])
     path = script if script.startswith("/") else os.path.join(os.getcwd(), script)
     project = re.search(r"/(?:dev|ai|src)/(?:open-source/)?([^/]+)", path)
@@ -483,7 +483,7 @@ def cmd_self_test(_):
     pts = [(n, 0.5 * n / (1 + 0.05 * (n - 1) + 0.002 * n * (n - 1))) for n in (1, 2, 4, 8, 16, 32)]
     a, b, lam, peak = usl_fit(pts)
     check(abs(a - 0.05) < 0.011 and abs(b - 0.002) < 0.0006 and abs(peak - 21.8) < 2, f"USL fit (N* {peak:.1f})")
-    check(job_key(["python", "/x/dev/kwant/scripts/mission/rejouer.py", "--a"]) == "kwant/rejouer.py", "job key")
+    check(job_key(["python", "/x/dev/proj/scripts/replay.py", "--a"]) == "proj/replay.py", "job key")
     sys.exit(0 if ok else 1)
 
 
