@@ -9,6 +9,9 @@ is not a plain `git revert`.
   concurrency is reduced only while the Mac thrashes (youngest job paused, oldest resumed first). Compatible with
   the projects' `heavy.py` lock. `scripts/macstat.py` holds the measures shared with `perf-journal.py`.
   Rollback: remove the `.local/bin/jobgate` entry from `home-manager/startup.nix`; jobs keep working without it.
+- The projects' `heavy.py` / `lourd.py` copies (12) delegate to jobgate through `scripts/heavy-compat.py` (same
+  command line and lock); jobgate keeps their watchdog as a last resort (memory critical for 20 s: the youngest
+  job stops with exit 75). Rollback: `~/.local/state/macos-power-user-deploy/backups/jobgate-migration-*/ROLLBACK.txt`.
 - Performance journal: the `perf-journal` agent samples memory pressure, wired/compressor/swap, CPU user/system,
   GPU and the top processes by real footprint every minute (8 days kept; `scripts/perf-journal.py report`).
   `docs/performance.md` records what was measured, what is worth changing and what was rejected. Rollback:

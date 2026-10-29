@@ -82,6 +82,8 @@ jobgate status | jobgate history [KEY]
 - **Thrashing guard**: pressure warn/critical, or swap-ins > 2,000 pages/s with kernel CPU > 15 %, for 10 s →
   the youngest running pausable job is paused (SIGSTOP; never the last running one; GPU jobs are not pausable,
   their wired memory would not be freed); after 20 s of calm the oldest paused job resumes.
+- **Last resort** (the legacy watchdog's role): memory critical (pressure level 4, or under 3 % free) for 20 s →
+  the youngest job, paused or not, is stopped (SIGTERM, SIGKILL after 20 s) with exit 75 so its caller can retry.
 - **Compatibility**: it honours the projects' `heavy.py` / `lourd.py` lock (`~/.cache/gpu-lourd.lock`): a
   `--gpu` job waits for a live legacy holder and for older legacy tickets, and holds the lock while it runs,
   so the legacy copies keep working unchanged.
@@ -98,8 +100,11 @@ errors make it admit jobs that do not fit (M, 2026-10-29):
   (RSS 0.2 GB) are invisible to it.
 - "available" = free + inactive + speculative + purgeable from `vm_stat`, which ignores what the compressor and
   the GPU already hold.
-About ten diverging copies exist; replacing them with a call to `jobgate run --gpu --mem N -- …` keeps their
-behaviour (one heavy GPU job at a time while the GPU is saturated) with correct measures.
+**Migrated on 2026-10-29**: the 12 copies (`~/ai/veil-helpers/heavy.py`, `living-key-art/tools/heavy.py`, the
+`lourd.py` of the prototypes and mock-ups) are now `scripts/heavy-compat.py`: same command line
+(`python3 -S heavy.py NEED_GB cmd…`), same lock for scripts that write it by hand, decisions by
+`jobgate run --gpu --mem NEED_GB`; without jobgate (another Mac) the command runs directly. Originals backed up in
+`~/.local/state/macos-power-user-deploy/backups/jobgate-migration-20261029-145221/` (`ROLLBACK.txt`).
 
 ## 6. PyTorch MPS memory: tested
 

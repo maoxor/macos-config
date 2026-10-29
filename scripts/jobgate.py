@@ -23,7 +23,8 @@ PyTorch MPS: a --gpu job gets PYTORCH_MPS_HIGH_WATERMARK_RATIO sized to the memo
 (not a fixed cap; the default 1.7 x recommendedMaxWorkingSetSize lets one job ask for ~95 GB on 64 GB), unless
 the caller set it. Adaptive throttle: while the machine thrashes (pressure warn/critical, or swap-ins and kernel
 CPU both high, for 10 s) the youngest pausable job is paused (SIGSTOP; GPU jobs are not pausable by default:
-their memory is wired and pausing frees nothing); paused jobs resume oldest first once it is calm for 20 s.
+their memory is wired and pausing frees nothing); paused jobs resume oldest first once it is calm for 20 s. Last
+resort (the legacy watchdog's role): memory critical for 20 s → the youngest job is stopped, exit 75.
 Compatible with the projects' heavy.py / lourd.py lock (~/.cache/gpu-lourd.lock): a --gpu job waits while a
 live legacy job holds it and holds it while it runs, so legacy copies keep working."""
 import json, math, os, re, signal, subprocess, sys, time
@@ -39,6 +40,7 @@ LEGACY = os.path.expanduser(os.environ.get("JOBGATE_LEGACY_DIR") or "~/.cache") 
 LEGACY_LOCK = os.path.join(LEGACY, "gpu-lourd.lock")
 LEGACY_QUEUE = os.path.join(LEGACY, "gpu-lourd.queue")
 FORCE_THRASH = os.environ.get("JOBGATE_TEST_THRASH")  # tests: thrashing while this file exists
+FORCE_CRITICAL = os.environ.get("JOBGATE_TEST_CRITICAL")  # tests: memory critical while this file exists
 GB = 1e9
 RESERVE = max(4 * GB, 0.08 * macstat.RAM)  # left to macOS, apps and windows
 DEFAULT_NEED = 4 * GB
@@ -82,6 +84,13 @@ def thrashing(level, swapins_s, sys_pct):
     if FORCE_THRASH and os.path.exists(FORCE_THRASH):
         return True
     return level >= 2 or (swapins_s > 2000 and sys_pct > 15)
+
+
+def critical(level, free_bytes, ram):
+    """Last resort, the case of the 2026-10-12 panic: kernel pressure critical, or under 3 % of memory left."""
+    if FORCE_CRITICAL and os.path.exists(FORCE_CRITICAL):
+        return True
+    return level >= 4 or free_bytes < 0.03 * ram
 
 
 def youngest(jobs):
@@ -247,7 +256,7 @@ def cmd_run(argv):
     child, legacy_mine = None, False
     try:
         sample()
-        last_note, first = 0, True
+        last_note, first = time.time() - 290, True  # first note after 10 s of waiting, then every 5 min
         while True:  # ---- admission
             time.sleep(0.5 if first else TICK)
             first = False
@@ -274,7 +283,7 @@ def cmd_run(argv):
             if time.time() - last_note > 300:
                 last_note = time.time()
                 log(f"{key} waits: needs {need / GB:.1f} GB, room {room / GB:.1f} GB"
-                    + (f"; {blocked}" if blocked else "") + ("; GPU busy" if gpu and gpu_busy else ""))
+                    + (f"; {blocked}" if blocked else "") + ("; GPU busy" if gpu and gpu_busy and len(gpu_hist) >= 3 else ""))
         env = dict(os.environ)
         if gpu:
             if not holder:
@@ -298,7 +307,7 @@ def cmd_run(argv):
         child = subprocess.Popen(cmd, env=env)
         me["child"] = child.pid
         write_json(mine, me)
-        peak, paused_s, pauses, bad, calm = 0, 0.0, 0, 0.0, 0.0
+        peak, paused_s, pauses, bad, calm, crit, stopped = 0, 0.0, 0, 0.0, 0.0, 0.0, False
         while child.poll() is None:  # ---- supervision
             time.sleep(TICK)
             m = sample()
@@ -314,6 +323,15 @@ def cmd_run(argv):
             bad, calm = (bad + TICK, 0.0) if thrashing(m["level"], m["swapins_s"], m["sys_pct"]) else (0.0, calm + TICK)
             running = [j for j in jobs() if j["state"] in ("running", "paused")]
             thr = read_json(THROTTLE, {"t": 0})
+            crit = crit + TICK if critical(m["level"], m["free"], macstat.RAM) else 0.0
+            if crit >= 20 and time.time() - thr["t"] > 15 and (youngest(running) or {}).get("pid") == os.getpid():
+                # Pausing could not prevent it: stop the youngest job before the Mac stalls (exit 75 = retry later).
+                write_json(THROTTLE, {"t": time.time(), "by": os.getpid(), "action": "stop"})
+                log(f"{key} stopped: memory critical for {crit:.0f} s (pressure {m['level']}, "
+                    f"{m['free'] / GB:.1f} GB free); exit 75, run it again later")
+                stop_tree(child)
+                stopped = True
+                break
             if me["state"] == "running" and bad >= 10 and time.time() - thr["t"] > 15:
                 cand = pause_candidate(running)
                 if cand and cand["pid"] == os.getpid():
@@ -335,28 +353,45 @@ def cmd_run(argv):
                     write_json(mine, me)
                     write_json(THROTTLE, {"t": time.time(), "by": os.getpid(), "action": "resume"})
                     log(f"{key} resumed after {paused_s:.0f} s paused in total")
-        code = child.returncode
+        code = 75 if stopped else child.returncode
         rec = {"t": time.strftime("%Y-%m-%dT%H:%M:%S"), "key": key, "need_gb": round(need / GB, 2),
                "peak_gb": round(peak / GB, 2), "wait_s": round(t0 - me["queued"]), "run_s": round(time.time() - t0),
-               "paused_s": round(paused_s), "pauses": pauses, "gpu": gpu, "exit": code}
+               "paused_s": round(paused_s), "pauses": pauses, "gpu": gpu, "exit": code, "stopped": stopped}
         with open(HISTORY, "a") as f:
             f.write(json.dumps(rec) + "\n")
         log(f"{key} done: exit {code}, {rec['run_s']} s, peak {rec['peak_gb']} GB")
         sys.exit(code if code >= 0 else 128 - code)
     finally:
-        if child and child.poll() is None:  # killed while running: take the job down with us, resumed first
-            for p in macstat.tree(child.pid):
-                try:
-                    os.kill(p, signal.SIGCONT)
-                except OSError:
-                    pass
-            child.terminate()
+        if child and child.poll() is None:  # killed while running: take the job down with us
+            stop_tree(child)
         if legacy_mine and (read_json(LEGACY_LOCK) or {}).get("pid") == os.getpid():
             os.remove(LEGACY_LOCK)
         try:
             os.remove(mine)
         except OSError:
             pass
+
+
+def stop_tree(child, grace=20):
+    """SIGCONT (a paused job cannot exit) then SIGTERM to the whole tree; SIGKILL what is left after grace s."""
+    procs = macstat.tree(child.pid)
+    for sig in (signal.SIGCONT, signal.SIGTERM):
+        for p in procs:
+            try:
+                os.kill(p, sig)
+            except OSError:
+                pass
+    try:
+        child.wait(grace)
+    except subprocess.TimeoutExpired:
+        pass
+    for p in procs:
+        if macstat.alive(p):
+            try:
+                os.kill(p, signal.SIGKILL)
+            except OSError:
+                pass
+    child.poll()
 
 
 def cmd_workers(argv):
@@ -443,6 +478,8 @@ def cmd_self_test(_):
     check(pause_candidate(run)["pid"] == 2, "the youngest running job is paused first")
     check(pause_candidate([run[0], dict(run[1], state="paused")]) is None, "the last running job is never paused")
     check(pause_candidate([run[0], dict(run[1], pausable=False)])["pid"] == 1, "a non-pausable job is skipped")
+    check(critical(4, 30 * GB, 64 * GB) and critical(1, 1 * GB, 64 * GB) and not critical(2, 10 * GB, 64 * GB),
+          "last resort only when critical or under 3 % free")
     pts = [(n, 0.5 * n / (1 + 0.05 * (n - 1) + 0.002 * n * (n - 1))) for n in (1, 2, 4, 8, 16, 32)]
     a, b, lam, peak = usl_fit(pts)
     check(abs(a - 0.05) < 0.011 and abs(b - 0.002) < 0.0006 and abs(peak - 21.8) < 2, f"USL fit (N* {peak:.1f})")
