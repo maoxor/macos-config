@@ -54,12 +54,18 @@ function M.build()
     local size = image:size()
     local k = math.max(full.w / size.w, full.h / size.h)
     local w, h = size.w * k, size.h * k
-    c[1] = { type = "image", image = image, imageScaling = "scaleToFit",
-             frame = { x = (full.w - w) / 2 - (full.w - GAP), y = (full.h - h) / 2 - topFor(screen), w = w, h = h } }
+    local x, y = (full.w - w) / 2 - (full.w - GAP), (full.h - h) / 2 - topFor(screen)
+    -- Keep only the gap slice of the image: the full decoded wallpaper (~100 MB for a 6K picture) was held
+    -- by the canvas, and every rebuild left another one to a Lua GC that never ran (3.4 GB on 2026-10-29).
+    local slice = image:croppedCopy({ x = -x / k, y = -y / k, w = rect.w / k, h = rect.h / k })
+    if slice then image, x, y, w, h = slice, 0, 0, rect.w, rect.h end
+    c[1] = { type = "image", image = image, imageScaling = "scaleToFit", frame = { x = x, y = y, w = w, h = h } }
   else
     c[1] = { type = "rectangle", action = "fill", fillColor = { white = 0.05 } }
   end
   M.canvas = c
+  image = nil
+  collectgarbage() -- free the previous canvas and the full image now (native memory the Lua GC cannot see)
   M.shown = not M.suppressed
   if M.shown then c:show() end
 end

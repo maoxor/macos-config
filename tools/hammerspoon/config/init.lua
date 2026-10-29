@@ -24,3 +24,5 @@ wallpaperCycle = require("wallpaper-cycle")
 keyboardClean = require("keyboard-clean")
 -- Playwright browsers (workspace 4 by OmniWM rule) never pull the user off their workspace.
 testBrowsers = require("test-browsers")
+-- hs.image / canvas / task objects hold native memory the Lua GC does not count, so it rarely runs on its own.
+gcTimer = hs.timer.doEvery(300, function() collectgarbage() end)
