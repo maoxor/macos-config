@@ -4,6 +4,13 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- `playwright-watch` agent (FSEvents): every Playwright copy is patched ~0.7 s after it is written instead of up to
+  5 minutes later (sessions test right after installing); the full walk becomes hourly. `scripts/swift-tool.sh`
+  builds and runs the Swift helpers. Rollback: remove the agent from `home-manager/startup.nix`, set the walk back
+  to 300 s, re-apply.
+- `verify.sh`: an outdated cask is reported ("newer versions available"), no longer a drift: apply installs with
+  `--no-upgrade` and upgrades stay a decision. `AGENTS.md`: the Nix build check needs `MACOS_CONFIG_REPO` and
+  `--impure`.
 - `ws-hide` subscribes on OmniWM's IPC socket directly (no `omniwmctl subscribe` process, no 5-min restart;
   falls back to it if the request is refused). The earlier explanation of Hammerspoon's memory growth
   ("hs.task keeps the whole output") was wrong; the growth is still open (B20). The margin veil stretches its

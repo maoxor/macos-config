@@ -209,6 +209,10 @@ Before changing anything listed here, read the entry and keep its verification p
   (`com.google.Chrome` is the user's browser) and would land on the current workspace. Checked the same evening: the
   Selenium runs (Dash tests, real Chrome through chromedriver) all passed `--headless`; `chrome-devtools-mcp` is set
   headed in one project but its profile was last used on 2026-10-12.
+- **New copies patched at once (2026-10-29):** sessions install Playwright and test within seconds, while the walk
+  ran every 5 minutes (and cost ~5 s of CPU over 166 000 directories). `playwright-watch` (FSEvents) hands each
+  written `coreBundle.js` / `crBrowser.js` to the patcher: patched 0.7 s after the write (npm and `.venv` layouts
+  tested); the walk is hourly.
 - **Journal (2026-10-29):** the `window-journal` agent (`scripts/window-journal.swift`) records every new window
   that shows over the user's work (>= 5000 pt2 uncovered and 50 pt both ways; behind Ghostty counts as shown), how long, and the process
   chain with working directories (the project). `window-journal report [hours]`; files in

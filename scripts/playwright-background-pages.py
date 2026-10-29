@@ -13,10 +13,11 @@ showed through the terminals for 20-85 ms (more under load, and the dark test pa
 parked it). left/top put a new context's window in the bottom-right corner instead: Chrome keeps 40 x 41 pt of it on
 screen (it clamps any position), where OmniWM parks it in ~20 ms (measured 2026-10-29).
 
-Patches every playwright-core (npm) and Python Playwright driver under ROOTS, the session scratchpads included
-(projects and sessions reinstall it, so this runs every 5 minutes from the launchd agent
-playwright-background-pages). PW_FOREGROUND_PAGES=1 in a process restores the normal behaviour.
---undo restores the original lines; --check only lists the files."""
+Patches every playwright-core (npm) and Python Playwright driver under ROOTS, the session scratchpads included.
+Projects and sessions reinstall it and use it at once: the playwright-watch agent (scripts/playwright-watch.swift,
+FSEvents) passes each new copy here with --files as soon as it is written; the hourly agent
+playwright-background-pages walks ROOTS as a safety net. PW_FOREGROUND_PAGES=1 in a process restores the normal
+behaviour. --undo restores the original lines; --check only lists the files; --files F... handles only those."""
 import glob, os, sys
 
 ROOTS = [os.path.expanduser(p) for p in ("~/dev", "~/src", "~/ai", "~/.npm/_npx", "~/.cache/codex-runtimes")]
@@ -56,9 +57,19 @@ def files():
                 yield os.path.join(p, n)
 
 
+def given(paths):
+    """Files named by the watcher, kept only if they are a Playwright file of a package location we patch."""
+    for f in paths:
+        p = f.rsplit("/lib/", 1)[0]
+        if (f.endswith(("/lib/coreBundle.js", "/lib/server/chromium/crBrowser.js")) and os.path.isfile(f)
+                and (os.path.basename(p) == "playwright-core" or p.endswith("/playwright/driver/package"))):
+            yield f
+
+
 def main():
     undo, check = "--undo" in sys.argv, "--check" in sys.argv
-    for f in files():
+    chosen = given(sys.argv[sys.argv.index("--files") + 1:]) if "--files" in sys.argv else files()
+    for f in chosen:
         s = open(f, encoding="utf-8").read()
         src = next((x for x in ((NEW, NEW_V1) if undo else (OLD, NEW_V1)) if s.count(x) == 1), None)
         if src is None:

@@ -64,9 +64,10 @@ One mechanism per tool. Login items are Home Manager LaunchAgents declared in `h
 | `stats` | Stats |
 | `theme-auto` | `scripts/theme-auto.sh` when the wallpaper changes |
 | `session-snapshot` | `scripts/session-snapshot.py` every minute (open Claude Code sessions, for Cmd+F5) |
-| `playwright-background-pages` | `scripts/playwright-background-pages.py` every 5 minutes: Playwright test pages (npm and Python, session scratchpads included) open behind the user's windows, in the bottom-right corner |
+| `playwright-watch` | `scripts/playwright-watch.swift` (FSEvents): each Playwright copy written under the project roots and session scratchpads is patched within ~0.7 s (`playwright-background-pages.py --files`) |
+| `playwright-background-pages` | `scripts/playwright-background-pages.py` hourly, safety net: Playwright test pages (npm and Python, session scratchpads included) open behind the user's windows, in the bottom-right corner |
 | `perf-journal` | `scripts/perf-journal.py` every minute: memory, CPU, GPU per process, one week kept (`docs/performance.md`) |
-| `window-journal` | `scripts/window-journal.sh` (built from `window-journal.swift` on first run): every new window that shows over the user's work and the process that opened it, one week kept (`window-journal report`) |
+| `window-journal` | `scripts/window-journal.swift` (built by `scripts/swift-tool.sh` on first run and after each change): every new window that shows over the user's work and the process that opened it, one week kept (`window-journal report`) |
 
 A log-rotation agent also trims `~/Library/Logs/macos-config/`. Raycast uses its own "Open at Login" setting.
 Do not also enable "launch at login" inside OmniWM, Hammerspoon, Neru or Stats. In System Settings > General > Login Items

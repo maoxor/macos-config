@@ -62,7 +62,7 @@ Authority: the real machine (checked by `scripts/verify.sh` / `scripts/doctor.sh
 | Check | Command | Expect |
 |---|---|---|
 | Repo (offline, also CI) | `scripts/check.sh` | `All checks passed.` (syntax, ShellCheck, tracked configs, regression tests incl. registry = settings, no hardcoded paths) |
-| Nix | `cd home-manager && nix build '.#homeConfigurations.mac.activationPackage' --no-link` | builds |
+| Nix | `cd home-manager && MACOS_CONFIG_REPO=$(cd .. && pwd) nix build '.#homeConfigurations.mac.activationPackage' --no-link --impure` (or `scripts/apply.sh home-manager`, which previews) | builds |
 | OmniWM patches | `tools/omniwm/build-local.sh --check` | patches apply on the pinned upstream |
 | OmniWM tests | `cd $OMNIWM_SRC && swift test --filter "<Suite>"` | targeted suites pass (`docs/omniwm.md` §1) |
 | Machine works | `scripts/doctor.sh` | `no failure` |

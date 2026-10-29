@@ -40,14 +40,28 @@ in {
     safari = openApp "Safari";
     discord = openApp "Discord";
     # Every minute: open Claude Code sessions and their workspace, for Cmd+F5 (restore-session.py) after a crash.
-    # Playwright test pages open behind the user's windows, in a screen corner (scripts/playwright-background-pages.py);
-    # every 5 minutes (~5 s of CPU), since projects and session scratchpads reinstall Playwright.
+    # Playwright test pages open behind the user's windows, in a screen corner (scripts/playwright-background-pages.py).
+    # playwright-watch patches each new copy as it is written (FSEvents, ~0.4 s); the hourly walk (~5 s of CPU) is
+    # the safety net.
+    playwright-watch = {
+      enable = true;
+      config = {
+        ProgramArguments = [ "/bin/bash" "${identity.repoDir}/scripts/swift-tool.sh" "playwright-watch"
+          "${identity.repoDir}/scripts/playwright-background-pages.py" ];
+        RunAtLoad = true;
+        KeepAlive = { SuccessfulExit = false; };
+        ThrottleInterval = 30;
+        ProcessType = "Background";
+        StandardOutPath = "${logs}/playwright-watch.log";
+        StandardErrorPath = "${logs}/playwright-watch.log";
+      };
+    };
     playwright-background-pages = {
       enable = true;
       config = {
         ProgramArguments = [ "/usr/bin/python3" "-I" "${identity.repoDir}/scripts/playwright-background-pages.py" ];
         RunAtLoad = true;
-        StartInterval = 300;
+        StartInterval = 3600;
         ProcessType = "Background";
       };
     };
@@ -114,7 +128,7 @@ in {
     window-journal = {
       enable = true;
       config = {
-        ProgramArguments = [ "/bin/bash" "${identity.repoDir}/scripts/window-journal.sh" ];
+        ProgramArguments = [ "/bin/bash" "${identity.repoDir}/scripts/swift-tool.sh" "window-journal" ];
         RunAtLoad = true;
         KeepAlive = { SuccessfulExit = false; };
         ThrottleInterval = 30;

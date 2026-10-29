@@ -16,8 +16,14 @@ while IFS=$'\t' read -r id type live dest _ _; do
 done < <(config_rows)
 
 echo "== Homebrew (apps of homebrew/Brewfile installed)"
-if HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check --file="$REPO/homebrew/Brewfile" >/dev/null 2>&1; then echo "  ok"
-else echo "  DRIFT    missing or outdated (scripts/apply.sh homebrew --write)"; rc=1; fi
+# Missing = drift. Outdated is only reported: apply installs with --no-upgrade, and an upgrade can cost an app its
+# Accessibility permission (Neru), so upgrades stay a decision (brew upgrade --cask <app>).
+if HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check --no-upgrade --file="$REPO/homebrew/Brewfile" >/dev/null 2>&1; then
+  echo "  ok"
+  old="$(HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check --verbose --file="$REPO/homebrew/Brewfile" 2>&1 \
+    | sed -n 's/^→ [A-Za-z]* \([^ ]*\) needs to be installed or updated\./\1/p' | tr '\n' ' ')"
+  [ -n "$old" ] && echo "  info  newer versions available: $old"
+else echo "  DRIFT    missing (scripts/apply.sh homebrew --write)"; rc=1; fi
 
 echo "== macOS settings (scripts/macos-defaults.sh)"
 if "$REPO/scripts/macos-defaults.sh" >/dev/null; then echo "  ok"; else echo "  DRIFT    (scripts/macos-defaults.sh to see, --write to fix)"; rc=1; fi
