@@ -33,8 +33,7 @@ local function windowUnderMouse()
   end
 end
 
-M.finderWatch = hs.window.filter.new(false):setAppFilter("Finder", { allowRoles = "AXStandardWindow" })
-M.finderWatch:subscribe(hs.window.filter.windowDestroyed, function()
+local function refocusIfFinderIsEmpty()
   hs.timer.doAfter(0.3, function()
     local app = hs.application.get("com.apple.finder")
     if not app or not app:isFrontmost() then return end
@@ -44,5 +43,22 @@ M.finderWatch:subscribe(hs.window.filter.windowDestroyed, function()
     local target = windowUnderMouse()
     if target then target:focus() end
   end)
+end
+
+-- An accessibility observer on Finder alone, not hs.window.filter: a filter scans every window of every app
+-- when created, which took 21 s at Hammerspoon start (no shortcut works meanwhile, 2026-10-29).
+local function watchFinder()
+  local app = hs.application.get("com.apple.finder")
+  if M.finderObserver then M.finderObserver:stop(); M.finderObserver = nil end
+  if not app then return end
+  M.finderObserver = hs.axuielement.observer.new(app:pid())
+    :callback(refocusIfFinderIsEmpty)
+    :addWatcher(hs.axuielement.applicationElement(app), "AXUIElementDestroyed")
+  M.finderObserver:start()
+end
+watchFinder()
+M.finderRelaunch = hs.application.watcher.new(function(_, event, app)
+  if event == hs.application.watcher.launched and app and app:bundleID() == "com.apple.finder" then watchFinder() end
 end)
+M.finderRelaunch:start()
 return M
