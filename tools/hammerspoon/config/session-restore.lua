@@ -3,7 +3,7 @@
 -- Bound on Cmd+fn+F5 (real F5) and on what the bare F5 key sends: Dictation (keycode 176) or keyboard
 -- backlight down (ILLUMINATION_DOWN) depending on the keyboard.
 local M = {}
-local repo = os.getenv("HOME") .. "/dev/macos-config"
+local repo = require("repo-path")
 local logFile = os.getenv("HOME") .. "/Library/Logs/restore-session.log"
 
 function M.restore()

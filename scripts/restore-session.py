@@ -9,7 +9,7 @@ import json, os, shlex, subprocess, time
 HOME = os.path.expanduser("~")
 STATE = f"{HOME}/.local/state/session-snapshot"
 CTL = f"{HOME}/.local/bin/omniwmctl"
-REPO = f"{HOME}/dev/macos-config"
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the clone this script lives in
 # Variables a Claude Code process passes to its children; inherited, they turn transcript saving off.
 CLEAN = ["CLAUDECODE", "CLAUDE_CODE_CHILD_SESSION", "CLAUDE_CODE_ENTRYPOINT", "CLAUDE_CODE_SESSION_ID",
          "CLAUDE_CODE_MESSAGING_SOCKET", "CLAUDE_CODE_MESSAGING_TOKEN", "CLAUDE_CODE_EXECPATH",
