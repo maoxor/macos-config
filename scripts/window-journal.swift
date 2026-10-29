@@ -127,7 +127,8 @@ func scan() {
         var s = seen[num] ?? Seen(first: now.timeIntervalSince(start) < 1 ? .distantPast : now, frame: r, lastPresent: now)
         s.frame = r; s.lastPresent = now
         let young = now.timeIntervalSince(s.first) < 10
-        let large = alpha > 0.05 && !vis.isNull && vis.width * vis.height >= minArea
+        // Strips (the 8 pt margin veil, a parked edge) are not screens: at least 50 pt both ways.
+        let large = alpha > 0.05 && !vis.isNull && vis.width * vis.height >= minArea && min(vis.width, vis.height) >= 50
         if s.shownSince == nil && !(young && large) { seen[num] = s; continue }
         // Uncovered share of the on-screen part, sampled on a 24x24 grid against the windows in front of it.
         var shown = 0, through = Set<String>()

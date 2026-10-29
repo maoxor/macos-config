@@ -34,8 +34,8 @@ M.timer = hs.timer.doEvery(0.25, function()
 end)
 
 local CTL = os.getenv("HOME") .. "/.local/bin/omniwmctl"
--- Every 2 s, a short query of the floating Safari windows only. Not "omniwmctl subscribe": hs.task keeps the
--- whole output of a task that never ends, and that stream grew Hammerspoon to 4.6 GB (2026-10-29).
+-- Every 2 s, a short query of the floating Safari windows only. Not "omniwmctl subscribe": Hammerspoon was at
+-- 4.6 GB while that stream ran (2026-10-29; not hs.task buffering, which keeps nothing: docs/bugs.md B20).
 local busy = false
 local function sweep()
   if busy then return end

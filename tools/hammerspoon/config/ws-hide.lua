@@ -112,6 +112,51 @@ local function handleLine(line)
   return p.workspace and p.workspace.id or nil
 end
 
+-- Subscriber on OmniWM's IPC socket itself (the NDJSON protocol omniwmctl speaks, one line per event): no
+-- omniwmctl process and no 5-min restart. A refused request (protocol version changed by an OmniWM update)
+-- falls back to the omniwmctl task. (hs.task does not keep a streaming task's output, read in its source on
+-- 2026-10-29: the multi-GB growth of Hammerspoon has another cause, see docs/bugs.md B20.)
+local SUPPORT = os.getenv("HOME") .. "/Library/Application Support/com.barut.OmniWM/"
+local PROTOCOL = 20   -- OmniWMIPCProtocol.version
+
+function M.startSocket()
+  local f = io.open(SUPPORT .. "ipc.sock.secret")
+  local token = f and f:read("*l")
+  if f then f:close() end
+  if not token or token == "" then return false end
+  local sock, subscribed = hs.socket.new(), false
+  M.sock = sock
+  sock:setCallback(function(line)
+    if sock ~= M.sock then return end
+    if not subscribed then
+      local ok, r = pcall(hs.json.decode, line)
+      if not (ok and type(r) == "table" and r.ok) then
+        M.sock = nil; sock:disconnect(); M.socketRefused = true
+        return M.start()
+      end
+      subscribed = true
+    else
+      M.refresh(handleLine(line))
+    end
+    sock:read("\n")
+  end)
+  sock:connect(SUPPORT .. "ipc.sock", function()
+    sock:write(hs.json.encode({ authorizationToken = token, id = "hammerspoon-ws-hide", kind = "subscribe",
+      version = PROTOCOL, payload = { allChannels = false, channels = { "active-workspace", "windows-changed" },
+      sendInitial = true } }) .. "\n")
+    sock:read("\n")
+  end)
+  return true
+end
+
+-- OmniWM restarted or not running yet: the socket is closed; reconnect (the initial events resynchronise).
+M.socketWatch = hs.timer.doEvery(5, function()
+  if M.sock and not M.sock:connected() then
+    local old = M.sock
+    M.sock = nil; old:disconnect(); M.start()
+  end
+end)
+
 M.retryDelay = 3
 function M.start()
   if M.sub and M.sub:isRunning() then return end
@@ -121,6 +166,7 @@ function M.start()
     M.started = true
     hs.execute("/usr/bin/pkill -f 'omniwmctl subscribe active-workspace'")
   end
+  if not M.socketRefused and M.startSocket() then return end
   M.buffer = ""
   -- --reconnect only covers a connection lost after the first one: if OmniWM is not running,
   -- omniwmctl exits at once. Retry with a backoff (3 s doubling to 60 s, reset on the first event).
@@ -162,9 +208,7 @@ end)
 M.appWatcher:start()
 
 M.start()
--- hs.task keeps the whole output of a running task, and every windows-changed event carries the full
--- window list: a subscriber left running grew Hammerspoon by ~500 MB an hour. Restart it every 5 min (the
--- old task and its output are freed; a query resynchronises at once).
+-- Fallback task only: restarted every 5 min, as before the socket (a query resynchronises at once).
 M.recycleTimer = hs.timer.doEvery(300, function()
   if M.sub and M.sub:isRunning() then M.recycling = true; M.sub:terminate() end
 end)

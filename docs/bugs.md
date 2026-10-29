@@ -210,13 +210,26 @@ Before changing anything listed here, read the entry and keep its verification p
   Selenium runs (Dash tests, real Chrome through chromedriver) all passed `--headless`; `chrome-devtools-mcp` is set
   headed in one project but its profile was last used on 2026-10-12.
 - **Journal (2026-10-29):** the `window-journal` agent (`scripts/window-journal.swift`) records every new window
-  that shows over the user's work (>= 5000 pt2 uncovered; behind Ghostty counts as shown), how long, and the process
+  that shows over the user's work (>= 5000 pt2 uncovered and 50 pt both ways; behind Ghostty counts as shown), how long, and the process
   chain with working directories (the project). `window-journal report [hours]`; files in
   `~/Library/Logs/macos-config/windows/`. Cost: the window numbers only every 250 ms (16 ms while a test browser
   runs); full descriptions only when a window appears. Durations are to +/- 250 ms outside test runs. Verified: a
   300x300 panel shown 300 ms and a 40x40 panel moved to the middle are logged with their chain; the corner page
   windows stay under the threshold (1298 pt2 at most, 0-25 ms). Notification Center keeps a transparent full-screen
   window (layer 21) while a banner shows: only layers 0-19 count as covering (counting it hid everything).
+
+### B20 — Hammerspoon grows to several GB (2026-10-29, cause not found yet)
+- **Symptom:** footprint 1-3.9 GB (peak 4.8 GB) after 8 h, back to ~30 MB after a restart; perf journal.
+- **Measured:** the memory is native, not Lua (`collectgarbage("count")` ~1.5 MB): `heap` shows 3.9 GB of untyped
+  blocks of fixed sizes (13 x 162 MB, 3 x 256 MB, 8 x 64 MB, 8 x 40.5 MB purgeable).
+- **Ruled out:** the `omniwmctl subscribe` stream. Hammerspoon's `hs.task` source hands each output chunk to the
+  streaming callback and keeps nothing (the earlier "hs.task keeps the whole output" explanation was wrong); the
+  stream carries ~0.1 MB per test run (11 events / 20 s); 60 workspace switches with the old subscriber running,
+  then without it: +0 and +1 MB. `ws-hide` now reads OmniWM's IPC socket directly anyway (one process less, no
+  5-min restart; falls back to `omniwmctl` if the request is refused).
+- **To attribute it:** start Hammerspoon with `open -g -a Hammerspoon --env MallocStackLogging=lite`; once the
+  footprint passes 1 GB, `malloc_history $(pgrep -x Hammerspoon) -allBySize | head -60` names the allocating code.
+  `heap`/`malloc_history` pause Hammerspoon 2-4 s (its event taps too): only while the user is away.
 
 ### B17 — Process incidents (rules that came out of them)
 - The full OmniWM test suite froze the Mac: run targeted `--filter` tests only.
