@@ -124,7 +124,16 @@ Before changing anything listed here, read the entry and keep its verification p
   request during a capture runs after it instead of being dropped); at the first trackpad contact a retained live
   frame older than 2 s is recaptured. Tests: `NativeWindowSnapshotStalenessTests` (6),
   `WorkspaceSwipePreviewWarmupTests` (+1). Logged: "stale native snapshot", "native snapshot refresh".
-- **Verify:** by eye during a swipe; `/usr/bin/log stream --predicate 'subsystem == "com.barut.OmniWM" AND category == "swipe-snapshot"'`.
+- **No animation at all (2026-10-30, 13:30):** every vertical swipe switched without animation. Trace
+  (`omniwmctl capture start trace`): 10 x `fallback-preview-unavailable`, and 351 preview requests with no frame
+  started or arrived. replayd (macOS' capture service) had crashed at 12:53 in `notify_register_check` (Apple bug,
+  5 crashes in 4 days) and was restarted; the stream starts OmniWM had in flight never answered and held all 4
+  start slots, so no capture started again. Windows with an older frame still animated; a new Ghostty window had
+  none, and a swipe needs a frame for every window. Fix, patch 0032: a start with no answer after 3 s fails and
+  frees its slot (test `testAStartThatNeverAnswersFreesItsSlot`); the snapshot cache stops waiting after 3 s too.
+  After the fix: 15 frames requested, 15 arrived.
+- **Verify:** by eye during a swipe; `/usr/bin/log stream --predicate 'subsystem == "com.barut.OmniWM" AND category == "swipe-snapshot"'`;
+  `omniwmctl capture start trace` / `stop`: `fallback-preview-unavailable` means a swipe without animation.
 
 ### B8 — Third Niri column drawn over the second during a swipe
 - **Cause (established):** an off-screen column's *settled* frame is shifted to the screen edge and clamped

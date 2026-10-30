@@ -1,0 +1,113 @@
+From 59ff06410ac9e6c9df556a11c320739704b9d448 Mon Sep 17 00:00:00 2001
+From: maoxor <118530756+maoxor@users.noreply.github.com>
+Date: Fri, 30 Oct 2026 13:39:31 +0100
+Subject: [PATCH] Captures recover from a crashed replayd: a stream start with
+ no answer after 3 s fails and frees its slot; the snapshot cache does not
+ wait forever either
+
+---
+ .../Overview/OverviewThumbnailCapture.swift   | 16 +++++++++++++
+ .../Surface/NativeWindowSnapshotCache.swift   |  5 +++-
+ .../WorkspaceSwipePreviewWarmupTests.swift    | 23 +++++++++++++++++++
+ 3 files changed, 43 insertions(+), 1 deletion(-)
+
+diff --git a/Sources/OmniWM/Core/Overview/OverviewThumbnailCapture.swift b/Sources/OmniWM/Core/Overview/OverviewThumbnailCapture.swift
+index 61bd03f6..3b19732f 100644
+--- a/Sources/OmniWM/Core/Overview/OverviewThumbnailCapture.swift
++++ b/Sources/OmniWM/Core/Overview/OverviewThumbnailCapture.swift
+@@ -208,8 +208,10 @@ final class OverviewThumbnailCapture {
+                     try Task.checkCancellation()
+                     source.control = control
+                     try await control.start()
++                    guard starts[sourceId] != nil else { control.stop(); return }   // timed out meanwhile
+                     finishStarting(source, failed: false)
+                 } catch {
++                    guard starts[sourceId] != nil else { return }
+                     if !(error is CancellationError) {
+                         ScreenCapturePermissionMonitor.shared.noteCaptureFailure(error)
+                         FallbackFiringRecorder.shared.note(.capture, "overviewStreamStartException")
+@@ -217,9 +219,23 @@ final class OverviewThumbnailCapture {
+                     finishStarting(source, failed: true)
+                 }
+             }
++            // A start that never answers (replayd crashed, macOS restarted it: 2026-10-30, `notify_register_check`)
++            // held one of the 4 start slots forever; with all 4 held no capture started again and every workspace
++            // swipe fell back without animation. Give up after `startTimeout` and free the slot.
++            DispatchQueue.main.asyncAfter(deadline: .now() + Self.startTimeout) { [weak self] in
++                MainActor.assumeIsolated {
++                    guard let self, let start = self.starts[sourceId] else { return }
++                    start.cancel()
++                    FallbackFiringRecorder.shared.note(.capture, "overviewStreamStartTimeout")
++                    self.finishStarting(source, failed: true)
++                }
++            }
+         }
+     }
+ 
++    /// Replaced by tests.
++    static var startTimeout: TimeInterval = 3
++
+     private func finishStarting(_ source: Source, failed: Bool) {
+         starts.removeValue(forKey: source.id)
+         if isCurrent(source), !failed, source.status != .failed, source.status != .completed {
+diff --git a/Sources/OmniWM/Core/Surface/NativeWindowSnapshotCache.swift b/Sources/OmniWM/Core/Surface/NativeWindowSnapshotCache.swift
+index 30b00b8c..992933bb 100644
+--- a/Sources/OmniWM/Core/Surface/NativeWindowSnapshotCache.swift
++++ b/Sources/OmniWM/Core/Surface/NativeWindowSnapshotCache.swift
+@@ -33,6 +33,7 @@ final class NativeWindowSnapshotCache {
+ 
+     private var entries: [WindowToken: Entry] = [:]
+     private var inFlight = false
++    private var inFlightSince = Date.distantPast
+     private var rerun: ([WorkspaceSwipePreview.Item], Monitor)?
+     private var pendingRefresh: DispatchWorkItem?
+     /// Replaced by tests.
+@@ -86,8 +87,10 @@ final class NativeWindowSnapshotCache {
+     func refresh(_ items: [WorkspaceSwipePreview.Item], monitor: Monitor) {
+         guard !items.isEmpty, ScreenCapturePermissionMonitor.shared.isGranted else { return }
+         // A request during a capture is not dropped: the latest one runs once the capture is done.
+-        guard !inFlight else { rerun = (items, monitor); return }
++        // A capture that never answers (replayd crashed) must not block every later refresh: after 3 s, start anew.
++        guard !inFlight || Date().timeIntervalSince(inFlightSince) > 3 else { rerun = (items, monitor); return }
+         inFlight = true
++        inFlightSince = Date()
+         nativeSnapshotCacheLog.debug("native snapshot refresh of \(items.count, privacy: .public) windows")
+         let wanted = Dictionary(items.map { (UInt32($0.handle.windowId), $0) }, uniquingKeysWith: { a, _ in a })
+         let displayId = monitor.displayId
+diff --git a/Tests/OmniWMTests/WorkspaceSwipePreviewWarmupTests.swift b/Tests/OmniWMTests/WorkspaceSwipePreviewWarmupTests.swift
+index 2b9c437c..53c0641b 100644
+--- a/Tests/OmniWMTests/WorkspaceSwipePreviewWarmupTests.swift
++++ b/Tests/OmniWMTests/WorkspaceSwipePreviewWarmupTests.swift
+@@ -273,6 +273,29 @@ final class WorkspaceSwipePreviewWarmupTests: XCTestCase {
+         preview.stop()
+     }
+ 
++    func testAStartThatNeverAnswersFreesItsSlot() async throws {
++        let driver = OverviewPreviewTestDriver()
++        let capture = driver.makeCapture()
++        let preview = makePreview(capture)
++        OverviewThumbnailCapture.startTimeout = 0.1
++        defer { OverviewThumbnailCapture.startTimeout = 3 }
++        let window = item(1)
++        preview.warm(source: [], destination: [window], monitor: monitor)
++        await driver.waitForStarts(1)
++        // The start is never completed (replayd crashed): after the timeout the source has failed.
++        try await Task.sleep(for: .milliseconds(400))
++        XCTAssertFalse(capture.hasPendingFirstFrames)
++        // A new request starts a fresh stream that works.
++        preview.stop()
++        preview.warm(source: [], destination: [window], monitor: monitor)
++        await driver.waitForStarts(2)
++        driver.completeAllStarts()
++        let frame = try makeOverviewPreviewFrame()
++        await publish(frame, through: driver.streams[1], into: capture)
++        XCTAssertTrue(capture.preview(for: window.handle) === frame)
++        preview.stop()
++    }
++
+     func testWorldRemovalReleasesAnUnrepresentedSwipePreviewAndRejectsLateFrames() async throws {
+         let controller = WindowAdmissionTestSupport.controller()
+         let driver = OverviewPreviewTestDriver()
+-- 
+2.54.0 (Apple Git-157)
+

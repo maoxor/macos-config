@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- OmniWM patch 0032: workspace swipes keep their animation after macOS' capture service (replayd) crashes: a
+  capture start with no answer after 3 s is dropped (B7). Rollback: remove the patch, rebuild OmniWM.
 - OmniWM patch 0031: vertical workspace swipes no longer show another tab first (stale snapshot or retained frame);
   see B7. Rollback: remove the patch, rebuild OmniWM.
 - CI: `actions/checkout@v7` (Node 24; v4 runs on the deprecated Node 20).
