@@ -1,14 +1,14 @@
-From 33c55170d5d6de58a7044d640fc65b7e2dce18cc Mon Sep 17 00:00:00 2001
+From 0edf7001aca27f2c99306f1600e8c5d4352fb6e5 Mon Sep 17 00:00:00 2001
 From: maoxor <118530756+maoxor@users.noreply.github.com>
 Date: Thu, 29 Oct 2026 22:33:46 +0100
-Subject: [PATCH] Rules: a Chrome or Edge launched with --enable-automation
- follows the test browser's rules
+Subject: [PATCH] Rules: a Chrome, Edge or Brave launched by a driver follows
+ the test browser's rules
 
 ---
- .../Controller/WMController+WindowFacts.swift |  2 +-
- .../OmniWM/Core/Rules/AutomationBrowser.swift | 97 +++++++++++++++++++
- .../AutomationBrowserRuleTests.swift          | 69 +++++++++++++
- 3 files changed, 167 insertions(+), 1 deletion(-)
+ .../Controller/WMController+WindowFacts.swift |   2 +-
+ .../OmniWM/Core/Rules/AutomationBrowser.swift | 103 ++++++++++++++++++
+ .../AutomationBrowserRuleTests.swift          |  86 +++++++++++++++
+ 3 files changed, 190 insertions(+), 1 deletion(-)
  create mode 100644 Sources/OmniWM/Core/Rules/AutomationBrowser.swift
  create mode 100644 Tests/OmniWMTests/AutomationBrowserRuleTests.swift
 
@@ -27,19 +27,21 @@ index 3d8e5d5b..849b7255 100644
          )
 diff --git a/Sources/OmniWM/Core/Rules/AutomationBrowser.swift b/Sources/OmniWM/Core/Rules/AutomationBrowser.swift
 new file mode 100644
-index 00000000..2e347e92
+index 00000000..b3dc50bc
 --- /dev/null
 +++ b/Sources/OmniWM/Core/Rules/AutomationBrowser.swift
-@@ -0,0 +1,97 @@
+@@ -0,0 +1,103 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +// Copyright (C) 2026 BarutSRB — https://github.com/OmniNull/OmniWM
 +
 +import Darwin
 +import Foundation
 +
-+/// A Chrome or Edge that a script launched for automation (Playwright `channel: "chrome"`, Puppeteer, Selenium:
-+/// all pass `--enable-automation`; the user's own browser never does) follows the rules of the test browser
-+/// (Chrome for Testing), not the user's browser: otherwise its windows were tiled over the user's workspace.
++/// A Chrome or Edge that a script launched for automation follows the rules of the test browser (Chrome for
++/// Testing), not the user's browser: otherwise its windows were tiled over the user's workspace. A driver talks to
++/// it through a pipe (Playwright `channel: "chrome"`: `--remote-debugging-pipe`, no `--enable-automation`) or a port
++/// it picks (`--remote-debugging-port=0`, Puppeteer, Selenium, both with `--enable-automation`). The user's browser
++/// has none of these; a browser the user signs in to through a fixed debugging port (9444) stays theirs.
 +@MainActor
 +enum AutomationBrowser {
 +    static let ruleBundleId = "com.google.chrome.for.testing"
@@ -93,7 +95,7 @@ index 00000000..2e347e92
 +        let key = "\(pid)-\(start)"
 +        if let known = cache[key] { return known }
 +        if cache.count > 512 { cache.removeAll() }
-+        let result = arguments(pid)?.contains("--enable-automation") ?? false
++        let result = isAutomation(arguments: arguments(pid) ?? [])
 +        cache[key] = result
 +        return result
 +    }
@@ -105,6 +107,10 @@ index 00000000..2e347e92
 +        guard sysctl(&mib, 4, &info, &size, nil, 0) == 0, size > 0 else { return nil }
 +        let tv = info.kp_proc.p_un.__p_starttime
 +        return UInt64(tv.tv_sec) * 1_000_000 + UInt64(tv.tv_usec)
++    }
++
++    static func isAutomation(arguments: [String]) -> Bool {
++        arguments.contains { ["--enable-automation", "--remote-debugging-pipe", "--remote-debugging-port=0"].contains($0) }
 +    }
 +
 +    /// argv of a process (KERN_PROCARGS2: argc, executable path, padding, then the arguments).
@@ -130,10 +136,10 @@ index 00000000..2e347e92
 +}
 diff --git a/Tests/OmniWMTests/AutomationBrowserRuleTests.swift b/Tests/OmniWMTests/AutomationBrowserRuleTests.swift
 new file mode 100644
-index 00000000..138d28a9
+index 00000000..0d749cc2
 --- /dev/null
 +++ b/Tests/OmniWMTests/AutomationBrowserRuleTests.swift
-@@ -0,0 +1,69 @@
+@@ -0,0 +1,86 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +// Copyright (C) 2026 BarutSRB — https://github.com/OmniNull/OmniWM
 +
@@ -190,6 +196,23 @@ index 00000000..138d28a9
 +        XCTAssertEqual(AutomationBrowser.ruleFacts(facts(bundleId: "com.apple.Safari"), pid: 1).ax.bundleId,
 +                       "com.apple.Safari")
 +        XCTAssertNil(AutomationBrowser.ruleFacts(facts(bundleId: nil), pid: 1).ax.bundleId)
++    }
++
++    func testRecognisesTheDriversArguments() {
++        let chrome = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
++        // Recorded on 2026-10-30.
++        let playwright = [chrome, "--disable-field-trial-config", "--no-sandbox",
++                          "--user-data-dir=/var/folders/tc/x/T/playwright_chromiumdev_profile-VaNUsN",
++                          "--remote-debugging-pipe", "about:blank"]
++        let puppeteer = [chrome, "--enable-automation", "--remote-debugging-port=0",
++                         "--user-data-dir=/var/folders/tc/x/T/puppeteer_dev_chrome_profile-Ab12"]
++        let userChrome = [chrome, "--profile-directory=Default", "--restart"]
++        let signInChrome = [chrome, "--no-startup-window", "--no-default-browser-check", "--no-first-run",
++                            "--remote-debugging-port=9444", "--user-data-dir=/Users/u/.business-lover/navigateur"]
++        XCTAssertTrue(AutomationBrowser.isAutomation(arguments: playwright))
++        XCTAssertTrue(AutomationBrowser.isAutomation(arguments: puppeteer))
++        XCTAssertFalse(AutomationBrowser.isAutomation(arguments: userChrome))
++        XCTAssertFalse(AutomationBrowser.isAutomation(arguments: signInChrome))
 +    }
 +
 +    func testReadsTheArgumentsOfARealProcess() throws {

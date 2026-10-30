@@ -25,7 +25,8 @@ if have nix; then ok "$(nix --version | head -1)"; else fail "Nix (Lix) missing"
 gen="$(readlink -f "$HOME/.local/state/nix/profiles/home-manager" 2>/dev/null)"
 [ -n "$gen" ] && ok "Home Manager generation active" || fail "no Home Manager generation" "scripts/apply.sh home-manager --write"
 for c in rg fzf zoxide jq starship fd gh atuin; do have "$c" || fail "$c not on PATH" "open a new terminal; else scripts/apply.sh home-manager --write"; done
-HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check --file="$REPO/homebrew/Brewfile" >/dev/null 2>&1 && ok "Brewfile satisfied" || warn "Brewfile not fully installed" "scripts/apply.sh homebrew --write"
+# Missing apps only: a newer version is not a fault (apply uses --no-upgrade; verify.sh lists them).
+HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check --no-upgrade --file="$REPO/homebrew/Brewfile" >/dev/null 2>&1 && ok "Brewfile satisfied" || warn "Brewfile not fully installed" "scripts/apply.sh homebrew --write"
 
 echo "== Identity"
 [ "$(cat "$HOME/.config/macos-config/repo" 2>/dev/null)" = "$REPO" ] && ok "$HOME/.config/macos-config/repo" || fail "$HOME/.config/macos-config/repo missing or stale" "./install.sh (step identity)"

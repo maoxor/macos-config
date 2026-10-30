@@ -7,8 +7,8 @@ is not a plain `git revert`.
 - CI green again (it failed from 2026-10-29 13:47): `macstat.py` imports on Linux, so jobgate's self-test runs on the
   runner. `hammerspoon-guard` agent: restarts Hammerspoon above 1.5 GB while the
   user is away (B20). Rollback: remove the agent from `home-manager/startup.nix` and re-apply.
-- OmniWM patch 0030: a Chrome, Edge or Brave started with `--enable-automation` (a script's real browser: Playwright
-  `channel: "chrome"`, Puppeteer, Selenium) follows the Chrome for Testing rules (workspace 4) instead of being tiled
+- OmniWM patch 0030: a Chrome, Edge or Brave launched by a driver (`--remote-debugging-pipe` for Playwright
+  `channel: "chrome"`, `--remote-debugging-port=0` / `--enable-automation` for Puppeteer and Selenium) follows the Chrome for Testing rules (workspace 4) instead of being tiled
   over the user's workspace; `test-browsers.lua` gives the keyboard back from it and moves force-floated Safari
   windows on each OmniWM window event (no query every 2 s). Rollback: remove the patch, rebuild OmniWM; `git revert`.
 - Hammerspoon memory (B20): cause found, agents' `hs -c` window captures (`saveToFile` autoreleases ~500 MB per

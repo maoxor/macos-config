@@ -4,6 +4,8 @@
 # Hammerspoon down (no shortcuts) for ~2 min on 2026-10-29. So: retry the launch until the IPC answers.
 # Extra arguments go to `open` (e.g. --env MallocStackLogging=lite to attribute memory, docs/bugs.md B20).
 set -u
+# launchd agents (hammerspoon-guard) run with a minimal PATH: hs and timeout come from Homebrew / Nix.
+PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.nix-profile/bin:$PATH"
 osascript -e 'quit app "Hammerspoon"' >/dev/null 2>&1
 for _ in $(seq 1 50); do pgrep -x Hammerspoon >/dev/null || break; sleep 0.2; done
 pgrep -x Hammerspoon >/dev/null && pkill -x Hammerspoon

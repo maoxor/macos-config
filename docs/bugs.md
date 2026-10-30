@@ -216,9 +216,13 @@ Before changing anything listed here, read the entry and keep its verification p
 - **Real Chrome (2026-10-29, seen by the journal):** a session ran `chromium.launch({ channel: 'chrome', headless:
   false })` three times (bot-protected site): the user's browser bundle has no rule, so OmniWM tiled the first window
   (1025x1293) on the current workspace and Chrome took the keyboard (5.4 s); the next two showed through Ghostty for
-  9-10 s. Patch 0030: a Chrome, Edge or Brave started with `--enable-automation` (Playwright, Puppeteer, Selenium; the
-  user's Chrome and the business-lover Chrome do not have it) follows the Chrome for Testing rules (workspace 4);
-  `test-browsers.lua` gives the keyboard back from it too.
+  9-10 s. Patch 0030: a Chrome, Edge or Brave a driver launched follows the Chrome for Testing rules (workspace 4):
+  `--remote-debugging-pipe` (Playwright `channel: 'chrome'`, which does NOT pass `--enable-automation`: the first
+  version keyed on it and missed this very case, seen live), `--remote-debugging-port=0` or `--enable-automation`
+  (Puppeteer, Selenium). The user's Chrome has none; the business-lover sign-in Chrome uses the fixed port 9444 and
+  stays on the user's side. `test-browsers.lua` gives the keyboard back from it. Verified live (2026-10-30): the
+  window is born in the corner and parked on workspace 4 in 81 ms, the view and the keyboard stay, no user window
+  moves.
 - **Journal (2026-10-29):** the `window-journal` agent (`scripts/window-journal.swift`) records every new window
   that shows over the user's work (>= 5000 pt2 uncovered and 50 pt both ways; behind Ghostty counts as shown), how long, and the process
   chain with working directories (the project). `window-journal report [hours]`; files in

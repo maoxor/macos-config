@@ -17,9 +17,9 @@ M.clicks = hs.eventtap.new({ hs.eventtap.event.types.leftMouseDown }, function()
 end)
 M.clicks:start()
 
--- A Chrome, Edge or Brave a script launched (--enable-automation: Playwright channel "chrome", Puppeteer, Selenium)
--- is a test browser too; OmniWM patch 0030 sends its windows to workspace 4. Its arguments are read once a minute
--- per pid (a pid can be reused).
+-- A Chrome, Edge or Brave a driver launched is a test browser too (same test as OmniWM patch 0030, which sends its
+-- windows to workspace 4): --remote-debugging-pipe (Playwright channel "chrome"), --remote-debugging-port=0 or
+-- --enable-automation (Puppeteer, Selenium). Its arguments are read once a minute per pid (a pid can be reused).
 local automation = {}
 local function isTest(app)
   local bid = app:bundleID() or ""
@@ -31,7 +31,9 @@ local function isTest(app)
   local known = automation[pid]
   if not known or now - known.at > 60 then
     local out = hs.execute("/bin/ps -ww -o args= -p " .. pid) or ""
-    known = { at = now, test = out:find("--enable-automation", 1, true) ~= nil }
+    local args = " " .. out:gsub("%s+$", "") .. " "
+    known = { at = now, test = args:find(" --enable-automation ", 1, true) ~= nil
+      or args:find(" --remote-debugging-pipe ", 1, true) ~= nil or args:find(" --remote-debugging-port=0 ", 1, true) ~= nil }
     automation[pid] = known
   end
   return known.test
