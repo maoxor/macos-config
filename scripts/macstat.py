@@ -4,10 +4,12 @@ Memory per process is the phys_footprint (Activity Monitor's Memory column, what
 compressed pages and Metal buffers (a 30 GB MPS job showed 0.2 GB of RSS). Memory availability is the kernel's
 own kern.memorystatus_level (the "free percentage" of memory_pressure); kern.memorystatus_vm_pressure_level is
 1 normal, 2 warn, 4 critical (the levels of DISPATCH_SOURCE_TYPE_MEMORYPRESSURE)."""
-import ctypes, ctypes.util, os, re, subprocess
+import ctypes, ctypes.util, os, re, subprocess, sys
 
 libc = ctypes.CDLL(ctypes.util.find_library("c"), use_errno=True)
-libproc = ctypes.CDLL("/usr/lib/libproc.dylib", use_errno=True)
+# macOS only; elsewhere (the Linux CI runs jobgate's pure-logic self-test) the module imports, the probes do not.
+MACOS = sys.platform == "darwin"
+libproc = ctypes.CDLL("/usr/lib/libproc.dylib", use_errno=True) if MACOS else None
 
 
 class RusageV2(ctypes.Structure):
@@ -22,8 +24,9 @@ class _Timebase(ctypes.Structure):
     _fields_ = [("numer", ctypes.c_uint32), ("denom", ctypes.c_uint32)]
 
 
-_tb = _Timebase()
-libc.mach_timebase_info(ctypes.byref(_tb))
+_tb = _Timebase(1, 1)
+if MACOS:
+    libc.mach_timebase_info(ctypes.byref(_tb))
 TICK_NS = _tb.numer / _tb.denom  # rusage times are mach ticks (125/3 ns on Apple silicon)
 
 
@@ -32,6 +35,8 @@ def run(*cmd):
 
 
 def sysctl_int(name):
+    if not MACOS:
+        return None
     v = ctypes.c_int64(0)
     size = ctypes.c_size_t(8)
     if libc.sysctlbyname(name.encode(), ctypes.byref(v), ctypes.byref(size), None, 0) != 0:
@@ -39,8 +44,8 @@ def sysctl_int(name):
     return v.value if size.value == 8 else ctypes.c_int32.from_buffer(v).value
 
 
-RAM = sysctl_int("hw.memsize")
-NCPU = sysctl_int("hw.ncpu")
+RAM = sysctl_int("hw.memsize") or os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")
+NCPU = sysctl_int("hw.ncpu") or os.cpu_count()
 
 
 def kernel_free_pct():
