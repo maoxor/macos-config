@@ -241,6 +241,7 @@ Before changing anything listed here, read the entry and keep its verification p
   and without it: +0 / +1 MB). `ws-hide` reads OmniWM's socket directly anyway (one process less).
 - **What is in place:** GC every 10 s (frees the image objects themselves sooner); `scripts/restart-hammerspoon.sh`
   (retries the launch: an `open` right after the quit failed with -600 and left Hammerspoon down ~2 min).
+- **Guard:** the `hammerspoon-guard` agent restarts Hammerspoon above 1.5 GB once the user has been idle 2 min.
 - **Left:** captures should not go through Hammerspoon: `screencapture -x -o -l <CGWindowID> file.png` writes a
   window to a file in its own process. `heap`/`malloc_history` pause Hammerspoon 2-4 s: only while the user is away.
 

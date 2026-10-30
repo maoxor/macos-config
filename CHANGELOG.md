@@ -4,6 +4,9 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- CI green again (it failed from 2026-10-29 13:47): `macstat.py` imports on Linux, so jobgate's self-test runs on the
+  runner. `hammerspoon-guard` agent: restarts Hammerspoon above 1.5 GB while the
+  user is away (B20). Rollback: remove the agent from `home-manager/startup.nix` and re-apply.
 - OmniWM patch 0030: a Chrome, Edge or Brave started with `--enable-automation` (a script's real browser: Playwright
   `channel: "chrome"`, Puppeteer, Selenium) follows the Chrome for Testing rules (workspace 4) instead of being tiled
   over the user's workspace; `test-browsers.lua` gives the keyboard back from it and moves force-floated Safari

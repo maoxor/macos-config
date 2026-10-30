@@ -136,6 +136,17 @@ in {
         StandardErrorPath = "${logs}/window-journal.log";
       };
     };
+    # Every minute: restart Hammerspoon above 1.5 GB while the user is away (agents' hs -c window captures, B20).
+    hammerspoon-guard = {
+      enable = true;
+      config = {
+        ProgramArguments = [ "/bin/bash" "${identity.repoDir}/scripts/hammerspoon-guard.sh" ];
+        StartInterval = 60;
+        ProcessType = "Background";
+        StandardOutPath = "${logs}/hammerspoon-guard.log";
+        StandardErrorPath = "${logs}/hammerspoon-guard.log";
+      };
+    };
     logrotate = {
       enable = true;
       config = {
