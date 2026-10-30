@@ -21,7 +21,7 @@ Journal: ~/Library/Logs/macos-config/perf/YYYY-MM-DD.jsonl, 8 days kept (about 2
 import datetime, glob, json, os, re, sys, time
 
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
-from macstat import TICK_NS, args, cpu_ticks, cwd, gpu, name, pids, run, rusage  # noqa: E402
+from macstat import TICK_NS, args, compressor_store_pct, cpu_ticks, cwd, gpu, name, pids, run, rusage  # noqa: E402
 
 DIR = os.environ.get("PERF_JOURNAL_DIR") or os.path.expanduser("~/Library/Logs/macos-config/perf")
 STATE = os.path.join(DIR, ".state.json")  # previous cumulative CPU/GPU times, for the per-minute deltas
@@ -63,6 +63,7 @@ def memory():
             "compressed_gb": gb("Pages stored in compressor"), "active_gb": gb("Pages active"),
             "inactive_gb": gb("Pages inactive"), "free_gb": gb("Pages free"),
             "swap_gb": round(float(used.group(1)) / 1024, 2) if used else None,
+            "store_pct": round(compressor_store_pct() or 0, 1),
             "load": [float(x) for x in sc[2].strip("{} ").split()[:3]],
             "_counters": {k: p.get(k, 0) for k in ("Compressions", "Decompressions", "Swapins", "Swapouts")}}
 

@@ -173,6 +173,25 @@ def swap_used_gb():
     return round(float(m.group(1)) / 1024, 2) if m else None
 
 
+class XswUsage(ctypes.Structure):
+    _fields_ = [("total", ctypes.c_uint64), ("avail", ctypes.c_uint64), ("used", ctypes.c_uint64),
+                ("pagesize", ctypes.c_uint32), ("encrypted", ctypes.c_uint32)]
+
+
+def compressor_store_pct():
+    """Share of the compressor's store in use: compressed data in memory + swap, against segment limit x segment
+    size (100.9 GB on 64 GB of RAM). Both panics happened at 100 % (101.5 and 101 GB; docs/performance.md §2) while
+    kern.memorystatus_level still read 41 %. No fork: this must keep working when the Mac starts to stall."""
+    if not MACOS:
+        return None
+    limit, seg = sysctl_int("vm.compressor.segment.limit"), sysctl_int("vm.compressor_segment_buffer_size")
+    used = sysctl_int("vm.compressor_bytes_used")
+    usage, size = XswUsage(), ctypes.c_size_t(ctypes.sizeof(XswUsage))
+    if not limit or not seg or used is None or libc.sysctlbyname(b"vm.swapusage", ctypes.byref(usage), ctypes.byref(size), None, 0):
+        return None
+    return (used + usage.used) * 100 / (limit * seg)
+
+
 def gpu():
     """Utilisation and memory (IOAccelerator statistics), and cumulative GPU time per pid (AGXDeviceUserClient)."""
     stats = run("/usr/sbin/ioreg", "-r", "-d1", "-c", "IOAccelerator")

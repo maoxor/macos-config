@@ -136,6 +136,19 @@ in {
         StandardErrorPath = "${logs}/window-journal.log";
       };
     };
+    # Every 2 s: stop the youngest heavy job before the compressor's store fills up and the Mac panics (B21).
+    memory-guard = {
+      enable = true;
+      config = {
+        ProgramArguments = [ "/bin/bash" "${identity.repoDir}/scripts/swift-tool.sh" "memory-guard" ];
+        RunAtLoad = true;
+        KeepAlive = true;
+        ThrottleInterval = 10;
+        ProcessType = "Interactive"; # not throttled: it must keep its 2 s tick when the Mac starts to stall
+        StandardOutPath = "${logs}/memory-guard.log";
+        StandardErrorPath = "${logs}/memory-guard.log";
+      };
+    };
     # Every minute: restart Hammerspoon above 1.5 GB while the user is away (agents' hs -c window captures, B20).
     hammerspoon-guard = {
       enable = true;
@@ -164,6 +177,8 @@ in {
   # jobgate: heavy jobs wait for real free memory and pause only while the Mac thrashes (docs/performance.md).
   home.file.".local/bin/jobgate".source =
     config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/jobgate.py";
+  home.file.".local/bin/memory-guard".source =
+    config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/memory-guard.sh";
   home.file.".local/bin/window-journal".source =
     config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/window-journal.sh";
 }

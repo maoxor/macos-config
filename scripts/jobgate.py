@@ -16,15 +16,18 @@ compressor segments 100 %, 70 swapfiles). Shared by every Claude Code session an
 
 Admission: need <= headroom, where headroom = kernel free memory - what admitted jobs will still grow into
 (their need minus their current footprint) - a system reserve; FIFO, a younger job may overtake only while
-older waiters have waited under 10 min. Need = --mem, else the 95th percentile of this job's past peaks
-(x1.1), else 4 GB until it is learnt. A --gpu job waits too while the GPU is already busy (>= 70 % over the last
+older waiters have waited under 10 min. Need = the larger of --mem and the 95th percentile of this job's past peaks
+(x1.1), 4 GB until it is learnt, at most 60 % of RAM: a declared need never hides what the job really reaches (the
+2026-10-30 panic: two jobs declaring 16 GB and reaching 55). Nothing starts while the compressor's store is over
+50 % full. A --gpu job waits too while the GPU is already busy (>= 70 % over the last
 samples): two jobs on a saturated GPU only share it, they do not finish sooner.
 PyTorch MPS: a --gpu job gets PYTORCH_MPS_HIGH_WATERMARK_RATIO sized to the memory really free when it starts
 (not a fixed cap; the default 1.7 x recommendedMaxWorkingSetSize lets one job ask for ~95 GB on 64 GB), unless
 the caller set it. Adaptive throttle: while the machine thrashes (pressure warn/critical, or swap-ins and kernel
 CPU both high, for 10 s) the youngest pausable job is paused (SIGSTOP; GPU jobs are not pausable by default:
 their memory is wired and pausing frees nothing); paused jobs resume oldest first once it is calm for 20 s. Last
-resort (the legacy watchdog's role): memory critical for 20 s → the youngest job is stopped, exit 75.
+resort (the legacy watchdog's role): memory critical for 20 s → the youngest job is stopped, exit 75. The panics
+come faster than that and without critical pressure: scripts/memory-guard.swift watches the store and acts first.
 Compatible with the projects' heavy.py / lourd.py lock (~/.cache/gpu-lourd.lock): a --gpu job waits while a
 live legacy job holds it and holds it while it runs, so legacy copies keep working."""
 import fcntl, json, math, os, re, signal, subprocess, sys, time
@@ -44,6 +47,8 @@ FORCE_CRITICAL = os.environ.get("JOBGATE_TEST_CRITICAL")  # tests: memory critic
 GB = 1e9
 RESERVE = max(4 * GB, 0.08 * macstat.RAM)  # left to macOS, apps and windows
 DEFAULT_NEED = 4 * GB
+NEED_CAP = 0.6 * macstat.RAM  # a job needing more than can ever be free would wait forever
+STORE_FULL = 50  # % of the compressor's store: no new work above it (memory-guard stops jobs at 70)
 TICK = 2.0
 
 
@@ -69,6 +74,12 @@ def learnt_need(peaks):
     return s[min(len(s) - 1, int(math.ceil(0.95 * len(s))) - 1)] * 1.1
 
 
+def effective_need(declared, peaks, cap=NEED_CAP):
+    """declared: --mem in bytes or None; peaks: this job's past peaks. The larger of the two, so that a low --mem
+    cannot hide what the job really reaches; capped, or a job larger than the free memory would never start."""
+    return min(max(declared or 0, learnt_need(peaks) or 0) or DEFAULT_NEED, cap)
+
+
 def mps_ratios(room_bytes, recommended):
     """Watermarks giving a PyTorch MPS job all the memory free at its start: high = room / recommended working set
     (bounded by PyTorch's own default 1.7, at least 0.25), low = 0.8 x high (PyTorch refuses low > high: 'invalid
@@ -79,11 +90,12 @@ def mps_ratios(room_bytes, recommended):
     return round(high, 3), round(high * 0.8, 3)
 
 
-def thrashing(level, swapins_s, sys_pct):
-    """level: kern.memorystatus_vm_pressure_level (1 normal, 2 warn, 4 critical); swapins_s: 16 KB pages/s."""
+def thrashing(level, swapins_s, sys_pct, store_pct=0):
+    """level: kern.memorystatus_vm_pressure_level (1 normal, 2 warn, 4 critical); swapins_s: 16 KB pages/s;
+    store_pct: macstat.compressor_store_pct()."""
     if FORCE_THRASH and os.path.exists(FORCE_THRASH):
         return True
-    return level >= 2 or (swapins_s > 2000 and sys_pct > 15)
+    return level >= 2 or (swapins_s > 2000 and sys_pct > 15) or (store_pct or 0) >= STORE_FULL
 
 
 def critical(level, free_bytes, ram):
@@ -204,7 +216,8 @@ class Sampler:
             sys_pct = d[1] * 100 / (sum(d) or 1)
         self.prev = cur
         free = macstat.kernel_free_pct() / 100 * macstat.RAM
-        return {"free": free, "level": macstat.pressure_level(), "swapins_s": swapins_s, "sys_pct": sys_pct}
+        return {"free": free, "level": macstat.pressure_level(), "swapins_s": swapins_s, "sys_pct": sys_pct,
+                "store_pct": macstat.compressor_store_pct()}
 
 
 def job_key(cmd):
@@ -213,6 +226,18 @@ def job_key(cmd):
     path = script if script.startswith("/") else os.path.join(os.getcwd(), script)
     project = re.search(r"/(?:dev|ai|src)/(?:open-source/)?([^/]+)", path)
     return f"{project.group(1) + '/' if project else ''}{os.path.basename(script)}"
+
+
+def admitted_needs(js):
+    """[(need, footprint)] of the jobs already started, each at its real size even if it started with a lower need
+    (a low --mem, or a jobgate older than effective_need)."""
+    past = history()
+    out = []
+    for j in js:
+        if j["state"] != "waiting":
+            peaks = [r["peak_gb"] * GB for r in past if r.get("key") == j["key"]][-20:]
+            out.append((effective_need(j["need"], peaks), macstat.tree_footprint(j["pid"])))
+    return out
 
 
 def history(key=None):
@@ -244,8 +269,8 @@ def cmd_run(argv):
     os.makedirs(JOBS, exist_ok=True)
     key = opts.get("--name") or job_key(cmd)
     gpu = "--gpu" in opts
-    learnt = learnt_need([r["peak_gb"] * GB for r in history(key)[-20:] if r.get("exit") == 0])
-    need = opts["--mem"] * GB if "--mem" in opts else (learnt or DEFAULT_NEED)
+    declared = opts["--mem"] * GB if "--mem" in opts else None
+    need = effective_need(declared, [r["peak_gb"] * GB for r in history(key)[-20:]])
     me = {"pid": os.getpid(), "key": key, "need": need, "gpu": gpu, "pausable": not gpu and "--no-pause" not in opts,
           "queued": time.time(), "state": "waiting", "started": None, "cmd": " ".join(cmd)[:200]}
     mine = os.path.join(JOBS, f"{os.getpid()}.json")
@@ -262,7 +287,7 @@ def cmd_run(argv):
             first = False
             m = sample()
             others = jobs()
-            admitted = [(j["need"], macstat.tree_footprint(j["pid"])) for j in others if j["state"] != "waiting"]
+            admitted = admitted_needs(others)
             holder = legacy_holder()
             if holder and holder.get("pid") != os.getpid() and not holder.get("jobgate"):
                 admitted.append((float(holder.get("go", 0)) * GB, macstat.tree_footprint(int(holder["pid"]))))
@@ -274,7 +299,7 @@ def cmd_run(argv):
             gpu_jobs = any(j["gpu"] for j in others if j["state"] != "waiting") or bool(holder and not holder.get("jobgate"))
             gpu_busy = gpu_jobs and (len(gpu_hist) < 3 or min(gpu_hist) >= 70)  # 3 samples before deciding
             blocked = None
-            if thrashing(m["level"], m["swapins_s"], m["sys_pct"]):
+            if thrashing(m["level"], m["swapins_s"], m["sys_pct"], m["store_pct"]):
                 blocked = "the machine is thrashing"
             elif gpu and holder and not holder.get("jobgate"):
                 blocked = f"legacy lock held by {holder.get('session')} pid {holder.get('pid')}"
@@ -287,7 +312,7 @@ def cmd_run(argv):
                 admission = open(os.path.join(STATE, "admission.lock"), "w")
                 fcntl.flock(admission, fcntl.LOCK_EX)
                 others = jobs()
-                admitted = [(j["need"], macstat.tree_footprint(j["pid"])) for j in others if j["state"] != "waiting"]
+                admitted = admitted_needs(others)
                 if holder and holder.get("pid") != os.getpid() and not holder.get("jobgate"):
                     admitted.append((float(holder.get("go", 0)) * GB, macstat.tree_footprint(int(holder["pid"]))))
                 room = headroom(m["free"], admitted)
@@ -319,7 +344,7 @@ def cmd_run(argv):
         t0 = time.time()
         me.update(state="running", started=t0)
         write_json(mine, me)
-        log(f"{key} starts (need {need / GB:.1f} GB{', learnt' if learnt and '--mem' not in opts else ''}, "
+        log(f"{key} starts (need {need / GB:.1f} GB{', learnt' if need != declared else ''}, "
             f"room {room / GB:.1f} GB, waited {t0 - me['queued']:.0f} s)")
         child = subprocess.Popen(cmd, env=env)
         me["child"] = child.pid
@@ -337,7 +362,7 @@ def cmd_run(argv):
                     legacy_mine = True
                 except OSError:
                     pass
-            bad, calm = (bad + TICK, 0.0) if thrashing(m["level"], m["swapins_s"], m["sys_pct"]) else (0.0, calm + TICK)
+            bad, calm = (bad + TICK, 0.0) if thrashing(m["level"], m["swapins_s"], m["sys_pct"], m["store_pct"]) else (0.0, calm + TICK)
             running = [j for j in jobs() if j["state"] in ("running", "paused")]
             thr = read_json(THROTTLE, {"t": 0})
             crit = crit + TICK if critical(m["level"], m["free"], macstat.RAM) else 0.0
@@ -416,7 +441,7 @@ def cmd_workers(argv):
     per = opts.get("--per-worker", 1.0) * GB
     s = Sampler()
     m = s()
-    admitted = [(j["need"], macstat.tree_footprint(j["pid"])) for j in jobs() if j["state"] != "waiting"]
+    admitted = admitted_needs(jobs())
     room = headroom(m["free"], admitted)
     n = max(1, min(opts.get("--max", macstat.NCPU), macstat.NCPU, int(room // per)))
     print(n)
@@ -428,10 +453,10 @@ def cmd_status(_):
     time.sleep(1)
     m = s()
     js = jobs()
-    admitted = [(j["need"], macstat.tree_footprint(j["pid"])) for j in js if j["state"] != "waiting"]
+    admitted = admitted_needs(js)
     print(f"memory free (kernel) {m['free'] / GB:.1f} GB of {macstat.RAM / GB:.0f}; pressure level {m['level']}; "
-          f"swap-ins {m['swapins_s']:.0f}/s; kernel CPU {m['sys_pct']:.0f} %; "
-          f"thrashing: {'yes' if thrashing(m['level'], m['swapins_s'], m['sys_pct']) else 'no'}")
+          f"swap-ins {m['swapins_s']:.0f}/s; kernel CPU {m['sys_pct']:.0f} %; compressor store {m['store_pct']:.0f} %; "
+          f"thrashing: {'yes' if thrashing(m['level'], m['swapins_s'], m['sys_pct'], m['store_pct']) else 'no'}")
     print(f"room for a new job: {headroom(m['free'], admitted) / GB:.1f} GB (system reserve {RESERVE / GB:.1f} GB)")
     h = legacy_holder()
     if h:
@@ -487,8 +512,16 @@ def cmd_self_test(_):
     check(h == 0.25 and lo < h, "low watermark stays below high")
     check(abs(learnt_need([1 * GB, 2 * GB, 10 * GB]) - 11 * GB) < 1, "learnt need = p95 of past peaks x 1.1")
     check(learnt_need([]) is None, "no history, no learnt need")
+    check(effective_need(16 * GB, [55 * GB], cap=100 * GB) == 55 * GB * 1.1, "a low --mem does not hide the real peaks")
+    check(effective_need(30 * GB, [10 * GB], cap=100 * GB) == 30 * GB, "--mem may ask for more than the past peaks")
+    check(effective_need(None, [], cap=100 * GB) == DEFAULT_NEED, "no --mem and no history: the default")
+    check(effective_need(16 * GB, [59.9 * GB], cap=41 * GB) == 41 * GB, "a huge job stays admissible on an idle Mac")
+    first = headroom(50 * GB, [(41 * GB, 11 * GB)], 5.5 * GB)
+    check(first < effective_need(16 * GB, [59.9 * GB], cap=41 * GB), "two 60 GB jobs declaring 16 cannot run together")
     check(thrashing(2, 0, 0) and thrashing(1, 5000, 30) and not thrashing(1, 5000, 5) and not thrashing(1, 100, 40),
           "thrashing = pressure warn, or swap-ins and kernel CPU together")
+    check(thrashing(1, 0, 0, 50) and not thrashing(1, 0, 0, 49) and not thrashing(1, 0, 0, None),
+          "a half-full compressor store stops new work, and a missing reading is ignored")
     js = [{"pid": 1, "started": 10}, {"pid": 2, "started": 20}]
     check(youngest(js)["pid"] == 2 and oldest(js)["pid"] == 1, "pause the youngest, resume the oldest")
     run = [dict(j, state="running", pausable=True) for j in js]

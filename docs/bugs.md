@@ -269,6 +269,21 @@ Before changing anything listed here, read the entry and keep its verification p
 - **Left:** captures should not go through Hammerspoon: `screencapture -x -o -l <CGWindowID> file.png` writes a
   window to a file in its own process. `heap`/`malloc_history` pause Hammerspoon 2-4 s: only while the user is away.
 
+### B21 — Kernel panic: two 55 GB jobs on 64 GB (2026-10-30)
+
+- **Symptom**: the Mac freezes about 2 min, then restarts by itself. `watchdog timeout: no checkins from watchdogd in
+  90 seconds`, `100% of segments limit (BAD) with 68 swapfiles`. Same signature as the 2026-10-12 panic.
+- **Cause**: two TRELLIS.2 runs in parallel (business-lover, `sculpter.sh`), 52 and 55 GB, plus a Blender render.
+  They declare 16 GB (`lourd.py 16`) and jobgate believed `--mem` over its own history (peaks up to 59.9 GB). The
+  compressor's store (100.9 GB here) filled up in under 2 min; macOS killed dozens of daemons, then watchdogd starved.
+  The last resort did not fire: `kern.memorystatus_level` still read 41 % and pressure never stayed critical.
+- **Fix**: jobgate takes the larger of `--mem` and the real peaks and stops admitting at 50 % of the store;
+  `memory-guard` stops the youngest job at 70 %. `docs/performance.md` §2 and §4.
+- **Verify**: `memory-guard --check`; `jobgate self-test`; `jobgate status` (compressor store); a guard action is one
+  line in `~/Library/Logs/macos-config/memory-guard.log`. Not tested on a real saturation: thresholds come from the
+  journal and both panic reports, the stops were tested on isolated dummy jobs.
+- **Rollback**: `launchctl bootout gui/$(id -u)/org.nix-community.home.memory-guard`, or `git revert` then apply.
+
 ### B17 — Process incidents (rules that came out of them)
 - The full OmniWM test suite froze the Mac: run targeted `--filter` tests only.
 - A simulated drag landed on the user's active workspace: never simulate input while the user works.

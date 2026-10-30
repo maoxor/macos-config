@@ -44,6 +44,12 @@ What it records and why:
 - **The 2026-10-12 panic was memory exhaustion.** "watchdog timeout: no checkins from watchdogd in 91 seconds";
   its compressor line reads "100% of segments limit (BAD) with 70 swapfiles" (M). Watchdog panics have other
   causes too (C: [Apple forums](https://developer.apple.com/forums/thread/835414)); this one's log names memory.
+- **So was the 2026-10-30 one, and both ended at the same wall** (M): "100% of segments limit (BAD)" with 70 and 68
+  swapfiles, 31.5 + 70 and 33 + 68 GB of compressed data in memory + swap, i.e. the store's capacity, segment limit
+  × segment size (1,653,622 × 64 KB = 100.9 GB on 64 GB of RAM). `vm.compressor.segment.total` does not measure it:
+  it is a high-water mark that never falls. **Memory pressure does not see it coming**: 30 s before the collapse the
+  kernel still reported 41 % free and level 2, with 2 × 55 GB jobs swapping at 640 MB/s (0.6 % of the store per
+  second). The two jobs had declared 16 GB each. Same jobs at 19:30 that day: 95 % of the store, a near miss.
 
 ## 3. Principle: orchestrate, do not cap
 
@@ -73,7 +79,9 @@ jobgate bench --levels 1,2,4,8,12,18 -- CMD {i}         # throughput per level +
 jobgate status | jobgate history [KEY]
 ```
 - **Admission**: need ≤ kernel free memory − what admitted jobs will still grow into − a reserve (8 % of RAM).
-  Need = `--mem`, else the 95th percentile of the job's past peaks ×1.1 (learnt from `history`), else 4 GB.
+  Need = the larger of `--mem` and the 95th percentile of the job's past peaks ×1.1 (learnt from `history`, all
+  exits), 4 GB until it is learnt, at most 60 % of RAM. A low `--mem` no longer hides what a job really reaches, for
+  the jobs already running too (`admitted_needs`). Nothing starts while the compressor's store is ≥ 50 % full.
   FIFO; a younger job may overtake while older waiters have waited under 10 min (no starvation).
 - **GPU**: a `--gpu` job also waits while the GPU is already ≥ 70 % busy (two jobs on a saturated GPU share it,
   neither finishes sooner) and gets **PyTorch MPS watermarks sized to the memory free at its start**: high =
@@ -84,6 +92,12 @@ jobgate status | jobgate history [KEY]
   their wired memory would not be freed); after 20 s of calm the oldest paused job resumes.
 - **Last resort** (the legacy watchdog's role): memory critical (pressure level 4, or under 3 % free) for 20 s →
   the youngest job, paused or not, is stopped (SIGTERM, SIGKILL after 20 s) with exit 75 so its caller can retry.
+- **Memory guard** (`scripts/memory-guard.swift`, launchd agent `memory-guard`, `memory-guard --check`): the panics
+  come faster than the last resort above and without critical pressure, and a Python supervisor may stall with the
+  Mac. A compiled loop reads the store every 2 s without forking; at ≥ 70 % it stops the youngest jobgate job over
+  4 GB, else the largest command-line process over 8 GB (SIGTERM, SIGKILL after 3 s). Apps are never stopped: it
+  then only warns. Measured over two days: a single job peaks at 53 %, 74 % was a minute from 95 %, and from 70 % the
+  worst rate leaves about 45 s. The stopped job's script usually retries: jobgate holds it until there is room.
 - **Compatibility**: it honours the projects' `heavy.py` / `lourd.py` lock (`~/.cache/gpu-lourd.lock`): a
   `--gpu` job waits for a live legacy holder and for older legacy tickets, and holds the lock while it runs,
   so the legacy copies keep working unchanged.

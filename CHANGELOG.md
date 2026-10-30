@@ -4,6 +4,9 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Kernel panics from memory exhaustion prevented (B21): jobgate uses the larger of `--mem` and a job's real peaks and
+  admits nothing once the compressor's store is 50 % full; the new `memory-guard` agent reads that store every 2 s and
+  stops the youngest job at 70 %, never an app. Rollback: `git revert`, then `./scripts/apply.sh home-manager --write`.
 - Cmd+F2 (XAU/USD prompt): quotes and H4/H1/M15/M5 candles come first from the TwelveData-XAUUSD-Live
   connector, TradingView / Investing.com only as a fallback. Rollback: `git revert`, apply Hammerspoon, restart it.
 - Upstream contributions to OmniWM: OmniNull/OmniWM#1056 (preview captures recover when ScreenCaptureKit stops

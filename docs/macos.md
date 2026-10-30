@@ -68,6 +68,7 @@ One mechanism per tool. Login items are Home Manager LaunchAgents declared in `h
 | `playwright-background-pages` | `scripts/playwright-background-pages.py` hourly, safety net: Playwright test pages (npm and Python, session scratchpads included) open behind the user's windows, in the bottom-right corner |
 | `perf-journal` | `scripts/perf-journal.py` every minute: memory, CPU, GPU per process, one week kept (`docs/performance.md`) |
 | `hammerspoon-guard` | `scripts/hammerspoon-guard.sh` every minute: restarts Hammerspoon above 1.5 GB while the user is idle >= 2 min (B20) |
+| `memory-guard` | `scripts/memory-guard.swift` every 2 s: stops the youngest heavy job before the compressor's store fills up and the Mac panics, never an app (`docs/bugs.md` B21, `memory-guard --check`) |
 | `window-journal` | `scripts/window-journal.swift` (built by `scripts/swift-tool.sh` on first run and after each change): every new window that shows over the user's work and the process that opened it, one week kept (`window-journal report`) |
 
 A log-rotation agent also trims `~/Library/Logs/macos-config/`. Raycast uses its own "Open at Login" setting.
