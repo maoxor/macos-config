@@ -16,3 +16,8 @@ cask "google-chrome"
 
 # ChatGPT desktop app (the web version fails to load conversations in Safari)
 cask "chatgpt"
+
+# Swift toolchain manager: building OmniWM's upstream main for contributions needs the snapshot pinned in its
+# .swift-version (`swiftly install` in the checkout). From Homebrew, not Nix: the proxies in ~/.swiftly/bin link to
+# the swiftly binary, and a Nix store path would change on every update.
+brew "swiftly"

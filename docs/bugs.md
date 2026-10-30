@@ -145,8 +145,10 @@ Before changing anything listed here, read the entry and keep its verification p
 - **Cause (established):** apps hidden by ws-hide had no window to capture.
 - **Fix:** stop hiding apps altogether; cover the parked-window strip with margin-veil instead.
   ws-hide kept its name but only refocuses.
-- **Missed swipes on diagonal starts (established):** a diagonal start resolved to no mode. Fix existed
-  — **not in the current build**.
+- **Missed swipes on diagonal starts (established):** a diagonal start resolved to no mode and the contact was
+  suppressed until lift. Fix: patch 0008 (in the build since mid-October); proposed upstream as
+  OmniNull/OmniWM#1055, which also records each frame's sample while waiting (the swipe velocity otherwise started
+  from the frame that crossed the recognition distance).
 - **Empty screens on switch (established):** Stage Manager was on; now off (`home-manager/macos.nix`).
 
 ### B10 — Grey previews in the Overview

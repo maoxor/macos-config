@@ -8,7 +8,7 @@ settings this repo installs; values marked *default* are OmniWM's own defaults.
 | Piece | Where |
 |---|---|
 | Pinned upstream commit | `tools/omniwm/UPSTREAM` |
-| Local patches (git `format-patch` series) | `tools/omniwm/patches/0001…0032` |
+| Local patches (git `format-patch` series) | `tools/omniwm/patches/0001…0032` (0028 removed) |
 | Build + sign + install | `tools/omniwm/build-local.sh` (`--check` = patches apply, no build) |
 | Signing certificate (once per Mac) | `tools/omniwm/create-signing-cert.sh` |
 | Working checkout | `$OMNIWM_SRC` (default `~/src/omniwm`), branch `macos-config`, recreated on every build |
@@ -46,7 +46,7 @@ build, so permissions would be lost on each rebuild. The certificate pins them (
 | 0025 | leaving a Niri column takes the same gesture whatever its width (past halfway to the next snap point, capped at a quarter of the screen) | a full-width column needed twice the gesture of a half-width one |
 | 0026 | the restore catalog keeps launch entries of windows not seen again this session | a save while the screen was locked wrote an empty catalog |
 | 0027 | the bench dumps the targets of its animation ticks (`~/Library/Logs/OmniWM/scroll-bench.tsv`) | input for `tools/omniwm/bench` |
-| 0028 | a size write the app did not answer (AX `cannotComplete`) is not learned as the window's minimum size | after Safari left macOS fullscreen, its fullscreen size became the column minimum and Option+F did nothing until OmniWM restarted |
+| ~~0028~~ | removed on 2026-10-30: it skipped learning a minimum size on `.sizeWriteFailed(.cannotComplete)`, a failure OmniWM never produces (`mapFrameWriteFailure` maps `cannotComplete` to `.staleElement` since March 2026), so it never changed anything | found while preparing upstream PRs; the Safari full-width column it aimed at is not explained by it (0020 covers the stale read-back case) |
 | 0029 | a workspace rule also places later windows of an app that is in the background or whose windows are all on that workspace, and such a window taking focus does not switch the view there | Playwright test browsers (rules → workspace 4) opened their next pages over the user's workspace and pulled the view to workspace 4 |
 | 0032 | a capture-stream start that gets no answer within 3 s fails and frees its slot (4 slots); the swipe snapshot cache stops waiting after 3 s | after a replayd crash the pending starts never answered, no capture started again and every swipe lost its animation (B7) |
 | 0031 | a swipe never starts from a stale image: a native snapshot whose window title changed is not used, a title change on the visible workspace re-snapshots it, a live frame older than 2 s is recaptured at the first contact | another Safari tab showed first, then the right one, when swiping to W2 (B7) |
@@ -110,8 +110,8 @@ Their history: `docs/bugs.md`.
 
 How the axes never conflict: both 3-finger gestures use the same finger count, so OmniWM decides on the
 **dominant axis** after a few points of travel (`TrackpadGestureIntent.swift`); when column scrolling is on,
-the workspace swipe automatically takes the other axis (vertical). A diagonal start can be dropped (the
-fix for that is not in this build, see §1).
+the workspace swipe automatically takes the other axis (vertical). A diagonal start that leans the wrong way
+at first is kept armed until its direction settles (patch 0008, proposed upstream as OmniNull/OmniWM#1055).
 
 macOS must not see these gestures, otherwise Mission Control / Spaces animate behind OmniWM's:
 `home-manager/macos.nix` turns off the macOS 3- and 4-finger swipes (built-in and Bluetooth trackpad

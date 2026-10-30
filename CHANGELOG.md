@@ -4,6 +4,12 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Upstream contributions to OmniWM: OmniNull/OmniWM#1056 (preview captures recover when ScreenCaptureKit stops
+  answering: start and window-discovery timeouts, the upstream form of patch 0032) and OmniNull/OmniWM#1055
+  (a diagonal swipe start settles its direction: patch 0008, plus the swipe sample kept while waiting).
+  Building upstream main needs `swiftly` (Brewfile) and the snapshot in its `.swift-version`.
+- OmniWM patch 0028 removed: it guarded a failure reason OmniWM never produces (`cannotComplete` is mapped to
+  `.staleElement`), so it never changed anything. Rollback: `git revert`.
 - OmniWM patch 0032: workspace swipes keep their animation after macOS' capture service (replayd) crashes: a
   capture start with no answer after 3 s is dropped (B7). Rollback: remove the patch, rebuild OmniWM.
 - OmniWM patch 0031: vertical workspace swipes no longer show another tab first (stale snapshot or retained frame);
