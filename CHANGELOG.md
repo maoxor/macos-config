@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Cmd+F2 (XAU/USD prompt): quotes and H4/H1/M15/M5 candles come first from the TwelveData-XAUUSD-Live
+  connector, TradingView / Investing.com only as a fallback. Rollback: `git revert`, apply Hammerspoon, restart it.
 - Upstream contributions to OmniWM: OmniNull/OmniWM#1056 (preview captures recover when ScreenCaptureKit stops
   answering: start and window-discovery timeouts, the upstream form of patch 0032) and OmniNull/OmniWM#1055
   (a diagonal swipe start settles its direction: patch 0008, plus the swipe sample kept while waiting).

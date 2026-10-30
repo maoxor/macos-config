@@ -119,7 +119,7 @@ Détermine automatiquement la date et l'heure de Paris.
 
 Adapte ces limites aux horaires de marché, à la liquidité et aux événements économiques.
 
-Recherche la dernière cotation XAU/USD spot disponible sur des sources fiables : TradingView, Investing.com ou fournisseurs financiers reconnus.
+Recherche prioritairement la dernière cotation XAU/USD spot et les bougies H4, H1, M15 et M5 via le connecteur TwelveData-XAUUSD-Live. À défaut, utilise des sources fiables : TradingView, Investing.com ou fournisseurs financiers reconnus.
 
 Une cotation horodatée datant de 5 à 10 minutes est acceptable pour préparer les scénarios. N'exige pas inutilement un flux temps réel à la seconde.
 
