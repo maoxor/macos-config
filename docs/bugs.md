@@ -114,7 +114,16 @@ Before changing anything listed here, read the entry and keep its verification p
   captured alone (`desktopIndependentWindow`) gets an opaque material instead of its live backdrop blur.
 - **Fix:** patch 0006 — WindowServer-composited snapshots of the visible workspace (first trackpad contact,
   0.6 s after a swipe lands), used when the window size is unchanged; patch 0007 logs the choice.
-- **Limit:** a destination workspace shows its last snapshot (content frozen < 0.5 s).
+- **Stale image (2026-10-30, user report: W1 → W2 showed another Safari tab first, then the right one):** the
+  "content frozen" limit was wrong. A destination used its last native snapshot at the same size whatever changed
+  since (a tab switched on W2 after the snapshot, or a session driving Safari there); and a live frame retained from
+  an earlier swipe, possibly minutes old, was shown until the stream replaced it mid-swipe. Also the departing
+  workspace's snapshot was refreshed only after the preview was built. Fix, patch 0031: a snapshot records its
+  window title and is used only while the title is unchanged (leading status glyphs ignored: Claude Code animates
+  `◐ ◑` in Ghostty titles every second); a real title change on the visible workspace re-snapshots it 0.3 s later (a
+  request during a capture runs after it instead of being dropped); at the first trackpad contact a retained live
+  frame older than 2 s is recaptured. Tests: `NativeWindowSnapshotStalenessTests` (6),
+  `WorkspaceSwipePreviewWarmupTests` (+1). Logged: "stale native snapshot", "native snapshot refresh".
 - **Verify:** by eye during a swipe; `/usr/bin/log stream --predicate 'subsystem == "com.barut.OmniWM" AND category == "swipe-snapshot"'`.
 
 ### B8 — Third Niri column drawn over the second during a swipe

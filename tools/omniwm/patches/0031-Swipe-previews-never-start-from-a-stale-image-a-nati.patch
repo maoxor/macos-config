@@ -1,0 +1,327 @@
+From df4d16551168d4fe00883937c02cff9bfcacada4 Mon Sep 17 00:00:00 2001
+From: maoxor <118530756+maoxor@users.noreply.github.com>
+Date: Fri, 30 Oct 2026 11:58:14 +0100
+Subject: [PATCH] Swipe previews never start from a stale image: a native
+ snapshot whose window title changed is not used, the visible workspace is
+ re-snapshotted after a title change, and a live frame older than 2 s is
+ recaptured at the first contact
+
+---
+ .../AXEventHandler+WindowEvents.swift         |  1 +
+ .../WorkspaceSwipePresentation+Geometry.swift | 16 +++++
+ .../Overview/OverviewThumbnailCapture.swift   |  8 +++
+ .../Surface/NativeWindowSnapshotCache.swift   | 58 ++++++++++++++++++-
+ .../Core/Surface/WorkspaceSwipePreview.swift  |  8 ++-
+ .../NativeWindowSnapshotStalenessTests.swift  | 58 +++++++++++++++++++
+ .../WorkspaceSwipePreviewWarmupTests.swift    | 23 ++++++++
+ 7 files changed, 168 insertions(+), 4 deletions(-)
+ create mode 100644 Tests/OmniWMTests/NativeWindowSnapshotStalenessTests.swift
+
+diff --git a/Sources/OmniWM/Core/Controller/AXEventHandler+WindowEvents.swift b/Sources/OmniWM/Core/Controller/AXEventHandler+WindowEvents.swift
+index 2967ec45..8afb0704 100644
+--- a/Sources/OmniWM/Core/Controller/AXEventHandler+WindowEvents.swift
++++ b/Sources/OmniWM/Core/Controller/AXEventHandler+WindowEvents.swift
+@@ -69,6 +69,7 @@ extension AXEventHandler {
+         controller.requestWorkspaceBarRefresh()
+         updateManagedReplacementTitle(windowInfo: windowInfo, token: token)
+         scheduleWindowRuleReevaluationIfNeeded(targets: [.window(token)])
++        controller.layoutRefreshController.workspaceSwipe.refreshVisibleSnapshots(containing: token)
+     }
+ 
+     private func handleCGSWindowClosed(windowId: UInt32) {
+diff --git a/Sources/OmniWM/Core/Controller/WorkspaceSwipePresentation+Geometry.swift b/Sources/OmniWM/Core/Controller/WorkspaceSwipePresentation+Geometry.swift
+index 50a12bc8..e4d8de16 100644
+--- a/Sources/OmniWM/Core/Controller/WorkspaceSwipePresentation+Geometry.swift
++++ b/Sources/OmniWM/Core/Controller/WorkspaceSwipePresentation+Geometry.swift
+@@ -21,6 +21,22 @@ extension WorkspaceSwipePresentation {
+         )
+     }
+ 
++    /// Re-snapshots the visible workspace that holds `token` (its title changed: a Safari tab switch), so the next
++    /// swipe back to it starts from its current content (NativeWindowSnapshotCache).
++    func refreshVisibleSnapshots(containing token: WindowToken) {
++        guard NativeWindowSnapshotCache.shared.titleChangeMatters(for: token) else { return }
++        NativeWindowSnapshotCache.shared.refreshSoon { [weak self] in
++            guard let self, self.flight == nil, let controller = self.controller, controller.hasStartedServices,
++                  controller.settings.gestures.workspaceSwipeEnabled,
++                  let workspaceId = controller.workspaceManager.workspace(for: token),
++                  let monitor = controller.workspaceManager.monitor(for: workspaceId),
++                  controller.workspaceManager.activeWorkspace(on: monitor.id)?.id == workspaceId,
++                  let workspace = self.makeWorkspace(workspaceId, monitor: monitor, active: true)
++            else { return nil }
++            return (workspace.items, monitor)
++        }
++    }
++
+     func handleInvalidation(workspaceId: WorkspaceDescriptor.ID?, domains: InvalidationDomain) {
+         guard let flight else { return }
+         if flight.committing {
+diff --git a/Sources/OmniWM/Core/Overview/OverviewThumbnailCapture.swift b/Sources/OmniWM/Core/Overview/OverviewThumbnailCapture.swift
+index 382e60ea..61bd03f6 100644
+--- a/Sources/OmniWM/Core/Overview/OverviewThumbnailCapture.swift
++++ b/Sources/OmniWM/Core/Overview/OverviewThumbnailCapture.swift
+@@ -40,6 +40,8 @@ final class OverviewThumbnailCapture {
+         let token: WindowToken
+         var lastRequestedUse: UInt64
+         let capturedAt: UInt64
++        /// Wall-clock arrival: a retained frame can be minutes old (a Safari tab switched since).
++        var receivedAt = Date()
+     }
+ 
+     private let consumer: OverviewFrameTrace.PreviewConsumer
+@@ -298,6 +300,12 @@ final class OverviewThumbnailCapture {
+ }
+ 
+ extension OverviewThumbnailCapture {
++    /// Seconds since the cached frame of `handle` arrived, nil without one.
++    func previewAge(for handle: WindowHandle) -> TimeInterval? {
++        guard let cached = previewCache[handle], cached.token == handle.token else { return nil }
++        return Date().timeIntervalSince(cached.receivedAt)
++    }
++
+     func preview(for handle: WindowHandle) -> OverviewPreviewFrame? {
+         guard let cached = previewCache[handle], cached.token == handle.token else {
+             return adoptsProvisionalPreviews ? adoptSharedPreview(for: handle, satisfying: nil) : nil
+diff --git a/Sources/OmniWM/Core/Surface/NativeWindowSnapshotCache.swift b/Sources/OmniWM/Core/Surface/NativeWindowSnapshotCache.swift
+index 62c40746..30b00b8c 100644
+--- a/Sources/OmniWM/Core/Surface/NativeWindowSnapshotCache.swift
++++ b/Sources/OmniWM/Core/Surface/NativeWindowSnapshotCache.swift
+@@ -2,6 +2,7 @@
+ // Copyright (C) 2026 BarutSRB — https://github.com/OmniNull/OmniWM
+ 
+ import AppKit
++import OSLog
+ import ScreenCaptureKit
+ 
+ /// Window images composited by the WindowServer exactly as they appear on screen.
+@@ -15,6 +16,11 @@ import ScreenCaptureKit
+ /// only works while the windows are on screen. So the visible workspace is snapshotted at the
+ /// first trackpad contact and right after a swipe lands; a destination workspace then uses its
+ /// last native snapshot when the window still has the same size, and the live stream otherwise.
++///
++/// A snapshot also goes stale when the content changes at the same size: a Safari tab switched after the
++/// snapshot showed the previous tab during the next swipe, then the right one once the swipe landed
++/// (2026-10-30). The window title is recorded with the image and must still match; a title change on the visible
++/// workspace re-snapshots it (0.3 s after the last change), so the image is current however the user leaves it.
+ @MainActor
+ final class NativeWindowSnapshotCache {
+     static let shared = NativeWindowSnapshotCache()
+@@ -22,32 +28,76 @@ final class NativeWindowSnapshotCache {
+     private struct Entry {
+         let image: CGImage
+         let size: CGSize
++        let title: String
+     }
+ 
+     private var entries: [WindowToken: Entry] = [:]
+     private var inFlight = false
++    private var rerun: ([WorkspaceSwipePreview.Item], Monitor)?
++    private var pendingRefresh: DispatchWorkItem?
++    /// Replaced by tests.
++    var currentTitle: (UInt32) -> String? = { SkyLight.shared.getWindowTitle($0) }
+ 
+     func image(for token: WindowToken, size: CGSize) -> CGImage? {
+         guard let entry = entries[token],
+               abs(entry.size.width - size.width) < 1, abs(entry.size.height - size.height) < 1
+         else { return nil }
++        guard entry.title == Self.comparableTitle(currentTitle(UInt32(token.windowId))) else {
++            nativeSnapshotCacheLog.debug("stale native snapshot for window \(token.windowId, privacy: .public): title changed")
++            return nil
++        }
+         return entry.image
+     }
+ 
++    /// Ghostty titles carry an animated status glyph (Claude Code: ◐ ◑ ◒ ◓ ✳) that changes every second while the
++    /// content barely does: leading non-alphanumerics are not compared.
++    static func comparableTitle(_ title: String?) -> String {
++        String((title ?? "").drop { !$0.isLetter && !$0.isNumber })
++    }
++
++    /// A title change that matters for the snapshot: not the animated status glyph of a terminal (those come every
++    /// second and kept postponing the refresh).
++    func titleChangeMatters(for token: WindowToken) -> Bool {
++        entries[token]?.title != Self.comparableTitle(currentTitle(UInt32(token.windowId)))
++    }
++
++    /// Coalesces bursts (a page load retitles its window several times): one snapshot 0.3 s after the last call.
++    func refreshSoon(_ make: @escaping @MainActor () -> ([WorkspaceSwipePreview.Item], Monitor)?) {
++        pendingRefresh?.cancel()
++        let work = DispatchWorkItem { [weak self] in
++            MainActor.assumeIsolated {
++                guard let self, let (items, monitor) = make() else { return }
++                self.refresh(items, monitor: monitor)
++            }
++        }
++        pendingRefresh = work
++        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: work)
++    }
++
++    func store(_ image: CGImage, for token: WindowToken, size: CGSize) {
++        entries[token] = Entry(image: image, size: size, title: Self.comparableTitle(currentTitle(UInt32(token.windowId))))
++    }
++
+     func remove(_ token: WindowToken) {
+         entries.removeValue(forKey: token)
+     }
+ 
+     /// Snapshots `items` (frames in AppKit screen coordinates) as currently shown on `monitor`.
+     func refresh(_ items: [WorkspaceSwipePreview.Item], monitor: Monitor) {
+-        guard !items.isEmpty, !inFlight, ScreenCapturePermissionMonitor.shared.isGranted else { return }
++        guard !items.isEmpty, ScreenCapturePermissionMonitor.shared.isGranted else { return }
++        // A request during a capture is not dropped: the latest one runs once the capture is done.
++        guard !inFlight else { rerun = (items, monitor); return }
+         inFlight = true
++        nativeSnapshotCacheLog.debug("native snapshot refresh of \(items.count, privacy: .public) windows")
+         let wanted = Dictionary(items.map { (UInt32($0.handle.windowId), $0) }, uniquingKeysWith: { a, _ in a })
+         let displayId = monitor.displayId
+         let monitorFrame = monitor.frame
+         let scale = NSScreen.screens.first(where: { $0.displayId == displayId })?.backingScaleFactor ?? 2
+         Task { @MainActor in
+-            defer { self.inFlight = false }
++            defer {
++                self.inFlight = false
++                if let (items, monitor) = self.rerun { self.rerun = nil; self.refresh(items, monitor: monitor) }
++            }
+             guard let content = try? await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true),
+                   let display = content.displays.first(where: { $0.displayID == displayId })
+             else { return }
+@@ -84,9 +134,11 @@ final class NativeWindowSnapshotCache {
+                     height: item.frame.height * pxScale
+                 ).integral
+                 if let slice = image.cropping(to: crop) {
+-                    self.entries[item.handle.token] = Entry(image: slice, size: item.frame.size)
++                    self.store(slice, for: item.handle.token, size: item.frame.size)
+                 }
+             }
+         }
+     }
+ }
++
++private let nativeSnapshotCacheLog = Logger(subsystem: "com.barut.OmniWM", category: "swipe-snapshot")
+diff --git a/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift b/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift
+index b45a8864..bfc94bca 100644
+--- a/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift
++++ b/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift
+@@ -63,6 +63,8 @@ final class WorkspaceSwipePreview {
+     private var destinationLayer: CALayer?
+     private var contents: [WindowHandle: [Content]] = [:]
+     private(set) var isWarming = false
++    /// A retained live frame older than this is recaptured at the first trackpad contact (tests set it to 0).
++    static var staleFrameAge: TimeInterval = 2
+ 
+     var isVisible: Bool {
+         panel?.isVisible == true
+@@ -128,7 +130,11 @@ final class WorkspaceSwipePreview {
+         tokens = Dictionary(items.map { ($0.handle, $0.handle.token) }, uniquingKeysWith: { _, latest in latest })
+         let scale = Self.scale(for: monitor)
+         isWarming = warming
+-        let requested = warming ? items.filter { capture.preview(for: $0.handle) == nil } : items
++        // At the first trackpad contact, recapture a frame older than 2 s too: a retained frame of another Safari tab
++        // was shown until the stream replaced it mid-swipe (2026-10-30).
++        let requested = warming
++            ? items.filter { capture.preview(for: $0.handle) == nil || (capture.previewAge(for: $0.handle) ?? .infinity) > Self.staleFrameAge }
++            : items
+         capture.reconcile(
+             represented: represented,
+             visible: requested.map { $0.captureRequest(backingScale: scale) },
+diff --git a/Tests/OmniWMTests/NativeWindowSnapshotStalenessTests.swift b/Tests/OmniWMTests/NativeWindowSnapshotStalenessTests.swift
+new file mode 100644
+index 00000000..0693144f
+--- /dev/null
++++ b/Tests/OmniWMTests/NativeWindowSnapshotStalenessTests.swift
+@@ -0,0 +1,58 @@
++// SPDX-License-Identifier: GPL-2.0-only
++// Copyright (C) 2026 BarutSRB — https://github.com/OmniNull/OmniWM
++
++import CoreGraphics
++@testable import OmniWM
++import XCTest
++
++@MainActor
++final class NativeWindowSnapshotStalenessTests: XCTestCase {
++    private let cache = NativeWindowSnapshotCache()
++    private let token = WindowToken(pid: 4242, windowId: 4243)
++    private let size = CGSize(width: 1025, height: 1293)
++    private var title: String? = "Page A"
++
++    private func image() -> CGImage {
++        let context = CGContext(
++            data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
++            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
++        )!
++        return context.makeImage()!
++    }
++
++    override func setUp() async throws {
++        cache.currentTitle = { [unowned self] _ in self.title }
++        cache.store(image(), for: token, size: size)
++    }
++
++    func testSnapshotIsUsedWhileTitleAndSizeAreUnchanged() {
++        XCTAssertNotNil(cache.image(for: token, size: size))
++    }
++
++    func testTabSwitchMakesTheSnapshotStale() {
++        title = "Page B"
++        XCTAssertNil(cache.image(for: token, size: size))
++    }
++
++    func testAnimatedStatusGlyphDoesNotMakeItStale() {
++        title = "◐ config mac"
++        cache.store(image(), for: token, size: size)
++        title = "◑ config mac"
++        XCTAssertNotNil(cache.image(for: token, size: size))
++        title = "✳ config mac"
++        XCTAssertNotNil(cache.image(for: token, size: size))
++    }
++
++    func testOnlyARealTitleChangeAsksForARefresh() {
++        title = "◐ config mac"
++        cache.store(image(), for: token, size: size)
++        title = "◓ config mac"
++        XCTAssertFalse(cache.titleChangeMatters(for: token))
++        title = "Autre page"
++        XCTAssertTrue(cache.titleChangeMatters(for: token))
++    }
++
++    func testResizeStillMakesItStale() {
++        XCTAssertNil(cache.image(for: token, size: CGSize(width: 2058, height: 1293)))
++    }
++}
+diff --git a/Tests/OmniWMTests/WorkspaceSwipePreviewWarmupTests.swift b/Tests/OmniWMTests/WorkspaceSwipePreviewWarmupTests.swift
+index 0b00d873..2b9c437c 100644
+--- a/Tests/OmniWMTests/WorkspaceSwipePreviewWarmupTests.swift
++++ b/Tests/OmniWMTests/WorkspaceSwipePreviewWarmupTests.swift
+@@ -250,6 +250,29 @@ final class WorkspaceSwipePreviewWarmupTests: XCTestCase {
+         capture.releaseCache()
+     }
+ 
++    func testWarmupRecapturesAStaleRetainedFrame() async throws {
++        let driver = OverviewPreviewTestDriver()
++        let capture = driver.makeCapture()
++        let preview = makePreview(capture)
++        let window = item(1)
++        let old = try makeOverviewPreviewFrame()
++        preview.warm(source: [], destination: [window], monitor: monitor)
++        await driver.waitForStarts(1)
++        driver.completeAllStarts()
++        await publish(old, through: driver.streams[0], into: capture)
++        await driver.waitForStops(1)
++        WorkspaceSwipePreview.staleFrameAge = 0
++        defer { WorkspaceSwipePreview.staleFrameAge = 2 }
++        preview.warm(source: [], destination: [window], monitor: monitor)
++        await driver.waitForStarts(2)
++        let fresh = try makeOverviewPreviewFrame()
++        driver.completeAllStarts()
++        await publish(fresh, through: driver.streams[1], into: capture)
++        await driver.waitForStops(2)
++        XCTAssertTrue(capture.preview(for: window.handle) === fresh)
++        preview.stop()
++    }
++
+     func testWorldRemovalReleasesAnUnrepresentedSwipePreviewAndRejectsLateFrames() async throws {
+         let controller = WindowAdmissionTestSupport.controller()
+         let driver = OverviewPreviewTestDriver()
+-- 
+2.54.0 (Apple Git-157)
+

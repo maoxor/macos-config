@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- OmniWM patch 0031: vertical workspace swipes no longer show another tab first (stale snapshot or retained frame);
+  see B7. Rollback: remove the patch, rebuild OmniWM.
 - CI: `actions/checkout@v7` (Node 24; v4 runs on the deprecated Node 20).
 - CI green again (it failed from 2026-10-29 13:47): `macstat.py` imports on Linux, so jobgate's self-test runs on the
   runner. `hammerspoon-guard` agent: restarts Hammerspoon above 1.5 GB while the
