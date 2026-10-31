@@ -62,14 +62,21 @@ function M.down()
   show()
 end
 
+local owned = {}
 M.tap = hs.eventtap.new({ hs.eventtap.event.types.systemDefined }, function(e)
   local k = e:systemKey()
   if k.key ~= "BRIGHTNESS_UP" and k.key ~= "BRIGHTNESS_DOWN" then return false end
   local f = e:getFlags()
   if f.cmd or f.alt or f.ctrl or f.shift then return false end
   local up = k.key == "BRIGHTNESS_UP"
-  if M.level == 0 and not (up and hs.brightness.get() >= 100) then return false end
-  if k.down then if up then M.up() else M.down() end end
+  -- One press belongs to one side from start to end: macOS must not get a release without its press.
+  if k.down and not k["repeat"] then
+    owned[k.key] = M.level > 0 or (up and hs.brightness.get() >= 100)
+  end
+  if not owned[k.key] then return false end
+  if k.down and (up or M.level > 0) then
+    if up then M.up() else M.down() end
+  end
   return true
 end)
 M.tap:start()
