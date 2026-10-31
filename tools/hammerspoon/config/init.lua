@@ -18,10 +18,10 @@ promptInsert = timed("prompt-insert")
 functionKeys = timed("function-keys")
 -- F3: next wallpaper of ~/Pictures (the theme follows).
 wallpaperCycle = timed("wallpaper-cycle")
+-- Brightness keys continue past 100 % into the XDR boost. Before keyboard-clean, whose tap must run first.
+brightnessBoost = timed("brightness-boost")
 -- F4: cleaning mode, keyboard locked until a click on the banner (or 2 min).
 keyboardClean = timed("keyboard-clean")
--- Cmd+F3: XDR brightness boost on / off.
-brightnessBoost = timed("brightness-boost")
 -- Cmd+F5: reopen apps and Claude Code sessions after a crash.
 sessionRestore = timed("session-restore")
 -- Safari: Cmd+Left/Right = previous/next tab (outside text fields).

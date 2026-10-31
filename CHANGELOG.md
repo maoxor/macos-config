@@ -4,7 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
-- XDR boost (Cmd+F3, `scripts/xdr-boost.swift`): our own tool, public APIs only, gain capped at 1000 nits. BrightIntosh
+- XDR boost (brightness keys, past 100 %; `scripts/xdr-boost.swift`): our own tool, public APIs only, gain capped at
+  1000 nits. BrightIntosh
   tried and removed. Rollback: `git revert`, then apply Hammerspoon and home-manager.
 - Kernel panics from memory exhaustion prevented (B21): jobgate uses the larger of `--mem` and a job's real peaks and
   admits nothing once the compressor's store is 50 % full; the new `memory-guard` agent reads that store every 2 s and

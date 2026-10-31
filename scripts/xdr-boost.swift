@@ -5,13 +5,16 @@
 // The gain stops at 1000 nits, what Apple rates for sustained full-screen use (600 nits SDR x 1.67, whatever the
 // brightness slider says, and never above the headroom macOS grants). It fades out and quits on SIGTERM or if macOS
 // reports a serious thermal state.
-//   xdr-boost [gain]   run until killed (Cmd+F3 in Hammerspoon starts and stops it)
+//   xdr-boost [gain]   run until killed; SIGUSR1 / SIGUSR2 one step up / down (brightness keys, brightness-boost.lua)
 import AppKit
 import MetalKit
 
+signal(SIGUSR1, SIG_IGN)  // first: a key held down reaches a process that is still starting
+signal(SIGUSR2, SIG_IGN)
 let maxGain: CGFloat = 1.67
 let requested = CommandLine.arguments.dropFirst().first.flatMap { Double($0) }.map { CGFloat($0) } ?? maxGain
-let target = max(1, min(requested, maxGain))
+let steps: CGFloat = 4
+var target = max(1, min(requested, maxGain))
 let fadeFramesPerSecond = 30
 let idleFramesPerSecond = 2  // not 0: a static frame loses its EDR status. Measured: 1600 nits held, 0.1 % CPU
 
@@ -47,6 +50,15 @@ final class BoostView: MTKView, MTKViewDelegate {
 
     func leave() {
         leaving = true
+        wakeUp()
+    }
+
+    func move(by delta: CGFloat) {
+        target = max(1, min(target + delta, maxGain))
+        wakeUp()
+    }
+
+    private func wakeUp() {
         preferredFramesPerSecond = fadeFramesPerSecond
     }
 
@@ -106,8 +118,15 @@ let screenChange = NotificationCenter.default.addObserver(
 let wake = NSWorkspace.shared.notificationCenter.addObserver(
     forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
 ) { _ in MainActor.assumeIsolated { follow() } }
+var stepSources: [any DispatchSourceSignal] = []
 signal(SIGTERM, SIG_IGN)
 let termination = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
 termination.setEventHandler { MainActor.assumeIsolated { view.leave() } }
 termination.resume()
+for (number, delta) in [(SIGUSR1, (maxGain - 1) / steps), (SIGUSR2, -(maxGain - 1) / steps)] {
+    let source = DispatchSource.makeSignalSource(signal: number, queue: .main)
+    source.setEventHandler { MainActor.assumeIsolated { view.move(by: delta) } }
+    source.resume()
+    stepSources.append(source)
+}
 app.run()

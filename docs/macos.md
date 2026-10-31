@@ -71,7 +71,9 @@ One mechanism per tool. Login items are Home Manager LaunchAgents declared in `h
 | `memory-guard` | `scripts/memory-guard.swift` every 2 s: stops the youngest heavy job before the compressor's store fills up and the Mac panics, never an app (`docs/bugs.md` B21, `memory-guard --check`) |
 | `window-journal` | `scripts/window-journal.swift` (built by `scripts/swift-tool.sh` on first run and after each change): every new window that shows over the user's work and the process that opened it, one week kept (`window-journal report`) |
 
-**XDR boost** (Cmd+F3, `scripts/xdr-boost.swift`, not an agent: it runs only while on). Everyday content uses the
+**XDR boost** (brightness keys, `scripts/xdr-boost.swift`, not an agent: it runs only while on). At 100 %, F2 goes on
+for 4 more steps with a bar drawn like Apple's, F1 comes back down; below 100 % the keys stay macOS's. Apple's own bar and
+the Control Centre slider have no public API, so they stop at 100 %. Everyday content uses the
 display's 1000 nits instead of 600. Free tools tried or rejected on 2026-10-31: BrightIntosh (no visible effect here),
 FreeBright (same gamma method), MaxNit (unmaintained, unknown author); XDR is paid in Lunar and BetterDisplay.
 - How: a click-through EDR window multiplies the screen, public APIs only, nothing stored, no network. macOS keeps the
