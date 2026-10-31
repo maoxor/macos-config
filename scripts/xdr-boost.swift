@@ -25,10 +25,90 @@ func builtInScreen() -> NSScreen? {
     }
 }
 
+// The level bar, in Apple's glass since Hammerspoon cannot draw it: macOS's own bar stops at 100 %.
+@MainActor final class LevelBar {
+    private static let size = CGSize(width: 232, height: 46)
+    private let panel: NSPanel
+    private let fill = NSView()
+    private let trackWidth: CGFloat = 164
+    private var hiding: DispatchWorkItem?
+
+    init() {
+        panel = NSPanel(contentRect: NSRect(origin: .zero, size: Self.size),
+                        styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.hasShadow = true
+        panel.ignoresMouseEvents = true
+        panel.level = .screenSaver + 1  // above the boost window
+        panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle, .fullScreenAuxiliary]
+        panel.alphaValue = 0
+
+        let content = NSView(frame: NSRect(origin: .zero, size: Self.size))
+        let icon = NSImageView(frame: NSRect(x: 16, y: 12, width: 22, height: 22))
+        icon.image = NSImage(systemSymbolName: "sun.max.fill", accessibilityDescription: nil)
+        icon.symbolConfiguration = .init(pointSize: 17, weight: .medium)
+        icon.contentTintColor = .labelColor
+        let track = NSView(frame: NSRect(x: 50, y: 20, width: trackWidth, height: 6))
+        track.wantsLayer = true
+        track.layer?.cornerRadius = 3
+        track.layer?.backgroundColor = NSColor.labelColor.withAlphaComponent(0.2).cgColor
+        fill.frame = NSRect(x: 0, y: 0, width: 0, height: 6)
+        fill.wantsLayer = true
+        fill.layer?.cornerRadius = 3
+        fill.layer?.backgroundColor = NSColor.labelColor.cgColor
+        track.addSubview(fill)
+        content.addSubview(icon)
+        content.addSubview(track)
+
+        if #available(macOS 26.0, *) {
+            let glass = NSGlassEffectView(frame: content.frame)
+            glass.cornerRadius = Self.size.height / 2
+            glass.contentView = content
+            panel.contentView = glass
+        } else {
+            let glass = NSVisualEffectView(frame: content.frame)
+            glass.material = .hudWindow
+            glass.state = .active
+            glass.wantsLayer = true
+            glass.layer?.cornerRadius = Self.size.height / 2
+            glass.layer?.masksToBounds = true
+            glass.addSubview(content)
+            panel.contentView = glass
+        }
+    }
+
+    func show(_ share: CGFloat, on screen: NSScreen?) {
+        if let frame = screen?.frame {
+            panel.setFrameOrigin(NSPoint(x: frame.maxX - Self.size.width - 14, y: frame.maxY - Self.size.height - 14))
+        }
+        hiding?.cancel()
+        panel.orderFrontRegardless()
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.18
+            panel.animator().alphaValue = 1
+            fill.animator().frame.size.width = trackWidth * share
+        }
+        let hide = DispatchWorkItem { [weak self] in self?.hide {} }
+        hiding = hide
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6, execute: hide)
+    }
+
+    func hide(then done: @escaping @MainActor () -> Void) {
+        hiding?.cancel()
+        NSAnimationContext.runAnimationGroup({ context in
+            context.duration = 0.25
+            panel.animator().alphaValue = 0
+        }, completionHandler: { MainActor.assumeIsolated { done() } })
+    }
+}
+
 final class BoostView: MTKView, MTKViewDelegate {
     private let queue: MTLCommandQueue
     private var gain: CGFloat = 1
     private var leaving = false
+    private var frames = 0
+    private let bar = LevelBar()
 
     init(frame: NSRect, device: MTLDevice, queue: MTLCommandQueue) {
         self.queue = queue
@@ -51,11 +131,13 @@ final class BoostView: MTKView, MTKViewDelegate {
     func leave() {
         leaving = true
         wakeUp()
+        bar.show(0, on: window?.screen)
     }
 
     func move(by delta: CGFloat) {
         target = max(1, min(target + delta, maxGain))
         wakeUp()
+        bar.show((target - 1) / (maxGain - 1), on: window?.screen)
     }
 
     private func wakeUp() {
@@ -63,14 +145,25 @@ final class BoostView: MTKView, MTKViewDelegate {
     }
 
     func draw(in view: MTKView) {
-        if ProcessInfo.processInfo.thermalState.rawValue >= ProcessInfo.ThermalState.serious.rawValue { leave() }
+        let hot = ProcessInfo.processInfo.thermalState.rawValue >= ProcessInfo.ThermalState.serious.rawValue
+        if hot, !leaving { leave() }
+        // Shown only once its white frames are ready: the window multiplies, so an empty one would black out the Mac.
+        frames += 1
+        if frames == 3 {
+            window?.alphaValue = 1
+            bar.show((target - 1) / (maxGain - 1), on: window?.screen)
+        }
         // Never ahead of the headroom macOS has opened so far: above it, the screen clips to white.
         let live = window?.screen?.maximumExtendedDynamicRangeColorComponentValue ?? 1
-        let goal = leaving ? 1 : min(target, max(1, live * 1.1))
+        let goal = leaving || frames < 3 ? 1 : min(target, max(1, live * 1.1))
         gain += (goal - gain) * 0.18
         if abs(goal - gain) < 0.005 {
             gain = goal
-            if leaving { exit(0) }
+            if leaving {
+                isPaused = true
+                bar.hide { exit(0) }
+                return
+            }
             preferredFramesPerSecond = idleFramesPerSecond
         } else {
             preferredFramesPerSecond = fadeFramesPerSecond
@@ -95,6 +188,7 @@ guard let screen = builtInScreen(), screen.maximumPotentialExtendedDynamicRangeC
 let view = BoostView(frame: NSRect(origin: .zero, size: screen.frame.size), device: device, queue: queue)
 let window = NSWindow(contentRect: screen.frame, styleMask: .borderless, backing: .buffered, defer: false)
 window.setFrame(screen.frame, display: false)
+window.alphaValue = 0
 window.isOpaque = false
 window.backgroundColor = .clear
 window.hasShadow = false
