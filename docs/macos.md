@@ -71,6 +71,17 @@ One mechanism per tool. Login items are Home Manager LaunchAgents declared in `h
 | `memory-guard` | `scripts/memory-guard.swift` every 2 s: stops the youngest heavy job before the compressor's store fills up and the Mac panics, never an app (`docs/bugs.md` B21, `memory-guard --check`) |
 | `window-journal` | `scripts/window-journal.swift` (built by `scripts/swift-tool.sh` on first run and after each change): every new window that shows over the user's work and the process that opened it, one week kept (`window-journal report`) |
 
+**XDR boost** (Cmd+F3, `scripts/xdr-boost.swift`, not an agent: it runs only while on). Everyday content uses the
+display's 1000 nits instead of 600. Free tools tried or rejected on 2026-10-31: BrightIntosh (no visible effect here),
+FreeBright (same gamma method), MaxNit (unmaintained, unknown author); XDR is paid in Lunar and BetterDisplay.
+- How: a click-through EDR window multiplies the screen, public APIs only, nothing stored, no network. macOS keeps the
+  backlight and its thermal limits. Gain 1.67 at most (1000 nits, Apple's sustained full-screen rating); it follows the
+  headroom macOS grants, fades in and out, and quits on a serious thermal state. Off at every login.
+- Measure: `ioreg -l -w0 | grep -m1 IOMFBBrightnessLevel`, 16.16 fixed point: 600 nits off, 1600 on (the backlight cap,
+  pixels are scaled down accordingly). `BrightnessMilliNits` and `InstantAmperage` do not move: do not use them.
+- Limits: HDR video clips while it is on; no colour work; screenshots do not show the boost; more heat and battery wear.
+- Rollback: `pkill xdr-boost`; to remove it, `git revert` the commit and apply Hammerspoon and home-manager.
+
 A log-rotation agent also trims `~/Library/Logs/macos-config/`. Raycast uses its own "Open at Login" setting.
 Do not also enable "launch at login" inside OmniWM, Hammerspoon, Neru or Stats. In System Settings > General > Login Items
 the agents appear as **"sh"** (they start via `/bin/sh -c "wait4path /nix/store && exec …"`); this is expected, and so is the

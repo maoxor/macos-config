@@ -177,6 +177,8 @@ in {
   # jobgate: heavy jobs wait for real free memory and pause only while the Mac thrashes (docs/performance.md).
   home.file.".local/bin/jobgate".source =
     config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/jobgate.py";
+  home.file.".local/bin/xdr-boost".source =
+    config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/xdr-boost.sh";
   home.file.".local/bin/memory-guard".source =
     config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/memory-guard.sh";
   home.file.".local/bin/window-journal".source =
