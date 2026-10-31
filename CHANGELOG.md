@@ -4,8 +4,6 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
-- BrightIntosh 6.0.11 (GPL-3.0), built from source (`tools/brightintosh/build.sh`, free edition): up to 1000 nits for
-  SDR content on demand, off by default, no login item. Rollback: quit it, delete `/Applications/BrightIntosh.app`.
 - Kernel panics from memory exhaustion prevented (B21): jobgate uses the larger of `--mem` and a job's real peaks and
   admits nothing once the compressor's store is 50 % full; the new `memory-guard` agent reads that store every 2 s and
   stops the youngest job at 70 %, never an app. Rollback: `git revert`, then `./scripts/apply.sh home-manager --write`.
