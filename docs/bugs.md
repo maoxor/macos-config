@@ -146,8 +146,8 @@ Before changing anything listed here, read the entry and keep its verification p
 - **Fix:** stop hiding apps altogether; cover the parked-window strip with margin-veil instead.
   ws-hide kept its name but only refocuses.
 - **Missed swipes on diagonal starts (established):** a diagonal start resolved to no mode and the contact was
-  suppressed until lift. Fix: patch 0008 (in the build since mid-October); proposed upstream as
-  OmniNull/OmniWM#1055, which also records each frame's sample while waiting (the swipe velocity otherwise started
+  suppressed until lift. Fix: patch 0008 (in the build since mid-October); merged upstream as
+  OmniNull/OmniWM#1055 on 2026-10-31, which also records each frame's sample while waiting (the swipe velocity otherwise started
   from the frame that crossed the recognition distance).
 - **Empty screens on switch (established):** Stage Manager was on; now off (`home-manager/macos.nix`).
 
@@ -283,6 +283,20 @@ Before changing anything listed here, read the entry and keep its verification p
   line in `~/Library/Logs/macos-config/memory-guard.log`. Not tested on a real saturation: thresholds come from the
   journal and both panic reports, the stops were tested on isolated dummy jobs.
 - **Rollback**: `launchctl bootout gui/$(id -u)/org.nix-community.home.memory-guard`, or `git revert` then apply.
+
+### B22 — Workspace 4 cannot be reached while it holds only a test browser (2026-10-31)
+- **Symptom:** the user could not get to workspace 4. Its only window was a Chrome for Testing sign-in window a
+  session had opened (`launchPersistentContext`, Atlassian).
+- **Cause (read in the code, the bounce itself was not observed):** `test-browsers.lua` gives focus back when a test
+  browser is frontmost without a click in the last second. Arriving on workspace 4 focuses that browser, so the
+  previous app was activated within 250 ms and OmniWM follows it; a click only held for one second.
+- **Fix:** no hand-back while the browser has a window on the active workspace (`wsHide.windows`, `wsHide.activeId`).
+  `ws-hide.lua` also keeps the list from `query windows`, so it is known right after a Hammerspoon restart.
+- **Verify:** the real timer run against a fake `hs`: the old code reactivates Safari on every tick while the user is
+  on workspace 4 and pulls them back after they leave, the new code does neither, and a focus theft from another
+  workspace is still handed back. Not verified live: the user stayed active during both idle-gated tries.
+- **Left:** a test browser that takes focus more than 4 s after its window opened (`page.bringToFront()`) can now pull
+  the view to workspace 4: patch 0029 only covers the first 4 s, and the guard no longer corrects it from there.
 
 ### B17 — Process incidents (rules that came out of them)
 - The full OmniWM test suite froze the Mac: run targeted `--filter` tests only.

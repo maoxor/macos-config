@@ -111,7 +111,7 @@ Their history: `docs/bugs.md`.
 How the axes never conflict: both 3-finger gestures use the same finger count, so OmniWM decides on the
 **dominant axis** after a few points of travel (`TrackpadGestureIntent.swift`); when column scrolling is on,
 the workspace swipe automatically takes the other axis (vertical). A diagonal start that leans the wrong way
-at first is kept armed until its direction settles (patch 0008, proposed upstream as OmniNull/OmniWM#1055).
+at first is kept armed until its direction settles (patch 0008, merged upstream as OmniNull/OmniWM#1055).
 
 macOS must not see these gestures, otherwise Mission Control / Spaces animate behind OmniWM's:
 `home-manager/macos.nix` turns off the macOS 3- and 4-finger swipes (built-in and Bluetooth trackpad

@@ -2,8 +2,9 @@
 -- 0029 keeps their later windows there without switching the view, and scripts/playwright-background-pages.py
 -- opens their pages behind the user's windows. macOS still hands them the keyboard: when one becomes frontmost
 -- without a click from the user in the last second, focus goes back to the app that had it (polled: these apps
--- are often not reported by hs.application.watcher). Also moves Safari windows a session forced to float to
--- workspace 4 (on each OmniWM window change).
+-- are often not reported by hs.application.watcher), unless the user is on the browser's workspace: it is theirs
+-- there (a sign-in window), and giving focus back would throw them off that workspace. Also moves Safari windows a
+-- session forced to float to workspace 4 (on each OmniWM window change).
 local M = {}
 M.bundles = {
   ["com.google.chrome.for.testing"] = true, ["org.chromium.Chromium"] = true,
@@ -40,12 +41,20 @@ local function isTest(app)
 end
 M.isTest = isTest
 
-local testSeen = 0 -- last time a test browser was frontmost
+local function onActiveWorkspace(app)
+  local pid = app:pid()
+  for _, w in ipairs(wsHide and wsHide.windows or {}) do
+    if w.pid == pid and w.workspace and w.workspace.id == wsHide.activeId then return true end
+  end
+  return false
+end
+
+local testSeen = 0 -- last time a test browser took focus
 M.timer = hs.timer.doEvery(0.25, function()
   local app = hs.application.frontmostApplication()
   if not app then return end
   local now = hs.timer.secondsSinceEpoch()
-  if isTest(app) then
+  if isTest(app) and not onActiveWorkspace(app) then
     testSeen = now
     if now - lastClick > 1 and last and last:isRunning() then last:activate() end
   elseif now - testSeen < 3 and app ~= last and now - lastClick > 1 and last and last:isRunning() then

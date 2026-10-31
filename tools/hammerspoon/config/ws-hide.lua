@@ -94,7 +94,8 @@ function M.queryNow(activeId)
     if code ~= 0 then return end
     local ok, data = pcall(hs.json.decode, out)
     if ok and data and data.result and data.result.payload then
-      apply(data.result.payload.windows or {}, activeId)
+      M.windows = data.result.payload.windows or {}
+      apply(M.windows, activeId)
     end
   end, { "query", "windows" })
   if M.query then M.query:start() end
