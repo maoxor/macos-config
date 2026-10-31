@@ -20,6 +20,8 @@ functionKeys = timed("function-keys")
 wallpaperCycle = timed("wallpaper-cycle")
 -- F4: cleaning mode, keyboard locked until a click on the banner (or 2 min).
 keyboardClean = timed("keyboard-clean")
+-- Cmd+F3: XDR brightness boost on / off (BrightIntosh).
+brightnessBoost = timed("brightness-boost")
 -- Cmd+F5: reopen apps and Claude Code sessions after a crash.
 sessionRestore = timed("session-restore")
 -- Safari: Cmd+Left/Right = previous/next tab (outside text fields).
