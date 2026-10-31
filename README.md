@@ -16,11 +16,11 @@ backs up what it replaces and can be undone.
 ## What it sets up
 | Area | Tool | Where |
 |---|---|---|
-| Windows, workspaces, gestures, Overview | OmniWM, built locally from upstream + [27 small patches](tools/omniwm/patches) | [`docs/omniwm.md`](docs/omniwm.md) |
+| Windows, workspaces, gestures, Overview | OmniWM, built locally from upstream + [31 small patches](tools/omniwm/patches) | [`docs/omniwm.md`](docs/omniwm.md) |
 | Terminal | Ghostty: translucent with blur, 13 pt, colours from the wallpaper | `home-manager/theme.nix` |
 | Shell & CLI | zsh, Starship, Atuin (local history), ripgrep, fzf, zoxide, bat, jq, fd, gh, delta, ast-grep, yazi, lazygit, btop | `home-manager/` |
 | Apps | Ghostty, Hammerspoon, Neru, Raycast, Stats | `homebrew/Brewfile` |
-| Automation | Hammerspoon: contexts (Hyper+P), refocus after a switch, clean screen edges, Accessibility guard | `tools/hammerspoon/` |
+| Automation | Hammerspoon: contexts (Hyper+P), refocus after a switch, clean screen edges, Accessibility guard, brightness keys past 100 % (`docs/macos.md`) | `tools/hammerspoon/` |
 | Keyboard navigation | Neru (hints, grid, scrolling) | `tools/neru/` |
 | Theme | Stylix palette derived from the wallpaper, applied to the terminal, CLI tools, Neru, OmniWM and the macOS accent; re-applied when the wallpaper changes | `scripts/theme-*.sh` |
 | macOS settings | trackpad, gestures, keyboard and disabled macOS shortcuts, Dock, Mission Control, Finder, Stage Manager, appearance — declared in Nix | `home-manager/macos.nix` ([list](docs/macos.md)) |
@@ -97,6 +97,8 @@ scripts/apply.sh <id>         # push a repo config to the machine (preview, then
 scripts/macos-defaults.sh     # are the declared macOS settings live? (--write = apply via Home Manager)
 tools/omniwm/build-local.sh   # rebuild OmniWM
 scripts/emergency-stop.sh     # stop OmniWM, Neru and Hammerspoon if input gets stuck
+jobgate status                # heavy jobs, free memory, how full the compressor's store is
+memory-guard --check          # what the memory guard reads and what it would stop
 ```
 
 ## Customize

@@ -42,13 +42,16 @@ if pgrep -x OmniWM >/dev/null; then
     echo "$q" | grep -q '"layout" : "niri"' && ok "Niri workspaces present" || warn "no Niri workspace" "settings: workspaces 2-9 layoutType = \"niri\" (tools/omniwm/config/settings.toml)"
   else fail "OmniWM running but IPC silent" "Accessibility permission? System Settings > Privacy > Accessibility > OmniWM"; fi
 else fail "OmniWM not running" "open -a OmniWM (LaunchAgent org.nix-community.home.omniwm starts it at login)"; fi
+if pgrep -x memory-guard >/dev/null; then ok "memory guard running (docs/bugs.md B21)"
+else fail "memory guard not running: nothing stops a memory exhaustion panic" "launchctl kickstart -k gui/$(id -u)/org.nix-community.home.memory-guard; log: ~/Library/Logs/macos-config/memory-guard.log"; fi
+[ -x "$HOME/.local/bin/xdr-boost" ] && ok "XDR boost installed" || warn "XDR boost missing" "scripts/apply.sh home-manager --write"
 n="$(python3 -I "$REPO/tools/omniwm/apply-registry.py" "$HOME/.config/omniwm/settings.toml" 2>/dev/null | tail -1)"
 case "$n" in "0 change(s)") ok "settings.toml matches the registry";; *) warn "settings.toml differs from the registry ($n)" "quit OmniWM; python3 -I tools/omniwm/apply-registry.py ~/.config/omniwm/settings.toml --write";; esac
 "$REPO/scripts/macos-defaults.sh" >/dev/null && ok "macOS settings (gestures, Dock, Finder)" || warn "macOS settings differ" "scripts/macos-defaults.sh (preview) then --write"
 
 echo "== Hammerspoon"
 if pgrep -x Hammerspoon >/dev/null && [ -x "$HS" ]; then
-  r="$(timeout 8 "$HS" -c 'return tostring(hs.accessibilityState())..","..tostring(wsHide~=nil)..","..tostring(marginVeil~=nil)..","..tostring(axGuard~=nil)' 2>/dev/null | tail -1)"
+  r="$(timeout 8 "$HS" -c 'return tostring(hs.accessibilityState())..","..tostring(wsHide~=nil)..","..tostring(marginVeil~=nil)..","..tostring(axGuard~=nil)' </dev/null 2>/dev/null | tail -1)"
   case "$r" in
     true,true,true,true) ok "Hammerspoon: Accessibility + ws-hide, margin-veil, ax-guard loaded";;
     "") fail "Hammerspoon IPC silent" "open Hammerspoon once; check ~/.hammerspoon/init.lua (scripts/apply.sh hammerspoon --write)";;

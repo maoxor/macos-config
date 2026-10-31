@@ -12,8 +12,8 @@ pgrep -x Hammerspoon >/dev/null && pkill -x Hammerspoon
 for _ in $(seq 1 20); do
   pgrep -x Hammerspoon >/dev/null || open -g -a Hammerspoon "$@" 2>/dev/null
   for _ in $(seq 1 10); do
-    if timeout 2 hs -c 'return wsHide and "up" or "loading"' 2>/dev/null | grep -q up; then
-      echo "Hammerspoon up: $(timeout 2 hs -c 'return startupTimes[#startupTimes]' 2>/dev/null)"
+    if timeout 2 hs -c 'return wsHide and "up" or "loading"' </dev/null 2>/dev/null | grep -q up; then
+      echo "Hammerspoon up: $(timeout 2 hs -c 'return startupTimes[#startupTimes]' </dev/null 2>/dev/null)"
       exit 0
     fi
     sleep 0.3

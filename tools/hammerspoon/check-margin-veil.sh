@@ -18,14 +18,14 @@ if math.abs((f.x + f.w) - (full.x + full.w)) > 0.5 then r[#r+1] = "FAIL veil doe
 if v.canvas:level() >= hs.canvas.windowLevels.status then r[#r+1] = "FAIL veil above OmniWM overlays (paints over swipe previews / Niri columns)" end
 if not wsHide then r[#r+1] = "FAIL ws-hide.lua not loaded (veil gets no OmniWM updates)" end
 if v.suppressed == false and not v.canvas:isShowing() then r[#r+1] = "FAIL veil hidden while nothing intrudes" end
-return #r == 0 and "ok" or table.concat(r, "\n")' 2>&1 | grep -v '^-- Loading extension')"
+return #r == 0 and "ok" or table.concat(r, "\n")' </dev/null 2>&1 | grep -v '^-- Loading extension')"
 echo "$out"; [ "$out" = "ok" ] || exit 1
 if [ "${1:-}" = --cycle ]; then
   C=/Applications/OmniWM.app/Contents/MacOS/omniwmctl
   for n in 2 1 3 1 2 1 3 1; do timeout 5 $C command switch-workspace $n >/dev/null; sleep 0.15; done
   for n in 1 2 3 1; do
     timeout 5 $C command switch-workspace $n >/dev/null; sleep 1
-    [ "$(timeout 8 hs -c 'return tostring(marginVeil.canvas:isShowing())')" = true ] || { echo "FAIL veil hidden on workspace $n"; exit 1; }
+    [ "$(timeout 8 hs -c 'return tostring(marginVeil.canvas:isShowing())' </dev/null)" = true ] || { echo "FAIL veil hidden on workspace $n"; exit 1; }
   done
   echo "ok cycle"
 fi

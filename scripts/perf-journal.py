@@ -145,6 +145,8 @@ def report(hours):
     for k, label in (("wired_gb", "wired"), ("compressor_gb", "compressor"), ("swap_gb", "swap")):
         xs = col(k)
         print(f"{label}: avg {avg(xs):.1f} GB, max {max(xs):.1f} GB")
+    if col("store_pct"):
+        print(f"compressor store: max {max(col('store_pct')):.0f} % (memory-guard acts at 70 %)")
     print(f"compressions/s avg {avg(col('compressions_s')):.0f}, swapins/s avg {avg(col('swapins_s')):.0f}, "
           f"swapouts/s avg {avg(col('swapouts_s')):.0f}")
     print(f"CPU (all cores): user avg {avg(col('cpu_user')):.0f} %, system avg {avg(col('cpu_sys')):.0f} % "

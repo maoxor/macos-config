@@ -48,12 +48,15 @@ Authority: the real machine (checked by `scripts/verify.sh` / `scripts/doctor.sh
 
 ## 4. Safety rules on a live machine
 - **Never run OmniWM's full test suite** (`swift test`): it froze the Mac. Use `--filter`.
+- **Heavy jobs go through `jobgate`** (`docs/performance.md` §4): two ~55 GB jobs in parallel caused the 2026-10-30
+  panic (`docs/bugs.md` B21). `memory-guard` stops the youngest one at 70 % of the compressor's store: it is a safety
+  net, not a queue. Exit 143 or 137 from a job can be the guard.
 - **Never simulate mouse/keyboard input while the user is working** (a simulated drag once landed on their
   workspace). `omniwmctl command …` and read-only queries are fine.
 - Admin passwords, TCC permissions (Accessibility, Screen Recording) and keychain prompts are the user's:
   print the command or open the pane, never work around them. Do not touch SIP, SSV, boot-args, sudoers.
 - Quit OmniWM before writing `settings.toml` (it rewrites the file). Restart Hammerspoon with `scripts/restart-hammerspoon.sh` rather than
-  `hs.reload()` through `hs -c`; wrap `hs -c` in `timeout`. Always `/usr/bin/log` (zsh `log` is a builtin).
+  `hs.reload()` through `hs -c`; wrap `hs -c` in `timeout` and give it `</dev/null`: it reads an open stdin and waits forever, which looks like Hammerspoon hanging. Always `/usr/bin/log` (zsh `log` is a builtin).
 - TCC-gated apps must be launched directly by a LaunchAgent, never via a parent script.
 - Do not change the wallpaper as a side effect: it triggers `theme-auto` (palette + registry + commit).
 - Never commit secrets, shell histories, app databases, private exports (`docs/macos.md`).
@@ -68,6 +71,8 @@ Authority: the real machine (checked by `scripts/verify.sh` / `scripts/doctor.sh
 | Machine works | `scripts/doctor.sh` | `no failure` |
 | Machine = repo | `scripts/verify.sh` | exit 0 |
 | Screen edges | `tools/hammerspoon/check-margin-veil.sh --cycle` | `ok cycle` |
+| Heavy jobs | `jobgate self-test`, `memory-guard --check` | all ok; the store well under 70 % |
+| XDR boost | `ioreg -l -w0 \| grep -m1 IOMFBBrightnessLevel`, 16.16 fixed point (`docs/macos.md`) | 600 nits off, 1600 on |
 After a change: checks → `git diff` review → commit (imperative English, one logical change) → a line in
 `CHANGELOG.md` → a `docs/bugs.md` entry if it fixed a bug (with its check).
 Push to GitHub only after `scripts/check.sh` passes; never commit personal data (no user names, host names, personal apps).
@@ -81,7 +86,8 @@ tools/omniwm/        UPSTREAM, patches/, build-local.sh, create-signing-cert.sh,
 tools/hammerspoon/   config/*.lua, check-margin-veil.sh
 tools/neru|stats|ghostty|raycast/   sheet (+ config/ when captured)
 tools/configs.tsv    live config file <-> repo file (read by apply, capture, verify)
-scripts/             doctor, verify, check, capture, apply, macos-defaults, theme-*, emergency-*, lib.sh
+scripts/             doctor, verify, check, capture, apply, macos-defaults, theme-*, emergency-*, lib.sh;
+                     jobgate, memory-guard, xdr-boost, perf-journal, window-journal; *.swift built by swift-tool.sh
 docs/                omniwm, bugs, architecture, shortcuts, macos, recovery; assets/
 wallpapers/          local copy of the wallpaper (ignored by git)
 ```

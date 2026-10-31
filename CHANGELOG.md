@@ -4,6 +4,10 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- `hs -c` no longer hangs in the repo scripts: it waits on an open stdin, hence `</dev/null` (restart-hammerspoon looped,
+  doctor reported Hammerspoon silent while it was fine). doctor watches the memory guard and the XDR boost; check.sh
+  compiles the Swift tools on macOS; `perf-journal report` shows the compressor's store; README, AGENTS and recovery
+  updated (31 OmniWM patches, not 27).
 - XDR boost (brightness keys, past 100 %; `scripts/xdr-boost.swift`): our own tool, public APIs only, gain capped at
   1000 nits. BrightIntosh
   tried and removed. Rollback: `git revert`, then apply Hammerspoon and home-manager.

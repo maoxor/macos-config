@@ -72,6 +72,15 @@ else fail "apply-registry.py would change the captured settings.toml ($reg): upd
 if out=$(python3 -I scripts/jobgate.py self-test 2>&1); then echo "  ok    jobgate decisions ($(echo "$out" | grep -c '^  ok') cases)"
 else fail "jobgate self-test:"; echo "$out" | grep FAIL | sed 's/^/        /'; fi
 
+# The Swift tools are rebuilt at login by swift-tool.sh: a file that no longer compiles would take its agent down,
+# the memory guard included. macOS only (no Swift toolchain on the Linux CI).
+if [ "$(uname)" = Darwin ]; then
+  for src in scripts/*.swift; do
+    if out=$(/usr/bin/swiftc -typecheck "$src" 2>&1); then echo "  ok    $src compiles"
+    else fail "$src does not compile:"; echo "$out" | grep -m3 error | sed 's/^/        /'; fi
+  done
+fi
+
 # Portability: no code file may hardcode a user home or the original clone location (install.sh
 # writes identity.nix; scripts find the repo from their own path; Lua reads ~/.config/macos-config/repo).
 hard=$(files '*.sh' '*.lua' '*.py' '*.nix' | grep -vE '/identity.nix$|^scripts/check.sh$' \

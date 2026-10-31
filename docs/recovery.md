@@ -14,6 +14,9 @@ Escalate from lightest to strongest. None of these steps changes the configurati
 | Neru only | `launchctl bootout gui/$(id -u)/org.nix-community.home.neru` (until next login) |
 | OmniWM only | `launchctl bootout gui/$(id -u)/org.nix-community.home.omniwm; osascript -e 'quit app "OmniWM"'` (windows stay in place) |
 | Hammerspoon only | `launchctl bootout gui/$(id -u)/org.nix-community.home.hammerspoon; osascript -e 'quit app "Hammerspoon"'` |
+| Screen too bright, or the XDR boost misbehaves | `pkill xdr-boost` (nothing to restore: the screen is normal as soon as it ends) |
+| A heavy job was stopped (exit 143 or 137) | `tail ~/Library/Logs/macos-config/memory-guard.log`, then `jobgate status`; run it again once there is room |
+| The Mac froze and restarted | panic report in `/Library/Logs/DiagnosticReports/` (`.panic`); memory history: `scripts/perf-journal.py report 2` (`docs/bugs.md` B21) |
 
 Open a terminal without shortcuts: Cmd+Space (Raycast) → "Terminal", or Finder > Applications > Utilities > Terminal.
 
