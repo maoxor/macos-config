@@ -19,6 +19,5 @@ hammerspoon	file	~/.hammerspoon/session-restore.lua	tools/hammerspoon/config/ses
 hammerspoon	file	~/.hammerspoon/function-keys.lua	tools/hammerspoon/config/function-keys.lua	copy	
 hammerspoon	file	~/.hammerspoon/wallpaper-cycle.lua	tools/hammerspoon/config/wallpaper-cycle.lua	copy	
 hammerspoon	file	~/.hammerspoon/keyboard-clean.lua	tools/hammerspoon/config/keyboard-clean.lua	copy	
-hammerspoon	file	~/.hammerspoon/brightness-boost.lua	tools/hammerspoon/config/brightness-boost.lua	copy	
 hammerspoon	file	~/.hammerspoon/keyboard-clean.html	tools/hammerspoon/config/keyboard-clean.html	copy	
 hammerspoon	file	~/.hammerspoon/test-browsers.lua	tools/hammerspoon/config/test-browsers.lua	copy	
