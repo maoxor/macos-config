@@ -48,7 +48,7 @@ Two deliberate exceptions: Option+Tab (types nothing) and Option+F (costs the `Æ
 | Cmd+F2 | Hammerspoon | paste the XAU/USD analysis prompt (4 orders, morning / evening) at the cursor (`M.xau` in `prompt-insert.lua`; same paste as Cmd+F1, works with or without fn) |
 | F3 | Hammerspoon | next wallpaper among the images of `~/Pictures` (loops); the theme follows, with the saved palette of a wallpaper seen before (`wallpaper-cycle.lua`; works with or without fn) |
 | F1 / F2 (brightness) | Hammerspoon + macOS | past 100 %, F2 goes on into the XDR boost, 4 steps up to 1000 nits; F1 comes back down (`brightness-boost.lua`, `docs/macos.md`) |
-| Cmd+F5 | Hammerspoon | after a crash: reopen Ghostty, Safari, Discord and every Claude Code session (claude / claude2) of the last snapshot on its workspace (`scripts/restore-session.py`; snapshot every minute by `session-snapshot.py`; log `~/Library/Logs/restore-session.log`) |
+| Cmd+F5 twice (within 5 s) | Hammerspoon | after a crash: reopen Ghostty, Safari, Discord and every Claude Code session (claude / claude2) of the last snapshot on its workspace. The first press only lists what would reopen (`scripts/restore-session.py`; snapshot every minute by `session-snapshot.py`; log `~/Library/Logs/restore-session.log`) |
 | F4 | Hammerspoon | cleaning mode: every key is blocked (trackpad still works) until a click on the card, or after 2 minutes; card image `~/.config/macos-config/keyboard-clean.jpg` (or .png), kept out of the repo (`keyboard-clean.lua`; works with or without fn) |
 | Cmd+Space | Raycast | launcher, clipboard history |
 | Cmd+Option+Space | macOS | Finder search |

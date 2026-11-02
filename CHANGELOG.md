@@ -4,6 +4,10 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Reopening after a shutdown (B23): Cmd+F5 needs a second press within 5 s, the first only lists what would reopen;
+  Discord's late main window goes to workspace 3 (`app-placement.lua`); an ended Claude Code session loses its stale
+  Artifact comment monitors, so resuming it no longer prints one line per artifact (`claude_monitors.py`);
+  `boot-history.log` keeps what ended and started each boot. Rollback: `git revert`, apply Hammerspoon, restart it.
 - `hs -c` no longer hangs in the repo scripts: it waits on an open stdin, hence `</dev/null` (restart-hammerspoon looped,
   doctor reported Hammerspoon silent while it was fine). doctor watches the memory guard and the XDR boost; check.sh
   compiles the Swift tools on macOS; `perf-journal report` shows the compressor's store; README, AGENTS and recovery

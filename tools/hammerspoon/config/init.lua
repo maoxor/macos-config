@@ -22,7 +22,7 @@ wallpaperCycle = timed("wallpaper-cycle")
 brightnessBoost = timed("brightness-boost")
 -- F4: cleaning mode, keyboard locked until a click on the banner (or 2 min).
 keyboardClean = timed("keyboard-clean")
--- Cmd+F5: reopen apps and Claude Code sessions after a crash.
+-- Cmd+F5 twice: reopen apps and Claude Code sessions after a crash.
 sessionRestore = timed("session-restore")
 -- Safari: Cmd+Left/Right = previous/next tab (outside text fields).
 safariTabs = timed("safari-tabs")
@@ -34,6 +34,8 @@ poweruser = timed("poweruser")
 axGuard = timed("ax-guard")
 -- Playwright browsers (workspace 4 by OmniWM rule) never pull the user off their workspace.
 testBrowsers = timed("test-browsers")
+-- Discord's real window opens late at login: it still goes to its workspace.
+appPlacement = timed("app-placement")
 -- Hide apps with no window on the active OmniWM workspace (no parked-window strip in the right margin).
 -- Click-through wallpaper strip over the right gap (hides parked windows without hiding apps); it decodes
 -- the wallpaper, the slowest step (~1.5 s), so it comes last.

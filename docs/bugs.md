@@ -298,6 +298,35 @@ Before changing anything listed here, read the entry and keep its verification p
 - **Left:** a test browser that takes focus more than 4 s after its window opened (`page.bringToFront()`) can now pull
   the view to workspace 4: patch 0029 only covers the first 4 s, and the guard no longer corrects it from there.
 
+### B23 — Reopening after a normal shutdown (2026-11-02)
+- **Shutdown:** normal. `last` holds its record and macOS was asked through the usual dialog (`TALNoRestore`, so macOS
+  itself restored nothing). A `shutdown_stall` report is written at every normal shutdown here (9, 19, 25 October),
+  so it says nothing. No panic report. The message saying the Mac shut down badly was not identified: it left no trace
+  in the logs or Notification Center. `locationd` did log an unclean shutdown and `kern.shutdownreason` holds `timeout`;
+  older boots had left the unified log, so nothing shows whether that is usual. `boot-history.log` now keeps one line
+  per boot, to compare.
+- **Windows reopened:** `restore-session.py` ran at 09:12:01, 110 s after login. Its only trigger is the Cmd+F5
+  binding, and `window-journal` shows input in that very second (`idle_s` 0), so a key press it was, deliberate or not.
+  **Fix:** the first press only lists what would reopen, the second one (0.4 to 5 s later) restores. Login agents still
+  open Ghostty, Safari (which restores its last windows) and Discord: that is the chosen setup.
+- **Discord on workspace 1:** its splash opened at 09:10:47, its real window at 09:13:13, after `apply-window-rules.sh`
+  (09:11:00) and the restore (09:12:13) had both finished. By then the app is frontmost and known, so
+  `shouldApplyWorkspaceRule` skips the rule. **Fix:** `app-placement.lua`, on each OmniWM window list: a new tiled
+  window of a Discord started less than 10 min ago goes to workspace 3, once; focus returns through ws-hide.
+- **"Artifact comment monitor ... didn't resume":** printed once per artifact at every resume, since 25 October for
+  kwant and Ouroboros. Publishing an artifact leaves `armed` entries in the transcript's `artifact-comment-monitor`
+  lines; a resume cannot restart them and keeps them. The internal reason was not found (the debug file says nothing).
+  A later line replaces the armed entries, so **fix:** `claude_monitors.py` appends an empty list once a session has
+  ended (`session-snapshot.py`, and `restore-session.py` before it resumes one). What is lost was already lost: those
+  old artifacts' comments no longer wake the session. A publish arms its artifact as before, for the running session.
+- **Verify:** a real `claude --resume` in a pty, no prompt sent, on a synthetic transcript armed with two real
+  artifacts: 2 messages reproduced, 0 after `clear()`, on screen and in the transcript. 21 Python cases (armed, stopped,
+  holder, escaped copy, no final newline, sweep once per size), 23 Lua cases on the real modules with a fake `hs`.
+  **Not verified live:** Discord's move needs a real login. The file format is Claude Code's internal one (2.1.316):
+  if it changes, the messages come back and nothing else breaks.
+- **Rollback:** `git revert`, then apply Hammerspoon and restart it. A cleared session keeps its history; the empty
+  line is the last `artifact-comment-monitor` line of its transcript and can be deleted.
+
 ### B17 — Process incidents (rules that came out of them)
 - The full OmniWM test suite froze the Mac: run targeted `--filter` tests only.
 - A simulated drag landed on the user's active workspace: never simulate input while the user works.

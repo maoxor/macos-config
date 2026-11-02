@@ -63,7 +63,7 @@ One mechanism per tool. Login items are Home Manager LaunchAgents declared in `h
 | `neru` | `neru launch`, restarted after an abnormal exit (ThrottleInterval 30 s), not after Quit |
 | `stats` | Stats |
 | `theme-auto` | `scripts/theme-auto.sh` when the wallpaper changes |
-| `session-snapshot` | `scripts/session-snapshot.py` every minute (open Claude Code sessions, for Cmd+F5) |
+| `session-snapshot` | `scripts/session-snapshot.py` every minute (open Claude Code sessions, for Cmd+F5; clears the stale Artifact comment monitors of the sessions that ended, B23; one line per boot in `boot-history.log`) |
 | `playwright-watch` | `scripts/playwright-watch.swift` (FSEvents): each Playwright copy written under the project roots and session scratchpads is patched within ~0.7 s (`playwright-background-pages.py --files`) |
 | `playwright-background-pages` | `scripts/playwright-background-pages.py` hourly, safety net: Playwright test pages (npm and Python, session scratchpads included) open behind the user's windows, in the bottom-right corner |
 | `perf-journal` | `scripts/perf-journal.py` every minute: memory, CPU, GPU per process, one week kept (`docs/performance.md`) |

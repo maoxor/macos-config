@@ -2,10 +2,14 @@
 """Every minute (launchd): record the open Claude Code sessions (claude and claude2) and the OmniWM workspace of
 their Ghostty window, so restore-session.py can reopen them after a crash.
 ~/.local/state/session-snapshot/current.json holds this boot; on the first run of a new boot it becomes
-previous-boot.json (what a crash left), which restore-session.py prefers."""
-import base64, json, os, subprocess, sys
+previous-boot.json (what a crash left), which restore-session.py prefers. A session that ended loses its stale
+Artifact comment monitors (claude_monitors.py); each boot adds a line to boot-history.log."""
+import base64, json, os, subprocess, sys, time
+
+import claude_monitors
 
 STATE = os.path.expanduser("~/.local/state/session-snapshot")
+BOOT_LOG = os.path.expanduser("~/Library/Logs/macos-config/boot-history.log")
 CTL = os.path.expanduser("~/.local/bin/omniwmctl")
 CONFIGS = {os.path.expanduser("~/.claude"): None, os.path.expanduser("~/.claude-2"): os.path.expanduser("~/.claude-2")}
 
@@ -71,6 +75,16 @@ def sessions():
     return sorted(out, key=lambda s: s["startedAt"])
 
 
+def log_boot():
+    """What ended the last boot and started this one: their meaning shows by comparing boots, and the unified log
+    keeps them for days only."""
+    def sysctl(name):
+        return subprocess.run(["sysctl", "-n", name], capture_output=True, text=True).stdout.strip()
+    with open(BOOT_LOG, "a") as f:
+        f.write(f"{time.strftime('%F %T')} boot={sysctl('kern.bootreason')} "
+                f"shutdown={sysctl('kern.shutdownreason')}\n")
+
+
 def main():
     os.makedirs(STATE, exist_ok=True)
     cur = os.path.join(STATE, "current.json")
@@ -81,6 +95,9 @@ def main():
         old = None
     if old and old.get("boot") != boot:
         os.replace(cur, os.path.join(STATE, "previous-boot.json"))
+        log_boot()
+    if old:
+        claude_monitors.clear_ended(old.get("sessions", []), rebooted=old.get("boot") != boot)
     snap = {"boot": boot, "sessions": sessions()}
     # At shutdown the sessions end before this job does: an empty run keeps the last list of the same boot.
     if not snap["sessions"] and old and old.get("boot") == boot:

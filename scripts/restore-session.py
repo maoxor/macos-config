@@ -6,6 +6,8 @@ Uses previous-boot.json (written by session-snapshot.py) when it exists and has 
 current.json (sessions closed by mistake during this boot). Safe to run twice: running sessions are skipped."""
 import json, os, shlex, subprocess, time
 
+import claude_monitors
+
 HOME = os.path.expanduser("~")
 STATE = f"{HOME}/.local/state/session-snapshot"
 CTL = f"{HOME}/.local/bin/omniwmctl"
@@ -65,6 +67,7 @@ def main():
     for s in snap["sessions"]:
         if s["sessionId"] in live:
             continue
+        claude_monitors.clear_session(s)
         # A new window of the running Ghostty, opened by AppleScript with the command typed into its shell:
         # `open -na Ghostty --args -e ...` made Ghostty 1.3 ask "Allow Ghostty to execute" for every session,
         # and a second Ghostty instance opens no window at all after a reboot. Ghostty may carry a Claude

@@ -112,6 +112,7 @@ local function handleLine(line)
   if p.windows then
     M.windows = p.windows
     if testBrowsers and testBrowsers.onWindows then testBrowsers.onWindows(p.windows) end
+    if appPlacement then appPlacement.onWindows(p.windows) end
     return nil
   end
   return p.workspace and p.workspace.id or nil
