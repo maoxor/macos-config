@@ -7,23 +7,56 @@
 -- The backdrop sits one level below the panel and ignores the mouse (a click outside still closes Raycast, as
 -- before); the menu bar and the Dock stay above it when they show. Off: `hs -c 'raycastDim.stop()'`; for good,
 -- remove the module from init.lua.
+-- Ring: the panel also gets the focused-window border, which JankyBorders cannot draw on a panel. Colour and width
+-- are read from JankyBorders' own config (home-manager/borders.nix -> ~/.config/borders/bordersrc), so both borders
+-- always match; the ring sits outside the panel's edge, under it, and follows it when Raycast resizes.
 local M = {}
 M.alpha = 0.45       -- darkness of the backdrop
 M.fade = 0.12        -- seconds
 local BUNDLE = "com.raycast.macos"
 local PANEL_LAYER = 8          -- NSModalPanelWindowLevel, measured by window-journal
 local MIN_AREA = 120000        -- pt²: the launcher is 460x390 or larger, a HUD toast is much smaller
+M.radius = 20                  -- corner radius of the launcher panel (measured on macOS 26)
 local poll, observer, observedPid, canvases = nil, nil, nil, {}
 M.shows = { ax = 0, key = 0 }   -- which trigger showed the backdrop (`hs -c 'return raycastDim.status()'`)
 
+-- Bounds of the launcher panel, or nil.
 local function panelOnScreen()
   for _, w in ipairs(hs.window.list(false)) do
     if w.kCGWindowOwnerName == "Raycast" and w.kCGWindowLayer == PANEL_LAYER then
       local b = w.kCGWindowBounds
-      if b and b.Width * b.Height >= MIN_AREA then return true end
+      if b and b.Width * b.Height >= MIN_AREA then return b end
     end
   end
-  return false
+  return nil
+end
+
+-- Colour and width of the focused-window border, from JankyBorders' config (fallback: violet, 6 pt).
+local function ringStyle()
+  local color, width = { red = 0.69, green = 0.14, blue = 1, alpha = 1 }, 6
+  local f = io.open(os.getenv("HOME") .. "/.config/borders/bordersrc")
+  if f then
+    local txt = f:read("a"); f:close()
+    local a, r, g, b = txt:match("active_color=0x(%x%x)(%x%x)(%x%x)(%x%x)")
+    if a then
+      color = { alpha = tonumber(a, 16) / 255, red = tonumber(r, 16) / 255, green = tonumber(g, 16) / 255,
+        blue = tonumber(b, 16) / 255 }
+    end
+    width = tonumber(txt:match("width=([%d%.]+)")) or width
+  end
+  return color, width
+end
+
+-- Place the ring around the panel on every backdrop canvas (each canvas covers one screen).
+local function placeRing(b)
+  local color, w = ringStyle()
+  for _, c in ipairs(canvases) do
+    local sf = c:frame()
+    c[2].frame = { x = b.X - sf.x - w / 2, y = b.Y - sf.y - w / 2, w = b.Width + w, h = b.Height + w }
+    c[2].strokeWidth = w
+    c[2].strokeColor = color
+    c[2].roundedRectRadii = { xRadius = M.radius + w / 2, yRadius = M.radius + w / 2 }
+  end
 end
 
 local function hide()
@@ -40,17 +73,25 @@ local function build()
     c:behavior({ "canJoinAllSpaces", "stationary", "ignoresCycle", "transient" })
     c:clickActivating(false)
     c[1] = { type = "rectangle", action = "fill", fillColor = { white = 0, alpha = M.alpha } }
+    c[2] = { type = "rectangle", action = "stroke", frame = { x = -100, y = -100, w = 10, h = 10 } }
     canvases[#canvases + 1] = c
   end
 end
 
 local function show()
   if poll then return end
-  if not panelOnScreen() then return false end
+  local b = panelOnScreen()
+  if not b then return false end
   if #canvases == 0 then build() end
+  placeRing(b)
   for _, c in ipairs(canvases) do c:show(M.fade) end
+  local last = b
   poll = hs.timer.doEvery(0.1, function()
-    if not panelOnScreen() then hide() end
+    local now = panelOnScreen()
+    if not now then hide(); return end
+    if now.X ~= last.X or now.Y ~= last.Y or now.Width ~= last.Width or now.Height ~= last.Height then
+      placeRing(now); last = now
+    end
   end)
   return true
 end
