@@ -101,6 +101,11 @@ def main():
     # The dark background is that tone in shadow: a cool hue shifts ~20° towards violet (lavender at dusk
     # reads indigo; kept as is it falls into navy), lightness 0.16. Chosen 2026-10-21 from Ghostty previews.
     hb = min(hd + 20, 270) if 190 <= hd <= 260 else hd
+    # Warm tone (red, orange, yellow): in shadow it reads maroon/brown, and the light areas of such an image give a
+    # pink text. The background then stays near-black with only a hint of the hue, the text near-neutral
+    # (2026-11-03, a red-on-black fractal turned every window brown).
+    warm = hd >= 330 or hd <= 60
+    l0, sd, st = (0.11, 0.12, 0.10) if warm else (0.16, sd, 0.45)
     if LIGHT:
         # Light variant: the background is a pale shade of the colourful tone (lightness 0.78), dark text.
         pal = {
@@ -111,16 +116,16 @@ def main():
         }
     else:
       pal = {
-        "base00": hexc(hb, 0.16, sd), "base01": hexc(hb, 0.20, sd * 0.85), "base02": hexc(hb, 0.28, sd * 0.7),
+        "base00": hexc(hb, l0, sd), "base01": hexc(hb, l0 + 0.04, sd * 0.85), "base02": hexc(hb, l0 + 0.12, sd * 0.7),
         "base03": hexc(hb, 0.50, sd * 0.35),
-        "base04": hexc(hl, 0.72, 0.25), "base05": hexc(hl, 0.88, 0.45), "base06": hexc(hl, 0.92, 0.45),
-        "base07": hexc(hl, 0.95, 0.45),
+        "base04": hexc(hl, 0.72, min(0.25, st)), "base05": hexc(hl, 0.88, st), "base06": hexc(hl, 0.92, st),
+        "base07": hexc(hl, 0.95, st),
     }
     bg = pal["base00"]
     for key in (() if LIGHT else ("base04", "base05")):
         l = 0.72 if key == "base04" else 0.88
         while contrast(pal[key], bg) < (4.5 if key == "base04" else 10) and l < 0.97:
-            l += 0.02; pal[key] = hexc(hl, l, 0.25 if key == "base04" else 0.45)
+            l += 0.02; pal[key] = hexc(hl, l, min(0.25, st) if key == "base04" else st)
     notes, chosen = {}, []
     dist = lambda a, b: min(abs(a - b), 360 - abs(a - b))
     # The blue accent (links, border, system accent) is the colourful tone itself when it is blue-violet.
