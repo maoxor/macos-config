@@ -2,14 +2,14 @@
 {
   scheme = "wallpaper (auto)"; author = "macos-config (auto)";
   opacity = 0.88; # Ghostty: the blurred wallpaper shows through slightly
-  base00 = "351d1d";
-  base01 = "402626";
-  base02 = "563938";
-  base03 = "8d7272";
-  base04 = "c9a6a6";
-  base05 = "eed3d3";
-  base06 = "f4e1e1";
-  base07 = "f8eded";
+  base00 = "1f1919";
+  base01 = "2a2222";
+  base02 = "403636";
+  base03 = "857a7a";
+  base04 = "bfb1b0";
+  base05 = "e3dddd";
+  base06 = "ede9e9";
+  base07 = "f4f1f1";
   base08 = "e96867"; # red: errors, deletions (hue 0°, from the image)
   base09 = "ed9e5a"; # orange: constants (hue 28°)
   base0A = "f4da71"; # gold: warnings (hue 48°, from the image)
