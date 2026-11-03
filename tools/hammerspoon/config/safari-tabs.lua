@@ -1,6 +1,11 @@
--- Safari: Cmd+Left / Cmd+Right = previous / next tab (like Cmd+1…9 jumps to a tab).
--- Inside a text field (address bar, web forms) the keys keep their macOS meaning: start / end of line.
+-- Browsers: Cmd+Left / Cmd+Right = previous / next tab (like Cmd+1…9 jumps to a tab), the same keys in Safari, Zen
+-- and Helium. Inside a text field (address bar, web forms) the keys keep their macOS meaning: start / end of line.
+-- Each browser gets its own "next tab" chord: Zen's Ctrl+Tab follows the recently used order (tools/zen/user.js),
+-- so Zen and Helium use Cmd+Option+arrow, which always means the neighbouring tab there.
 local M = {}
+local SAFARI = { prev = { { "ctrl", "shift" }, "tab" }, next = { { "ctrl" }, "tab" } }
+local ARROWS = { prev = { { "cmd", "alt" }, "left" }, next = { { "cmd", "alt" }, "right" } }
+M.browsers = { ["com.apple.Safari"] = SAFARI, ["app.zen-browser.zen"] = ARROWS, ["net.imput.helium"] = ARROWS }
 
 local textRoles = { AXTextField = true, AXTextArea = true, AXComboBox = true, AXSearchField = true }
 
@@ -18,12 +23,10 @@ M.tap = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(e)
   local f = e:getFlags()
   if not (f.cmd and not f.alt and not f.ctrl and not f.shift) then return false end
   local app = hs.application.frontmostApplication()
-  if not app or app:bundleID() ~= "com.apple.Safari" or inTextField() then return false end
-  if code == hs.keycodes.map.left then
-    hs.eventtap.keyStroke({ "ctrl", "shift" }, "tab", 0)
-  else
-    hs.eventtap.keyStroke({ "ctrl" }, "tab", 0)
-  end
+  local keys = app and M.browsers[app:bundleID()]
+  if not keys or inTextField() then return false end
+  local k = code == hs.keycodes.map.left and keys.prev or keys.next
+  hs.eventtap.keyStroke(k[1], k[2], 0)
   return true
 end)
 M.tap:start()

@@ -4,6 +4,11 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Browsers: Zen becomes the main browser (W2; `tools/zen/apply-profile.sh` sets `user.js` and adds uBlock Origin and Auto
+  Tab Discard: tabs idle 10 min are unloaded), Helium the development browser (W4); Safari kept. Cmd+←/→ switch tabs in
+  all three; Cmd+F5 also reopens Zen. OmniWM draws a 2 pt border in the palette accent around the focused window.
+  Rollback: `git revert`, copy the backed-up `settings.toml` (hot-reloaded), apply Hammerspoon, restart it,
+  `brew uninstall --cask zen helium-browser`.
 - Raycast: the screen behind its launcher is dimmed (`raycast-dim.lua`; Raycast has no such setting; window-journal
   ignores this backdrop); script commands tracked in `tools/raycast/script-commands/` (find a window, Mac status, next
   wallpaper, keyboard cleaning, session restore) and a one-hotkey-then-alias logic (`tools/raycast/README.md`).

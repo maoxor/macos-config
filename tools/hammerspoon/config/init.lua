@@ -24,7 +24,7 @@ brightnessBoost = timed("brightness-boost")
 keyboardClean = timed("keyboard-clean")
 -- Cmd+F5 twice: reopen apps and Claude Code sessions after a crash.
 sessionRestore = timed("session-restore")
--- Safari: Cmd+Left/Right = previous/next tab (outside text fields).
+-- Safari, Zen, Helium: Cmd+Left/Right = previous/next tab (outside text fields).
 safariTabs = timed("safari-tabs")
 -- App shortcuts (Cmd+E = Finder).
 poweruserApps = timed("poweruser-apps")

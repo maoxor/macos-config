@@ -7,5 +7,5 @@
 # @raycast.packageName macos-config
 # @raycast.icon 🔁
 # @raycast.needsConfirmation true
-# @raycast.description After a crash: reopen Ghostty, Safari, Discord and the Claude Code sessions of the last snapshot (also Cmd+F5 twice).
+# @raycast.description After a crash: reopen Ghostty, Zen, Safari, Discord and the Claude Code sessions of the last snapshot (also Cmd+F5 twice).
 exec timeout 5 /opt/homebrew/bin/hs -c 'sessionRestore.restore()' </dev/null

@@ -21,3 +21,8 @@ cask "chatgpt"
 # .swift-version (`swiftly install` in the checkout). From Homebrew, not Nix: the proxies in ~/.swiftly/bin link to
 # the swiftly binary, and a Nix store path would change on every update.
 brew "swiftly"
+
+# Main browser: many tabs in workspaces, tabs idle 10 min unloaded (tools/zen/README.md)
+cask "zen"
+# Development browser (Chromium engine, uBlock Origin built in); workspace 4 Atelier by OmniWM rule
+cask "helium-browser"

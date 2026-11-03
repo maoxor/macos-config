@@ -5,7 +5,7 @@ mode = "dark"
 tabRailAppIcons = false
 
 [borders]
-enabled = false
+enabled = true
 width = 2.0
 
 [borders.color]
@@ -238,9 +238,19 @@ minHeight = 220.0
 minWidth = 574.0
 
 [[appRules]]
+assignToWorkspace = "Web"
 bundleId = "app.zen-browser.zen"
 id = "1CF39647-F30D-4E76-9686-79B551F1B094"
+layout = "tile"
 minHeight = 495.0
+minWidth = 500.0
+
+[[appRules]]
+assignToWorkspace = "Atelier"
+bundleId = "net.imput.helium"
+id = "E3F216CB-AF95-4938-9DC0-F8E94BD7C124"
+layout = "tile"
+minHeight = 420.0
 minWidth = 500.0
 
 [[appRules]]
