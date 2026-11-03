@@ -62,10 +62,10 @@ INVERSE = {v: k for k, v in NAMES.items()}
 GENERAL = {"ipcEnabled": "true", "animationSpeed": "1.0",  # OmniWM default speed
            "updateChecksEnabled": "false",  # patched local build: never auto-update to upstream
            "hyperKeyModifiers": '"Control+Option+Command"'}
-# Window border on (2026-11-03, the user's request: find the focused window at a glance); the workspace bar stays
-# off by choice. The border colour follows the palette accent (palette_border()).
+# OmniWM's window border and workspace bar stay off: the focused-window border is JankyBorders (home-manager/borders.nix;
+# OmniWM's, tried 2026-11-03, was judged poor). Their settings are kept; the colour follows the palette accent.
 SECTIONS = {
-    "[borders]": {"enabled": "true", "width": "2.0"},
+    "[borders]": {"enabled": "false", "width": "2.0"},
     "[borders.color]": {"red": "0.5686", "green": "0.7294", "blue": "1.0", "alpha": "0.85"},
     # Gestures: 3 fingers vertical = workspaces,
     # 3 fingers horizontal = Niri columns, 4 fingers up = OmniWM Overview (macOS Mission Control

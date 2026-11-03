@@ -38,6 +38,12 @@ r, g, b = (round(int(h[i:i+2], 16) / 255, 4) for i in (0, 2, 4))
 print(f"omniwm border base0D #{h} -> red={r} green={g} blue={b} (applied by apply-registry.py)")
 PY
 
+# --- JankyBorders (home-manager/borders.nix): the running instance takes the new accent at once; its bordersrc gets it
+# at the next Home Manager switch.
+accent="$(python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["base0D"])' "$pal")"
+echo "borders active_color 0xff$accent"
+if [ "$write" = 1 ] && pgrep -xq borders; then borders active_color="0xff$accent" >/dev/null 2>&1 || true; fi
+
 # --- macOS accent: 8 fixed colours; pick the closest to the theme accent (base0D)
 read -r target name hl <<<"$(python3 -I - "$pal" <<'PY'
 import json, sys

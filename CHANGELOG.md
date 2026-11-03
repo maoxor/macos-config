@@ -4,6 +4,9 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Focused-window border: JankyBorders replaces OmniWM's (judged poor): 4 pt, palette accent, each window's real corner
+  radius; Home Manager `services.jankyborders` (`home-manager/borders.nix`), recoloured live by `theme-apply.sh`.
+  Rollback: drop `./borders.nix` from `home.nix` imports, `scripts/apply.sh home-manager --write`.
 - Browsers: Zen becomes the main browser (W2; `tools/zen/apply-profile.sh` sets `user.js` and adds uBlock Origin and Auto
   Tab Discard: tabs idle 10 min are unloaded), Helium the development browser (W4); Safari kept. Cmd+←/→ switch tabs in
   all three; Cmd+F5 also reopens Zen. OmniWM draws a 2 pt border in the palette accent around the focused window.
