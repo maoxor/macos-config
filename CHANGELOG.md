@@ -4,8 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
-- Palette: a warm wallpaper (red, orange, yellow) gets a near-black background with a hint of its hue and a neutral
-  text (`palette-from-image.py`); the red fractal had turned every window maroon with pink text. Its saved palette
+- Palette: a warm wallpaper (red, orange, yellow) gets a neutral charcoal background (saturation 0.03; 0.12 still read
+  brown), a neutral text and terminals at opacity 0.95 (`palette-from-image.py`); the red fractal had turned every window maroon with pink text. Its saved palette
   was regenerated. Rollback: `git revert`, `scripts/theme-sync.sh`.
 - Upscayl (free, offline Real-ESRGAN upscaler) added to the Brewfile; its CLI made the current landscape wallpaper
   (x4, high-fidelity model, via jobgate). Rollback: `brew uninstall --cask upscayl`, drop the line.
