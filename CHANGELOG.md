@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Cmd+F2: the XAU/USD prompt replaced by the user's new version (quotes and candles first from the Massive
+  XAUUSD Live connector). Rollback: `git revert`, apply Hammerspoon, restart it.
 - Reopening after a shutdown (B23): Cmd+F5 needs a second press within 5 s, the first only lists what would reopen;
   Discord's late main window goes to workspace 3 (`app-placement.lua`); an ended Claude Code session loses its stale
   Artifact comment monitors, so resuming it no longer prints one line per artifact (`claude_monitors.py`);
