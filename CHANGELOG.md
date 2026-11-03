@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Focused-window border: fixed violet #A855F7 (user's choice) instead of the wallpaper accent; theme-apply.sh no longer
+  recolours it. Rollback: `git revert`, `scripts/apply.sh home-manager --write`.
 - Raycast set up on this Mac: script folder `tools/raycast/script-commands` added, aliases `v f m s e t` given, Store
   extensions "Browser Tabs" and "Zen Browser"; README names the real commands (Search Menu Bar Items; Browser Tabs skips
   Zen, where `%` in the address bar searches tabs). Zen imported Safari's bookmarks and history, not its passwords.
