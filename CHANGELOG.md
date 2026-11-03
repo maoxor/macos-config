@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Upscayl (free, offline Real-ESRGAN upscaler) added to the Brewfile; its CLI made the current landscape wallpaper
+  (x4, high-fidelity model, via jobgate). Rollback: `brew uninstall --cask upscayl`, drop the line.
 - Borders removed at the user's request: JankyBorders off (`enable = false`, settings kept), so Raycast's ring is gone too
   (`raycast-dim.lua` draws it only while bordersrc exists); the Raycast backdrop stays. Back: `enable = true`, apply
   home-manager.

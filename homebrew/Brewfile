@@ -26,3 +26,6 @@ brew "swiftly"
 cask "zen"
 # Development browser (Chromium engine, uBlock Origin built in); workspace 4 Atelier by OmniWM rule
 cask "helium-browser"
+# Local AI image upscaler (Real-ESRGAN, free, offline). CLI: /Applications/Upscayl.app/Contents/Resources/bin/upscayl-bin
+# -i in -o out -s 4 -m <Resources>/models -n high-fidelity-4x; run it through `jobgate run --gpu`.
+cask "upscayl"
