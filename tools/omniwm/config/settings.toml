@@ -10,9 +10,9 @@ width = 2.0
 
 [borders.color]
 alpha = 0.85
-blue = 0.8667
-green = 0.6039
-red = 0.3725
+blue = 0.6118
+green = 0.5216
+red = 0.8784
 
 [clipboard]
 historyEnabled = false

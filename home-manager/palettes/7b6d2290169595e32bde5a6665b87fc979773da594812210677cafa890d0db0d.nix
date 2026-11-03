@@ -10,12 +10,12 @@
   base05 = "e1dfdf";
   base06 = "ebeaea";
   base07 = "f3f2f2";
-  base08 = "e96867"; # red: errors, deletions (hue 0°, from the image)
-  base09 = "ed9e5a"; # orange: constants (hue 28°)
-  base0A = "f4da71"; # gold: warnings (hue 48°, from the image)
-  base0B = "72ca90"; # green: success, additions, strings (hue 140°)
-  base0C = "6cd1da"; # cyan: escapes, info (hue 185°)
-  base0D = "5f9add"; # blue: functions, links, system accent (hue 212°)
-  base0E = "be90df"; # purple: keywords (hue 275°)
-  base0F = "c08459"; # brown: deprecated (hue 25°)
+  base08 = "e94a49"; # red: errors, deletions (hue 0°, warm wallpaper set)
+  base09 = "e47958"; # orange: constants (hue 14°, warm wallpaper set)
+  base0A = "d4b77d"; # gold: warnings (hue 40°, warm wallpaper set)
+  base0B = "9bb389"; # green: success, additions, strings (hue 95°, warm wallpaper set)
+  base0C = "b0b8bf"; # cyan: escapes, info (hue 210°, warm wallpaper set)
+  base0D = "e0859c"; # blue: functions, links, system accent (hue 345°, warm wallpaper set)
+  base0E = "c89db6"; # purple: keywords (hue 325°, warm wallpaper set)
+  base0F = "a18787"; # brown: deprecated (hue 0°, warm wallpaper set)
 }
