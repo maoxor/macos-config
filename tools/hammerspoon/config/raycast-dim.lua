@@ -9,7 +9,8 @@
 -- remove the module from init.lua.
 -- Ring: the panel also gets the focused-window border, which JankyBorders cannot draw on a panel. Colour and width
 -- are read from JankyBorders' own config (home-manager/borders.nix -> ~/.config/borders/bordersrc), so both borders
--- always match; the ring sits outside the panel's edge, under it, and follows it when Raycast resizes.
+-- always match; the ring sits outside the panel's edge, under it, and follows it when Raycast resizes. No
+-- bordersrc (JankyBorders off) = no ring.
 local M = {}
 M.alpha = 0.45       -- darkness of the backdrop
 M.fade = 0.12        -- seconds
@@ -31,31 +32,32 @@ local function panelOnScreen()
   return nil
 end
 
--- Colour and width of the focused-window border, from JankyBorders' config (fallback: violet, 6 pt).
+-- Colour and width of the focused-window border, from JankyBorders' config; nil when JankyBorders is off (no
+-- bordersrc), and then the panel gets no ring either.
 local function ringStyle()
-  local color, width = { red = 0.69, green = 0.14, blue = 1, alpha = 1 }, 6
   local f = io.open(os.getenv("HOME") .. "/.config/borders/bordersrc")
-  if f then
-    local txt = f:read("a"); f:close()
-    local a, r, g, b = txt:match("active_color=0x(%x%x)(%x%x)(%x%x)(%x%x)")
-    if a then
-      color = { alpha = tonumber(a, 16) / 255, red = tonumber(r, 16) / 255, green = tonumber(g, 16) / 255,
-        blue = tonumber(b, 16) / 255 }
-    end
-    width = tonumber(txt:match("width=([%d%.]+)")) or width
-  end
-  return color, width
+  if not f then return nil end
+  local txt = f:read("a"); f:close()
+  local a, r, g, b = txt:match("active_color=0x(%x%x)(%x%x)(%x%x)(%x%x)")
+  if not a then return nil end
+  local color = { alpha = tonumber(a, 16) / 255, red = tonumber(r, 16) / 255, green = tonumber(g, 16) / 255,
+    blue = tonumber(b, 16) / 255 }
+  return color, tonumber(txt:match("width=([%d%.]+)")) or 4
 end
 
 -- Place the ring around the panel on every backdrop canvas (each canvas covers one screen).
 local function placeRing(b)
   local color, w = ringStyle()
   for _, c in ipairs(canvases) do
-    local sf = c:frame()
-    c[2].frame = { x = b.X - sf.x - w / 2, y = b.Y - sf.y - w / 2, w = b.Width + w, h = b.Height + w }
-    c[2].strokeWidth = w
-    c[2].strokeColor = color
-    c[2].roundedRectRadii = { xRadius = M.radius + w / 2, yRadius = M.radius + w / 2 }
+    if color then
+      local sf = c:frame()
+      c[2].frame = { x = b.X - sf.x - w / 2, y = b.Y - sf.y - w / 2, w = b.Width + w, h = b.Height + w }
+      c[2].strokeWidth = w
+      c[2].strokeColor = color
+      c[2].roundedRectRadii = { xRadius = M.radius + w / 2, yRadius = M.radius + w / 2 }
+    else
+      c[2].frame = { x = -100, y = -100, w = 10, h = 10 }
+    end
   end
 end
 

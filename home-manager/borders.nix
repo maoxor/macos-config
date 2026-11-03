@@ -6,8 +6,9 @@
 # JankyBorders takes the front window from SkyLight. Rollback: remove this file from home.nix imports and switch.
 { ... }:
 {
+  # Off since 2026-11-03 (the user removed the borders); the settings stay so `enable = true` brings them back.
   services.jankyborders = {
-    enable = true;
+    enable = false;
     settings = {
       style = "round";
       width = "6.0";

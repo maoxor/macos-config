@@ -28,7 +28,7 @@ OmniWM details: `docs/omniwm.md`. Shortcuts: `docs/shortcuts.md`. macOS settings
 | App → workspace | OmniWM rules | Hammerspoon |
 | Playwright test browsers (Claude Code experiments) | pages created behind the user's windows, in the bottom-right corner (`scripts/playwright-background-pages.py`, applied to each new copy by `playwright-watch`: no flash, nothing seen through translucent Ghostty); OmniWM rules → W4 Atelier, patch 0029; `test-browsers.lua` gives the keyboard back and sends force-floated Safari windows to W4; `window-journal` records any window that still shows (B19) | — |
 | Contexts (workspace + resources) | Hammerspoon `poweruser.lua` | — |
-| Focused-window border (fixed violet #B026FF, 6 pt, follows each window's real corner radius; Raycast's panel ringed by `raycast-dim.lua`) | JankyBorders (`home-manager/borders.nix`) | OmniWM's border (tried 2026-11-03, judged poor; kept off) |
+| Focused-window border: **off** (removed by the user 2026-11-03; ready: `enable = true` gives violet #B026FF, 6 pt, real corner radius, and Raycast's panel ringed by `raycast-dim.lua`) | JankyBorders (`home-manager/borders.nix`) | OmniWM's border (tried 2026-11-03, judged poor; kept off) |
 | Workspace bar | none, by choice | OmniWM's bar, SketchyBar |
 | Browsers | Zen = main (W2, `tools/zen/`), Helium = development (W4, `tools/helium/`), Safari kept (W2) | — |
 | Keyboard navigation (hints) | Neru | Raycast |
@@ -47,7 +47,7 @@ OmniWM details: `docs/omniwm.md`. Shortcuts: `docs/shortcuts.md`. macOS settings
 - **OmniWM** is the only window manager, built locally from a pinned upstream commit plus patches.
   Rejected alternatives: AeroSpace, yabai, Paneru.
 - **Hyper = Ctrl+Option+Cmd** without Caps Lock remap (no Karabiner).
-- **Raycast** is the single launcher and clipboard history (no Maccy); JankyBorders draws the focus border; OmniWM's bar
+- **Raycast** is the single launcher and clipboard history (no Maccy); JankyBorders would draw the focus border (off for now); OmniWM's bar
   and border stay off (no SketchyBar).
 - **Home Manager is one-way** (repo → machine); generated files are never captured back.
 - **TCC-gated apps are launched directly** by their LaunchAgent (see `docs/macos.md`).

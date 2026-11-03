@@ -4,6 +4,9 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Borders removed at the user's request: JankyBorders off (`enable = false`, settings kept), so Raycast's ring is gone too
+  (`raycast-dim.lua` draws it only while bordersrc exists); the Raycast backdrop stays. Back: `enable = true`, apply
+  home-manager.
 - Focused-window border: fixed strong violet #B026FF, 6 pt (user's choice), and Raycast's panel ringed the same way by
   `raycast-dim.lua` (reads colour and width from bordersrc); not the wallpaper accent any more; theme-apply.sh no longer
   recolours it. Rollback: `git revert`, `scripts/apply.sh home-manager --write`.
