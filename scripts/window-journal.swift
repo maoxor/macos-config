@@ -131,6 +131,9 @@ func scan() {
         let alpha = w[kCGWindowAlpha as String] as? Double ?? 1
         let num = w[kCGWindowNumber as String] as? Int ?? 0
         let id = bundle(pid)
+        // The Raycast backdrop (raycast-dim.lua, one level below Raycast's panel) is the user's own translucent shade:
+        // neither a new window nor a cover.
+        if id == "org.hammerspoon.Hammerspoon" && layer == 7 { continue }
         // Only normal and floating windows hide what is behind them: the system overlays above (Notification Center's
         // full-screen window while a banner shows, menu bar, Dock) are transparent but for a small part.
         defer { if layer >= 0 && layer < 20 && alpha > 0.05 && owner != "Window Server" { covering.append((r, id)) } }

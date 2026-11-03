@@ -30,7 +30,7 @@ OmniWM details: `docs/omniwm.md`. Shortcuts: `docs/shortcuts.md`. macOS settings
 | Contexts (workspace + resources) | Hammerspoon `poweruser.lua` | — |
 | Window borders / workspace bar | OmniWM, disabled by choice | JankyBorders, SketchyBar |
 | Keyboard navigation (hints) | Neru | Raycast |
-| Launcher | Raycast (Cmd+Space) | Spotlight shortcut (disabled) |
+| Launcher | Raycast (Cmd+Space; its backdrop: Hammerspoon `raycast-dim.lua`; script commands: `tools/raycast/script-commands/`) | Spotlight shortcut (disabled) |
 | Clipboard history | Raycast | OmniWM (`clipboard.historyEnabled = false`) |
 | 2-finger gestures | macOS / apps | OmniWM |
 | 3-finger and 4-finger-up gestures | OmniWM | macOS (disabled in `home-manager/macos.nix`) |

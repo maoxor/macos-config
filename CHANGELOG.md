@@ -4,6 +4,10 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Raycast: the screen behind its launcher is dimmed (`raycast-dim.lua`; Raycast has no such setting; window-journal
+  ignores this backdrop); script commands tracked in `tools/raycast/script-commands/` (find a window, Mac status, next
+  wallpaper, keyboard cleaning, session restore) and a one-hotkey-then-alias logic (`tools/raycast/README.md`).
+  Rollback: `git revert`, apply Hammerspoon, restart it, `launchctl kickstart -k gui/$UID/org.nix-community.home.window-journal`.
 - Cmd+F2: the XAU/USD prompt replaced by the user's new version (quotes and candles first from the Massive
   XAUUSD Live connector). Rollback: `git revert`, apply Hammerspoon, restart it.
 - Reopening after a shutdown (B23): Cmd+F5 needs a second press within 5 s, the first only lists what would reopen;

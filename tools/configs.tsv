@@ -23,3 +23,4 @@ hammerspoon	file	~/.hammerspoon/brightness-boost.lua	tools/hammerspoon/config/br
 hammerspoon	file	~/.hammerspoon/keyboard-clean.html	tools/hammerspoon/config/keyboard-clean.html	copy	
 hammerspoon	file	~/.hammerspoon/test-browsers.lua	tools/hammerspoon/config/test-browsers.lua	copy	
 hammerspoon	file	~/.hammerspoon/app-placement.lua	tools/hammerspoon/config/app-placement.lua	copy	
+hammerspoon	file	~/.hammerspoon/raycast-dim.lua	tools/hammerspoon/config/raycast-dim.lua	copy	

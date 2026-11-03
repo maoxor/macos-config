@@ -36,6 +36,8 @@ axGuard = timed("ax-guard")
 testBrowsers = timed("test-browsers")
 -- Discord's real window opens late at login: it still goes to its workspace.
 appPlacement = timed("app-placement")
+-- Raycast's launcher dims the screen behind it.
+raycastDim = timed("raycast-dim")
 -- Hide apps with no window on the active OmniWM workspace (no parked-window strip in the right margin).
 -- Click-through wallpaper strip over the right gap (hides parked windows without hiding apps); it decodes
 -- the wallpaper, the slowest step (~1.5 s), so it comes last.
