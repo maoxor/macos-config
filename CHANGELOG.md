@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Palette, warm wallpaper: accents in reds, crimson, rose and greys (muted green and gold kept for success and warnings)
+  instead of the fixed rainbow, which clashed with a red-on-black image (`WARM_ROLES` in `palette-from-image.py`).
 - Palette: a warm wallpaper (red, orange, yellow) gets a neutral charcoal background (saturation 0.03; 0.12 still read
   brown), a neutral text and terminals at opacity 0.95 (`palette-from-image.py`); the red fractal had turned every window maroon with pink text. Its saved palette
   was regenerated. Rollback: `git revert`, `scripts/theme-sync.sh`.
