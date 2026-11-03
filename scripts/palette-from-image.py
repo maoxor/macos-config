@@ -30,6 +30,16 @@ ROLES = [  # (key, target hue in degrees, saturation, HLS lightness, comment)
 ]
 
 
+# Accents for a warm (red/orange/yellow) wallpaper: the rainbow above clashed with a red-on-black image
+# (2026-11-03). Reds, crimson, rose and greys, with a muted green and gold so errors and successes stay readable.
+# base08 takes the image's own red. (key, hue, saturation, lightness)
+WARM_ROLES = {
+    "base08": (355, 0.78, 0.60), "base09": (14, 0.72, 0.62), "base0A": (40, 0.50, 0.66),
+    "base0B": (95, 0.22, 0.62), "base0C": (210, 0.10, 0.72), "base0D": (345, 0.60, 0.70),
+    "base0E": (325, 0.28, 0.70), "base0F": (0, 0.12, 0.58),  # base0F: no brown
+}
+
+
 def pixels(path):
     """Shrink the image to a 96x54 24-bit BMP with sips; return the list of (r, g, b) in 0..1."""
     with tempfile.TemporaryDirectory() as d:
@@ -136,6 +146,18 @@ def main():
         bs = [(l, s) for h, l, s in px if s > 0.45 and 0.2 < l < 0.85]
         vivid_tone = (hd, 0.72, min(0.65, max(0.50, sum(s for _, s in bs) / len(bs))))
     for key, target, s, l, note in ROLES:
+        if warm and not LIGHT:
+            h, s, l = WARM_ROLES[key]
+            if key == "base08":
+                near = [(hh, w) for hh, w in vivid if dist(hh, 355) <= 25]
+                if sum(w for _, w in near) > 0.5:
+                    h = hue_mean(near) or h
+            c = hexc(h, l, s)
+            while contrast(c, bg) < 4.5 and 0.1 < l < 0.9:
+                l += STEP; c = hexc(h, l, s)
+            pal[key] = c
+            notes[key] = f"{note} (hue {round(h)}°, warm wallpaper set)"
+            continue
         if key == "base0D" and vivid_tone:
             h, l, s = vivid_tone
             c = hexc(h, l, s)
