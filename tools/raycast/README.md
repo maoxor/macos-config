@@ -16,10 +16,12 @@ never conflict with an app, AZERTY or OmniWM, and they stay with the left hand.
 |---|---|---|
 | `v` | Clipboard History | Raycast |
 | `f` | Chercher une fenêtre (every window of every workspace) | script command, opens OmniWM's palette |
-| `m` | Search Menu Items (any menu entry of the front app) | Raycast |
+| `m` | Search Menu Bar Items (any menu entry of the front app) | Raycast |
 | `s` | Search Snippets | Raycast |
-| `t` | Search Browser Tabs | Raycast (needs its Safari extension: command "Install Browser Extension") |
+| `t` | Search Browser Tabs (Safari, Chromium browsers) | Store extension "Browser Tabs" (free). It skips Zen: in Zen, type `%` then a space in the address bar to search open tabs |
 | `e` | Search Emoji & Symbols | Raycast |
+
+Also installed from the Store (free): **Zen Browser** (Zen's history, bookmarks, workspaces, new window).
 
 ## Backdrop
 While the launcher panel is on screen, everything behind it is dimmed (45 % black, 0.12 s fade). Raycast has no such
@@ -38,10 +40,11 @@ Plain shell files tracked here, so they come back on a new Mac. They expose this
 | Nettoyer le clavier | keyboard locked until a click on the card | F4 |
 | Restaurer les sessions | reopen apps and Claude Code sessions after a crash (asks first) | Cmd+F5 twice |
 
-## Manual setup (once; Raycast keeps it in its own database)
+## Manual setup (once per Mac; Raycast keeps it in its own database; done on this Mac on 2026-11-03)
 1. Raycast hotkey: Cmd+Space.
 2. Settings > Extensions > Script Commands > **Add Directories** → this repo's `tools/raycast/script-commands`.
 3. Aliases of the table above: Settings > Extensions, select the command, field "Alias".
+   Store extensions: "Browser Tabs" and "Zen Browser" (Cmd+Space, "Store").
 4. Clipboard History: keep 1 week; exclude Keychain Access and your password manager.
 5. Optional backup: Settings > Advanced > Export (password-protected `.rayconfig`), stored **outside** the repo.
 

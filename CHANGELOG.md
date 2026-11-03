@@ -4,6 +4,9 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Raycast set up on this Mac: script folder `tools/raycast/script-commands` added, aliases `v f m s e t` given, Store
+  extensions "Browser Tabs" and "Zen Browser"; README names the real commands (Search Menu Bar Items; Browser Tabs skips
+  Zen, where `%` in the address bar searches tabs). Zen imported Safari's bookmarks and history, not its passwords.
 - Focused-window border: JankyBorders replaces OmniWM's (judged poor): 4 pt, palette accent, each window's real corner
   radius; Home Manager `services.jankyborders` (`home-manager/borders.nix`), recoloured live by `theme-apply.sh`.
   Rollback: drop `./borders.nix` from `home.nix` imports, `scripts/apply.sh home-manager --write`.
