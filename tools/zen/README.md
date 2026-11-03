@@ -6,8 +6,11 @@ tabs, workspaces, split view, Glance (Option+click opens a link in a floating pr
 - **Install:** Homebrew cask `zen`; then `tools/zen/apply-profile.sh` (Zen closed). It copies `user.js` into the default
   profile and places two add-ons signed by addons.mozilla.org: **uBlock Origin** (ads, trackers) and **Auto Tab
   Discard** (MPL-2.0): a tab unused for 10 min is unloaded once more than 6 tabs are open, pinned, audible and
-  unsaved-form tabs excepted; a click reloads it. Zen 1.24 no longer has its own timed unloader (only a leftover setting);
-  Firefox's own unloader still acts under memory pressure.
+  unsaved-form tabs excepted; a click reloads it. After a restart, restored tabs stay unloaded until clicked, and an
+  unloaded tab is drawn faded. Zen dropped its own timed unloader in 1.12.9b (`zen.tab-unloader.timeout-minutes` is a
+  leftover nothing reads), and on macOS Firefox's low-memory unloader never runs (`browser.lowMemoryResponseMask` = 0,
+  kept so by the maintainers: the macOS memory watcher is unreliable; zen-browser/desktop#15619): the add-on is what
+  unloads tabs.
 - **Workspace:** OmniWM rule → workspace 2 Web, tiled (`tools/omniwm/config/settings.toml`).
 - **Default browser:** System Settings > Desktop & Dock > Default web browser (macOS asks the user to confirm).
 - **Config owned here:** `user.js` (Ctrl+Tab in recently used order, session restored at start, no telemetry,
