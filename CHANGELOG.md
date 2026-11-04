@@ -4,6 +4,9 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Top bar, geek edition: app icons per workspace (animated current chip), CPU graph, GPU, network speed, popups (busiest
+  processes with memory-guard, month calendar). Cmd+Shift+F in browsers = OmniWM fullscreen under the bar (native full
+  screen hid the bar and showed the macOS menu). Rollback: `git revert`, apply home-manager and Hammerspoon.
 - Top bar: SketchyBar replaces the macOS menu bar (auto-hidden, now in full screen too), "pills" style chosen from six
   mockups; workspaces live from OmniWM, focused window, CPU, memory, sound, Wi-Fi, battery, clock; colours follow the
   wallpaper. Rollback: drop `./sketchybar.nix` from `home.nix`, `scripts/apply.sh home-manager --write`.

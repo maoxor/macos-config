@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
-# SketchyBar, "pills" style (chosen 2026-11-04): it takes the band of the macOS menu bar (auto-hidden, 39 pt on this
-# screen, notch 222 pt in the middle), one glass pill per group. Colours: colors.sh, written by Home Manager from the
-# wallpaper palette (home-manager/sketchybar.nix). Live updates of OmniWM workspaces and focus come from
-# `omniwmctl watch`, which triggers the custom event omniwm_update. topmost=on puts the bar at window level 25, above
-# the macOS menu bar (24) that still slides in when the pointer touches the top edge ("window" = level 3, under it).
+# SketchyBar, "pills" style, geek edition (2026-11-04). It takes the band of the macOS menu bar (auto-hidden, 39 pt on
+# this screen, notch 222 pt in the middle), one glass pill per group:
+#   left   workspaces with the app icons of their windows (sketchybar-app-font), focused window
+#   right  CPU graph + %, GPU %, memory, network down/up | sound, Wi-Fi, battery | date and time
+#   popups click CPU: busiest processes and memory-guard; click the clock: the month
+# Colours: colors.sh, written by Home Manager from the wallpaper palette (home-manager/sketchybar.nix). OmniWM events
+# come from `omniwmctl watch` (custom event omniwm_update). topmost=on puts the bar at window level 25, above the
+# macOS menu bar (24) that still slides in when the pointer touches the top edge ("window" = level 3, under it).
 CONFIG_DIR="${CONFIG_DIR:-$HOME/.config/sketchybar}"
 PLUGINS="$CONFIG_DIR/plugins"
 # shellcheck source=/dev/null
 source "$CONFIG_DIR/colors.sh"
 CTL="$HOME/.local/bin/omniwmctl"
 FONT="JetBrainsMono Nerd Font"
+APPFONT="sketchybar-app-font:Regular:14.0"
 
 sketchybar --bar position=top height=39 color=0x00000000 border_width=0 shadow=off sticky=on topmost=on \
                  padding_left=8 padding_right=8 margin=0 y_offset=0 notch_width=222 display=main
@@ -18,7 +22,9 @@ sketchybar --default updates=when_shown \
                      icon.font="$FONT:Bold:14.0" label.font="$FONT:Medium:13.0" \
                      icon.color="$TEXT" label.color="$TEXT" \
                      icon.padding_left=4 icon.padding_right=4 label.padding_left=4 label.padding_right=4 \
-                     padding_left=2 padding_right=2 background.height=28
+                     padding_left=2 padding_right=2 background.height=28 \
+                     popup.background.color="$POPUP" popup.background.border_color="$BORDER" popup.background.border_width=1 \
+                     popup.background.corner_radius=12 popup.blur_radius=30 popup.y_offset=6
 
 pill() {  # $1 bracket name, $2 fill, $3 border, rest: members
   local name=$1 fill=$2 border=$3; shift 3
@@ -29,28 +35,36 @@ pill() {  # $1 bracket name, $2 fill, $3 border, rest: members
 
 sketchybar --add event omniwm_update
 
-# Left: workspaces (click to switch), then the focused window.
+# ---- Left: workspaces, each with the icons of its apps; the current one gets an accent chip.
 for n in 1 2 3 4; do
   sketchybar --add item "ws.$n" left \
-             --set "ws.$n" icon.drawing=off label="$n" label.padding_left=7 label.padding_right=7 label.color="$MUTED" \
-                           click_script="$CTL command switch-workspace $n"
+             --set "ws.$n" icon="$n" icon.font="$FONT:ExtraBold:13.0" icon.padding_left=9 icon.padding_right=3 \
+                           label.font="$APPFONT" label.padding_left=2 label.padding_right=9 label.y_offset=-1 \
+                           background.height=22 background.corner_radius=9 background.color=0x00000000 \
+                           click_script="$CTL command switch-workspace $n" script="$PLUGINS/hover.sh" \
+             --subscribe "ws.$n" mouse.entered mouse.exited
 done
 sketchybar --add item ws.logic left \
            --set ws.logic drawing=off updates=on script="$PLUGINS/workspaces.sh" \
            --subscribe ws.logic omniwm_update system_woke
-pill ws "$PILL_ACC" "$BORDER_ACC" ws.1 ws.2 ws.3 ws.4
+pill ws "$PILL" "$BORDER" ws.1 ws.2 ws.3 ws.4
 
 sketchybar --add item title left \
-           --set title icon="" icon.color="$ACCENT" icon.padding_left=12 label.padding_right=12 \
-                       label.max_chars=48 updates=on script="$PLUGINS/title.sh" \
+           --set title icon.font="$APPFONT" icon.color="$ACCENT" icon.padding_left=12 label.padding_right=12 \
+                       label.max_chars=46 updates=on script="$PLUGINS/title.sh" \
            --subscribe title omniwm_update front_app_switched system_woke
 pill title.pill "$PILL" "$BORDER" title
 
-# Right (added right to left): clock, system pill, stats pill.
+# ---- Right (added right to left): clock, system, stats.
 sketchybar --add item clock right \
-           --set clock icon.drawing=off label.font="$FONT:Bold:13.0" label.padding_left=12 label.padding_right=12 \
-                       update_freq=15 script="$PLUGINS/clock.sh" \
-           --subscribe clock system_woke
+           --set clock icon="󰃭" icon.color="$ACCENT" icon.padding_left=12 label.font="$FONT:Bold:13.0" label.padding_right=12 \
+                       update_freq=15 script="$PLUGINS/clock.sh" click_script="$PLUGINS/calendar.sh" popup.height=24 \
+           --subscribe clock system_woke mouse.exited.global
+for i in 0 1 2 3 4 5 6 7; do
+  sketchybar --add item "clock.cal.$i" popup.clock \
+             --set "clock.cal.$i" icon.drawing=off label.font="$FONT:Medium:12.5" label.width=190 label.align=left \
+                                  label.padding_left=16 label.padding_right=10 background.height=20
+done
 pill clock.pill "$PILL_ACC" "$BORDER_ACC" clock
 
 sketchybar --add item battery right \
@@ -64,11 +78,29 @@ sketchybar --add item battery right \
            --subscribe volume volume_change
 pill system "$PILL" "$BORDER" volume wifi battery
 
-sketchybar --add item mem right \
-           --set mem icon="󰍛" label.padding_right=12 update_freq=10 script="$PLUGINS/mem.sh" \
+# Stats: one updater (stats.sh, every 2 s) sets all of them; the CPU graph scrolls with each sample.
+sketchybar --add item net right \
+           --set net icon="󰇚" icon.color="$OK" label.font="$FONT:Medium:12.0" label.width=150 label.align=left label.padding_right=12 \
+           --add item mem right \
+           --set mem icon="󰍛" \
+           --add item gpu right \
+           --set gpu icon="󰢮" \
            --add item cpu right \
-           --set cpu icon="" icon.padding_left=12 update_freq=3 script="$PLUGINS/cpu.sh"
-pill stats "$PILL" "$BORDER" cpu mem
+           --set cpu icon="" icon.color="$ACCENT" label.width=40 label.align=right \
+                     click_script="$PLUGINS/top.sh" script="$PLUGINS/popup-close.sh" popup.height=26 \
+           --subscribe cpu mouse.exited.global \
+           --add graph cpu.graph right 44 \
+           --set cpu.graph graph.color="$ACCENT" graph.fill_color="$GRAPH_FILL" graph.line_width=1.2 \
+                           background.height=18 background.color=0x00000000 padding_left=12 padding_right=0 \
+                           update_freq=2 updates=on script="$PLUGINS/stats.sh" \
+           --subscribe cpu.graph system_woke
+for i in 0 1 2 3 4 5 6; do
+  sketchybar --add item "cpu.top.$i" popup.cpu \
+             --set "cpu.top.$i" icon.font="$FONT:Bold:12.5" label.font="$FONT:Medium:12.5" \
+                                icon.width=62 icon.align=right icon.padding_left=10 label.padding_left=10 \
+                                label.padding_right=14 background.height=22
+done
+pill stats "$PILL" "$BORDER" cpu.graph cpu gpu mem net
 
 # OmniWM events -> omniwm_update (one watcher; a reload replaces it).
 pkill -f "omniwmctl watch focus,active-workspace,windows-changed" 2>/dev/null

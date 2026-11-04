@@ -1,4 +1,5 @@
-# Top bar: SketchyBar in the band of the macOS menu bar (auto-hidden), "pills" style (2026-11-04). Config and plugins:
+# Top bar: SketchyBar in the band of the macOS menu bar (auto-hidden), "pills" style, geek edition (2026-11-04).
+# Config and plugins:
 # tools/sketchybar/ (copied as is); colors.sh below comes from the wallpaper palette, so the bar follows the theme
 # (theme-apply.sh reloads it). Rollback: remove this file from home.nix imports and switch; the macOS menu bar band
 # is then empty again.
@@ -12,12 +13,13 @@ let
   mix = pct: a: b: lib.concatStrings (map (i:
     pad (lib.toLower (lib.toHexString ((channel b i * (100 - pct) + channel a i * pct) / 100)))) [ 0 2 4 ]);
 in {
-  home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
+  # Fonts: Nerd Font glyphs for the status icons, sketchybar-app-font for app icons (its icon_map.sh is on the PATH).
+  home.packages = [ pkgs.nerd-fonts.jetbrains-mono pkgs.sketchybar-app-font ];
 
   programs.sketchybar = {
     enable = true;
     config = { source = ../tools/sketchybar; recursive = true; };
-    extraPackages = [ pkgs.jq ];
+    extraPackages = [ pkgs.jq pkgs.sketchybar-app-font ];
     service.enable = true;
   };
 
@@ -32,5 +34,9 @@ in {
     export BORDER=0x1affffff
     export PILL_ACC=${argb "f0" (mix 22 palette.base0D palette.base00)}
     export BORDER_ACC=${argb "70" palette.base0D}
+    export ON_ACCENT=${argb "ff" palette.base00}
+    export HOVER=0x22ffffff
+    export POPUP=${argb "f2" palette.base00}
+    export GRAPH_FILL=${argb "40" palette.base0D}
   '';
 }
