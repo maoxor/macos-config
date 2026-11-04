@@ -116,12 +116,13 @@ def main():
     # more opaque so the warm wallpaper barely shows through (2026-11-03: a red-on-black fractal turned every
     # window brown; saturation 0.12 still read brown next to the red image, 0.03 does not).
     # The user then chose a frosted-glass anthracite over the flat near-black: a light cool grey (#2A2B2F, hue 228,
-    # never warm), translucent and blurred so the wallpaper shows through softly.
+    # never warm), translucent and blurred so the wallpaper shows through softly; opacity 0.78 (0.86 looked too
+    # solid to the user).
     warm = hd >= 330 or hd <= 60
     if warm:
         hb = 228
     l0, sd, st = (0.17, 0.06, 0.03) if warm else (0.16, sd, 0.45)
-    opacity = 0.86 if warm else 0.88
+    opacity = 0.78 if warm else 0.88
     if LIGHT:
         # Light variant: the background is a pale shade of the colourful tone (lightness 0.78), dark text.
         pal = {
