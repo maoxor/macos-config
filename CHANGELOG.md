@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Raycast `z <text>`: lands on the search tab (switches to it explicitly; Zen's two synced windows could bring the empty
+  twin tab to the front). The twin is never closed: Zen closes the real tab with it.
 - Agents VM: a Lume macOS VM (`agents`, clean copy `agents-base`) with Cua Driver, reached by Claude Code through the
   MCP server `agents-vm` (SSH); agents use apps there while the host screen, mouse and keyboard stay untouched
   (measured). Shared folder ~/AgentsShare, Raycast "VM des agents", telemetry off. `tools/agents-vm/README.md`.
