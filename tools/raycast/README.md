@@ -20,7 +20,8 @@ never conflict with an app, AZERTY or OmniWM, and they stay with the left hand.
 | `s` | Search Snippets | Raycast |
 | `t` | Search Browser Tabs (Safari, Chromium browsers) | Store extension "Browser Tabs" (free). It skips Zen: in Zen, type `%` then a space in the address bar to search open tabs |
 | `e` | Search Emoji & Symbols | Raycast |
-| `z` | Onglets Zen: search Zen's open tabs, Enter jumps to the tab (also **Ctrl+Space** from anywhere) | local extension `zen-tabs/` → `zen-tabs.lua` (Hammerspoon) |
+| `z` | Rechercher sur Zen: `z hello world` searches with Zen's engine in a new tab of the open Zen window | local extension `zen-tabs/` (Mozeidon `tabs new`) |
+| Ctrl+Space | Onglets Zen: search Zen's open tabs, Enter jumps to the tab | local extension `zen-tabs/` (Mozeidon) |
 
 Also installed from the Store (free): **Zen Browser** (Zen's history, bookmarks, workspaces, new window).
 

@@ -6,7 +6,9 @@
   "icon": "icon.png",
   "author": "maoxor",
   "license": "MIT",
-  "categories": ["Productivity"],
+  "categories": [
+    "Productivity"
+  ],
   "commands": [
     {
       "name": "index",
@@ -14,6 +16,21 @@
       "subtitle": "Zen",
       "description": "Liste les onglets ouverts dans Zen ; Entrée bascule sur l'onglet.",
       "mode": "view"
+    },
+    {
+      "name": "search",
+      "title": "Rechercher sur Zen",
+      "subtitle": "Zen",
+      "description": "Cherche le texte avec le moteur de Zen dans un nouvel onglet de la fenêtre Zen ouverte.",
+      "mode": "no-view",
+      "arguments": [
+        {
+          "name": "query",
+          "type": "text",
+          "placeholder": "Recherche",
+          "required": true
+        }
+      ]
     }
   ],
   "dependencies": {
