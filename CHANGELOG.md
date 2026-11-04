@@ -4,7 +4,7 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
-- Palette, warm wallpaper: frosted anthracite background (#2A2B2F, cool hue, opacity 0.86 with blur) instead of the
+- Palette, warm wallpaper: frosted anthracite background (#2A2B2F, cool hue, opacity 0.78 with blur) instead of the
   flat near-black, the user's choice.
 - Hover focus slow between Ghostty windows (B24): OmniWM patch 0033 (below) and a Ghostty restart; raising on a
   worker thread was tried and rejected (Ghostty then kept the old window key).
