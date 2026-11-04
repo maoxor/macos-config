@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Ctrl+Space: Zen tab search from anywhere (the same chooser as Raycast "Onglets Zen"). Rollback: `git revert`, apply
+  Hammerspoon.
 - Cmd+F2: the XAU/USD prompt replaced by the user's new version, in Markdown (# headings, * lists, the orders table),
   so its structure survives the paste. Rollback: `git revert`, apply Hammerspoon, restart it.
 - Zen tab search: Raycast "Onglets Zen" (alias z) opens a chooser of Zen's open tabs (`scripts/zen-tabs.py` reads

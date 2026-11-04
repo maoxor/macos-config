@@ -1,7 +1,8 @@
 -- Search Zen's open tabs and jump to one (2026-11-04). Zen has no AppleScript and Raycast's Zen extension cannot list
 -- tabs, so: scripts/zen-tabs.py reads Zen's session file, a chooser filters title and address as you type, and the
 -- jump goes through Zen's own tab search: Cmd+L, "% " + the address, Return (the first result is "Switch to tab").
--- Opened by the Raycast script command "Onglets Zen" (alias z) or `hs -c 'zenTabs.show()'`.
+-- Opened from anywhere by Ctrl+Space (free: macOS input-source switching is off, home-manager/macos.nix), the
+-- Raycast script command "Onglets Zen", or `hs -c 'zenTabs.show()'`. Ctrl+Space again closes it.
 -- The session file is rewritten a few seconds after tabs change, so a tab opened just now may be missing.
 local M = {}
 local SCRIPT = require("repo-path") .. "/scripts/zen-tabs.py"
@@ -77,5 +78,9 @@ function M.show()
   M.chooser:choices(#list > 0 and list or { { text = "Aucun onglet trouvé", subText = "Zen n'a pas encore écrit sa session", url = "" } })
   M.chooser:show()
 end
+
+M.hotkey = hs.hotkey.bind({ "ctrl" }, "space", function()
+  if M.chooser and M.chooser:isVisible() then M.chooser:hide() else M.show() end
+end)
 
 return M
