@@ -16,6 +16,7 @@ stats	plist	eu.exelban.Stats	tools/stats/config/eu.exelban.Stats.plist	defaults-
 hammerspoon	file	~/.hammerspoon/prompt-insert.lua	tools/hammerspoon/config/prompt-insert.lua	copy	
 hammerspoon	file	~/.hammerspoon/safari-tabs.lua	tools/hammerspoon/config/safari-tabs.lua	copy	
 hammerspoon	file	~/.hammerspoon/browser-fullscreen.lua	tools/hammerspoon/config/browser-fullscreen.lua	copy	
+hammerspoon	file	~/.hammerspoon/zen-tabs.lua	tools/hammerspoon/config/zen-tabs.lua	copy	
 hammerspoon	file	~/.hammerspoon/session-restore.lua	tools/hammerspoon/config/session-restore.lua	copy	
 hammerspoon	file	~/.hammerspoon/function-keys.lua	tools/hammerspoon/config/function-keys.lua	copy	
 hammerspoon	file	~/.hammerspoon/wallpaper-cycle.lua	tools/hammerspoon/config/wallpaper-cycle.lua	copy	

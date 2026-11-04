@@ -40,6 +40,8 @@ appPlacement = timed("app-placement")
 raycastDim = timed("raycast-dim")
 -- Cmd+Shift+F in Zen, Helium, Safari: OmniWM fullscreen (keeps the top bar), not macOS native fullscreen.
 browserFullscreen = timed("browser-fullscreen")
+-- Search Zen tabs and jump to one (Raycast "Onglets Zen", alias z).
+zenTabs = timed("zen-tabs")
 -- Hide apps with no window on the active OmniWM workspace (no parked-window strip in the right margin).
 -- Click-through wallpaper strip over the right gap (hides parked windows without hiding apps); it decodes
 -- the wallpaper, the slowest step (~1.5 s), so it comes last.

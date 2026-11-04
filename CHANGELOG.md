@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Zen tab search: Raycast "Onglets Zen" (alias z) opens a chooser of Zen's open tabs (`scripts/zen-tabs.py` reads
+  the session file; Zen has no AppleScript) and Enter jumps to the tab through Zen's own tab search (`zen-tabs.lua`).
 - Top bar, geek edition: app icons per workspace (animated current chip), CPU graph, GPU, network speed, popups (busiest
   processes with memory-guard, month calendar). Cmd+Shift+F in browsers = OmniWM fullscreen under the bar (native full
   screen hid the bar and showed the macOS menu). Rollback: `git revert`, apply home-manager and Hammerspoon.

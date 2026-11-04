@@ -20,6 +20,7 @@ never conflict with an app, AZERTY or OmniWM, and they stay with the left hand.
 | `s` | Search Snippets | Raycast |
 | `t` | Search Browser Tabs (Safari, Chromium browsers) | Store extension "Browser Tabs" (free). It skips Zen: in Zen, type `%` then a space in the address bar to search open tabs |
 | `e` | Search Emoji & Symbols | Raycast |
+| `z` | Onglets Zen: search Zen's open tabs, Enter jumps to the tab | script command → `zen-tabs.lua` (Hammerspoon) |
 
 Also installed from the Store (free): **Zen Browser** (Zen's history, bookmarks, workspaces, new window).
 
@@ -35,6 +36,7 @@ Plain shell files tracked here, so they come back on a new Mac. They expose this
 | Title | Does | Also |
 |---|---|---|
 | Chercher une fenêtre | OmniWM's window palette | Hyper+Space |
+| Onglets Zen | chooser of Zen's open tabs (from its session file), Enter switches to it through Zen's own tab search | `hs -c 'zenTabs.show()'` |
 | État du Mac | memory / CPU / GPU over 24 h, heaviest processes, memory-guard margin | `perf-journal.py report` |
 | Fond d'écran suivant | next wallpaper, the theme follows | F3 |
 | Nettoyer le clavier | keyboard locked until a click on the card | F4 |
