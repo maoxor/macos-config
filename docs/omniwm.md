@@ -8,7 +8,7 @@ settings this repo installs; values marked *default* are OmniWM's own defaults.
 | Piece | Where |
 |---|---|
 | Pinned upstream commit | `tools/omniwm/UPSTREAM` |
-| Local patches (git `format-patch` series) | `tools/omniwm/patches/0001…0032` (0028 removed) |
+| Local patches (git `format-patch` series) | `tools/omniwm/patches/0001…0033` (0028 removed) |
 | Build + sign + install | `tools/omniwm/build-local.sh` (`--check` = patches apply, no build) |
 | Signing certificate (once per Mac) | `tools/omniwm/create-signing-cert.sh` |
 | Working checkout | `$OMNIWM_SRC` (default `~/src/omniwm`), branch `macos-config`, recreated on every build |
@@ -52,6 +52,7 @@ build, so permissions would be lost on each rebuild. The certificate pins them (
 | 0031 | a swipe never starts from a stale image: a native snapshot whose window title changed is not used, a title change on the visible workspace re-snapshots it, a live frame older than 2 s is recaptured at the first contact | another Safari tab showed first, then the right one, when swiping to W2 (B7) |
 | 0030 | a Chrome, Edge or Brave launched by a driver (`--remote-debugging-pipe`: Playwright `channel: "chrome"`; `--remote-debugging-port=0` / `--enable-automation`: Puppeteer, Selenium) follows the rules of Chrome for Testing (`AutomationBrowser`, 4 tests in `AutomationBrowserRuleTests`) | a script-launched real Chrome has the user's browser bundle id, so it was tiled over the user's workspace and took the keyboard (B19) |
 | 0018 | after a workspace change (once the layout refresh completes, no swipe running) and after a Niri scroll, focus the window under the still pointer | hover focus only reacted to mouse moves: arriving on a workspace left the window under the pointer unfocused (B5); 8/8 with a still pointer |
+| 0033 | hover focus: the re-evaluation after the debounce never drops silently (no debounce re-check, live pointer when the sample is gone, every drop traced); a hover denied by a short policy lease (0.4 s after an app switch) is retried every 50 ms for 1 s; debounce 0.1 s → 0.04 s | from one Ghostty window to the next the window under a stopped pointer sometimes waited for the next mouse move (B5) |
 
 Tests added by the patches (run targeted only, never the full suite on a machine in use — it froze the
 Mac once): `swift test --filter "WorkspaceSwipeNiriClampTests|ParkingEdgeMaskTests|WorkspaceSwipePreviewTests|WorkspaceSwipePreviewWarmupTests|NativeWindowSnapshotStalenessTests|AutomationBrowserRuleTests"`.

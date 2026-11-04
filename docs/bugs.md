@@ -332,3 +332,19 @@ Before changing anything listed here, read the entry and keep its verification p
 - A simulated drag landed on the user's active workspace: never simulate input while the user works.
 - `capture.sh --accept` overwrote a dirty path with spaces: fixed, regression test in `check.sh`.
 - Under zsh `log` is a builtin: always `/usr/bin/log`. `hs -c` can hang: wrap it in `timeout`.
+
+### B24 — Hover focus slow between Ghostty windows (2026-11-04)
+- **Symptom:** moving the pointer onto another Ghostty window, it took 0.3-1.5 s to become active (median
+  0.45 s, 16 hand-like moves posted by `hoverbench.lua`, Hammerspoon).
+- **Causes, measured:** (1) OmniWM: the re-evaluation after the hover debounce could drop silently, and a hover
+  denied during an app switch was never retried, so a stopped pointer waited for the next move; fixed by patch
+  0033 (debounce 0.1 → 0.04 s). (2) Ghostty, open for 1 day 15 h: each window change froze its main thread
+  0.3-1 s (`sample <pid>`: half the samples in `-[NSApplication windows]` → `_copyWindows`, AppKit keeps
+  closed windows; Ghostty discussions #13386 and #11799); OmniWM's synchronous AXRaise waited that long
+  (`omniwmctl capture start trace`: `ax-raise` up to 570 ms) and retried fronting about 3 times per hover.
+  Idle, the same AX reads answer in 0.1 ms.
+- **Rejected:** raising on the app's AX worker instead of OmniWM's main thread (tried as 0034): without the
+  synchronous raise Ghostty did not take key focus at all (9/10 hovers timed out). Do not retry it.
+- **Fix for (2):** restart Ghostty (Cmd+F5 reopens the Claude Code sessions). Check: the hover bench median, or
+  `sample` showing `_copyWindows` near the top of the main thread.
+

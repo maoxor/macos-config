@@ -4,6 +4,14 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Palette, warm wallpaper: frosted anthracite background (#2A2B2F, cool hue, opacity 0.86 with blur) instead of the
+  flat near-black, the user's choice.
+- Hover focus slow between Ghostty windows (B24): OmniWM patch 0033 (below) and a Ghostty restart; raising on a
+  worker thread was tried and rejected (Ghostty then kept the old window key).
+- OmniWM patch 0033, hover focus: the re-evaluation after the debounce could drop silently and a hover denied during
+  an app switch was never retried, so the window under a stopped pointer waited for the next mouse move; debounce
+  0.1 s → 0.04 s. Rollback: delete the patch, `tools/omniwm/build-local.sh` (previous build also kept in
+  `~/.local/state/macos-power-user-deploy/backups/OmniWM-local-prev.app`).
 - Palette, warm wallpaper: accents in reds, crimson, rose and greys (muted green and gold kept for success and warnings)
   instead of the fixed rainbow, which clashed with a red-on-black image (`WARM_ROLES` in `palette-from-image.py`).
 - Palette: a warm wallpaper (red, orange, yellow) gets a neutral charcoal background (saturation 0.03; 0.12 still read
