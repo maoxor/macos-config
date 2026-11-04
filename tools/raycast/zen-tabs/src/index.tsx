@@ -2,13 +2,13 @@
 // Zen (Firefox) has no AppleScript. Mozeidon (Homebrew CLI + native app + its signed Zen add-on, native messaging)
 // lists the live tabs in ~30 ms and switches in ~60 ms; Zen is then brought to the front. Without Mozeidon the list
 // falls back to Zen's session file (scripts/zen-tabs.py) and the jump to Hammerspoon driving Zen's tab search (~1.5 s).
-import { Action, ActionPanel, Icon, List, closeMainWindow, showToast, Toast } from "@raycast/api";
+import { Action, ActionPanel, Icon, LaunchProps, List, closeMainWindow, showToast, Toast } from "@raycast/api";
 import { getFavicon } from "@raycast/utils";
 import { execFile, execFileSync } from "child_process";
 import { existsSync, readFileSync } from "fs";
 import { homedir } from "os";
 import { join } from "path";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 type Tab = { title: string; url: string; selected: boolean; workspace: string; pinned: boolean; ref?: string };
 
@@ -85,10 +85,17 @@ async function jump(tab: Tab) {
   });
 }
 
-export default function Command() {
+export default function Command(props: LaunchProps) {
+  // "o <text>" without a match opens this list with the text already typed.
+  const [searchText, setSearchText] = useState(props.fallbackText ?? "");
   const { tabs, error } = useMemo(loadTabs, []);
   return (
-    <List searchBarPlaceholder="Chercher un onglet Zen…" filtering={{ keepSectionOrder: true }}>
+    <List
+      searchBarPlaceholder="Chercher un onglet Zen…"
+      filtering={{ keepSectionOrder: true }}
+      searchText={searchText}
+      onSearchTextChange={setSearchText}
+    >
       {error ? (
         <List.EmptyView icon={Icon.Warning} title="Impossible de lire les onglets de Zen" description={error} />
       ) : (

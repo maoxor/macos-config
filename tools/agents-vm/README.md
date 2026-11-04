@@ -6,7 +6,7 @@ Every Claude Code session works without touching the user's screen, mouse, keybo
 |---|---|---|
 | Web pages (read, test a web app, sign in, forms, screenshots) | MCP `browser` = `scripts/agents-browser`: Playwright MCP 0.0.83 (pinned, `~/.local/share/agents-browser`), **headless, isolated**, Chromium (`agents-browser mcp webkit` = Safari's engine) | one browser per session, no limit (6 at once measured: 10 s, host untouched) |
 | Desktop apps | MCP `agents-vm` (below) | 2 macOS VMs at once (Apple) |
-| Guard | `scripts/agents-host-guard.py`, PreToolUse hook (Bash) in `~/.claude` and `~/.claude-2` settings: refuses `open <url>`, `open -a <browser>`, osascript to a browser or System Events keys, cliclick, and the same inside the scripts a command runs (plus their local imports) | — |
+| Guard | `scripts/agents-host-guard.py`, PreToolUse hook (Bash) in `~/.claude` and `~/.claude-2` settings: refuses `open <url>`, `open -a <browser>`, osascript to a browser or System Events keys, cliclick, a visible Chrome/Chromium launch (CDP; allowed with --headless), and the same inside the scripts a command runs (plus their local imports) | — |
 | Rules | `tools/claude/CLAUDE.md` linked as `~/.claude/CLAUDE.md` and `~/.claude-2/CLAUDE.md` | — |
 
 - Sign-ins: `agents-browser login default <url>` (the user signs in once in a visible window); `state/default.json` is

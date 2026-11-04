@@ -31,6 +31,21 @@
           "required": true
         }
       ]
+    },
+    {
+      "name": "open",
+      "title": "Ouvrir un onglet Zen",
+      "subtitle": "Zen",
+      "description": "Va directement à l'onglet Zen dont le titre ou l'adresse correspond au texte (o brand, o jira…).",
+      "mode": "no-view",
+      "arguments": [
+        {
+          "name": "query",
+          "type": "text",
+          "placeholder": "Nom de l'onglet",
+          "required": true
+        }
+      ]
     }
   ],
   "dependencies": {

@@ -21,6 +21,7 @@ never conflict with an app, AZERTY or OmniWM, and they stay with the left hand.
 | `t` | Search Browser Tabs (Safari, Chromium browsers) | Store extension "Browser Tabs" (free). It skips Zen: in Zen, type `%` then a space in the address bar to search open tabs |
 | `e` | Search Emoji & Symbols | Raycast |
 | `z` | Rechercher sur Zen: `z hello world` searches with Zen's engine in a new tab of the open Zen window | local extension `zen-tabs/` (Mozeidon `tabs new`) |
+| `o` | Ouvrir un onglet Zen: `o`, Tab (or space), part of the tab's title or address, Enter: jumps to the best match (words in the title first, then most recently used); no match opens the tab list with the text typed | local extension `zen-tabs/` (Mozeidon) |
 | Ctrl+Space | Onglets Zen: search Zen's open tabs, Enter jumps to the tab | local extension `zen-tabs/` (Mozeidon) |
 
 Also installed from the Store (free): **Zen Browser** (Zen's history, bookmarks, workspaces, new window).

@@ -4,6 +4,9 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Raycast `o <name>`: jumps straight to the matching Zen tab in one Enter ("Ouvrir un onglet Zen"); no match opens the
+  tab list with the text typed. Guard: also refuses a visible Chrome/Chromium started with remote debugging (a session's
+  Chrome took the front with a sign-in page).
 - Cmd+F3 free prompt, research pass: dated sources and stated conflicts, observed vs inferred, no entries without a
   recent price, numbers recomputed and order type checked against the price (lost from F2), no widened stop,
   conviction without invented probabilities.

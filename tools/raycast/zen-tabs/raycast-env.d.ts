@@ -17,6 +17,8 @@ declare namespace Preferences {
   export type Index = ExtensionPreferences & {}
   /** Preferences accessible in the `search` command */
   export type Search = ExtensionPreferences & {}
+  /** Preferences accessible in the `open` command */
+  export type Open = ExtensionPreferences & {}
 }
 
 declare namespace Arguments {
@@ -25,6 +27,11 @@ declare namespace Arguments {
   /** Arguments passed to the `search` command */
   export type Search = {
   /** Recherche */
+  "query": string
+}
+  /** Arguments passed to the `open` command */
+  export type Open = {
+  /** Nom de l'onglet */
   "query": string
 }
 }

@@ -19,6 +19,10 @@ RULES = [
     (re.compile(r"""(^|[;&|(\s])open\s+(-[a-zA-Z]+\s+)*(-a\s+["']?""" + BROWSERS + r"""|-b\s+\S*(safari|zen|chrome|helium|firefox)|["']?https?://)""", re.I),
      "opens a page in a browser of the user"),
     (re.compile(r"""\b(cliclick|xdotool)\b"""), "simulates input on the user's screen"),
+    # A visible browser started by an agent (CDP / remote debugging): 2026-11-04 a session's Chrome window took the
+    # front. Allowed with --headless.
+    (re.compile(r"""^(?![\s\S]*--headless)[\s\S]*(Google Chrome\.app/Contents/MacOS/Google Chrome|Chromium\.app/Contents/MacOS/Chromium|\bopen\s+(-\w+\s+)*-n?a\s+["']?(Google Chrome|Chromium)["']?.*--args|--remote-debugging-port)""", re.I),
+     "starts a visible browser window (add --headless)"),
     (re.compile(r"""webbrowser\.open|subprocess\.\w+\(\s*\[\s*["']open["']\s*,\s*["']https?://""", re.I), "opens a page in a browser of the user"),
 ]
 HINT = ("Do not use the user's own browser or screen: they are working. For web pages use the MCP server 'browser' "

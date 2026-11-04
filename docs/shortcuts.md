@@ -54,7 +54,7 @@ Two deliberate exceptions: Option+Tab (types nothing) and Option+F (costs the `Æ
 | F1 / F2 (brightness) | Hammerspoon + macOS | past 100 %, F2 goes on into the XDR boost, 4 steps up to 1000 nits; F1 comes back down (`brightness-boost.lua`, `docs/macos.md`) |
 | Cmd+F5 twice (within 5 s) | Hammerspoon | after a crash: reopen Ghostty, Zen, Safari, Discord and every Claude Code session (claude / claude2) of the last snapshot on its workspace. The first press only lists what would reopen (`scripts/restore-session.py`; snapshot every minute by `session-snapshot.py`; log `~/Library/Logs/restore-session.log`) |
 | F4 | Hammerspoon | cleaning mode: every key is blocked (trackpad still works) until a click on the card, or after 2 minutes; card image `~/.config/macos-config/keyboard-clean.jpg` (or .png), kept out of the repo (`keyboard-clean.lua`; works with or without fn) |
-| Cmd+Space | Raycast | launcher, clipboard history; the screen behind its panel is dimmed (`raycast-dim.lua`). Then one-letter aliases: `v` clipboard, `f` find a window, `m` menu items, `s` snippets, `t` browser tabs (Safari), `z` search in a Zen tab (`z hello world`), `e` emoji (`tools/raycast/README.md`) |
+| Cmd+Space | Raycast | launcher, clipboard history; the screen behind its panel is dimmed (`raycast-dim.lua`). Then one-letter aliases: `v` clipboard, `f` find a window, `m` menu items, `s` snippets, `t` browser tabs (Safari), `z` search in a Zen tab (`z hello world`), `o` open a Zen tab by name (`o brand`), `e` emoji (`tools/raycast/README.md`) |
 | Cmd+Option+Space | macOS | Finder search |
 | Option+Space | typing | non-breaking space |
 | Ctrl-R (terminal) | Atuin | shell history |
