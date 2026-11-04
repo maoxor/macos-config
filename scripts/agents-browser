@@ -1,0 +1,45 @@
+#!/bin/bash
+# agents-browser: the browser of Claude Code agents. Each session gets its own headless browser (no window, no focus,
+# nothing on the user's screen), so any number of agents browse at once (tools/agents-vm/README.md, "Browser").
+#   agents-browser mcp [chromium|webkit]   MCP stdio server (what Claude Code runs); webkit = Safari's engine
+#   agents-browser login <name> <url>      the user signs in once in a visible window; saved to state/<name>.json
+#   agents-browser states                  saved sign-ins
+# Sign-ins: state/default.json, if present, is loaded into every session (isolated copy: sessions never share or
+# overwrite it). AGENTS_BROWSER_STATE=<name> picks another one.
+set -euo pipefail
+D="$HOME/.local/share/agents-browser"
+CLI="$D/node_modules/@playwright/mcp/cli.js"
+NODE="$(command -v node || echo /opt/homebrew/bin/node)"
+[ -f "$CLI" ] || { echo "agents-browser: run: mkdir -p $D && cd $D && npm init -y && npm install --save-exact @playwright/mcp@0.0.83 && npx playwright install chromium webkit" >&2; exit 1; }
+case "${1:-mcp}" in
+  mcp)
+    engine="${2:-chromium}"
+    state="$D/state/${AGENTS_BROWSER_STATE:-default}.json"
+    args=(--headless --isolated --browser "$engine" --viewport-size 1440x900 --output-dir "${TMPDIR:-/tmp}/agents-browser")
+    [ -f "$state" ] && args+=(--storage-state "$state")
+    exec "$NODE" "$CLI" "${args[@]}" ;;
+  login)
+    name="${2:?usage: agents-browser login <name> <url>}"; url="${3:?usage: agents-browser login <name> <url>}"
+    mkdir -p "$D/state" && chmod 700 "$D/state"
+    cd "$D" && exec "$NODE" -e '
+      const fs = require("fs");
+      const { chromium } = require("playwright-core");
+      (async () => {
+        const [state, url] = process.argv.slice(1);
+        const browser = await chromium.launch({ headless: false });
+        const ctx = await browser.newContext(fs.existsSync(state) ? { storageState: state } : {});
+        const page = await ctx.newPage();
+        await page.goto(url);
+        console.log("Sign in, then close the window. Saved to " + state);
+        let open = true;
+        page.on("close", () => { open = false; });
+        browser.on("disconnected", () => { open = false; });
+        while (open) {
+          try { await ctx.storageState({ path: state }); fs.chmodSync(state, 0o600); } catch (e) {}
+          await new Promise(r => setTimeout(r, 2000));
+        }
+        await browser.close().catch(() => {});
+      })().catch(e => { console.error(e.message); process.exit(1); });' "$D/state/$name.json" "$url" ;;
+  states) ls -1 "$D/state" 2>/dev/null | sed 's/\.json$//' ;;
+  *) sed -n '2,9p' "$0"; exit 2 ;;
+esac

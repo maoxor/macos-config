@@ -181,6 +181,15 @@ in {
   # agents-vm: the macOS VM where AI agents use a desktop without touching the user's (tools/agents-vm/README.md).
   home.file.".local/bin/agents-vm".source =
     config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/agents-vm";
+  # agents-browser: one headless browser per Claude Code session (MCP "browser"), never on the user's screen.
+  home.file.".local/bin/agents-browser".source =
+    config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/agents-browser";
+  # agents-host-guard: Claude Code PreToolUse hook refusing commands that drive the user's browsers or screen.
+  home.file.".local/bin/agents-host-guard".source =
+    config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/agents-host-guard.py";
+  # Rules read by every Claude Code session (both config dirs: claude and claude2).
+  home.file.".claude/CLAUDE.md".source = config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/tools/claude/CLAUDE.md";
+  home.file.".claude-2/CLAUDE.md".source = config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/tools/claude/CLAUDE.md";
   home.file.".local/bin/xdr-boost".source =
     config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/xdr-boost.sh";
   home.file.".local/bin/memory-guard".source =

@@ -4,6 +4,10 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Agents never on the user's screen: MCP `browser` (headless Playwright, one per session, unlimited in parallel), a
+  PreToolUse guard refusing commands and scripts that drive the user's browsers or input (escape only if the user's
+  latest message asks), global rules in ~/.claude(-2)/CLAUDE.md. Cause: a session drove the user's Safari for Jira
+  tests. Rollback: remove the hook from both settings.json, `claude mcp remove -s user browser`, `git revert`.
 - Raycast `z <text>`: lands on the search tab (switches to it explicitly; Zen's two synced windows could bring the empty
   twin tab to the front). The twin is never closed: Zen closes the real tab with it.
 - Agents VM: a Lume macOS VM (`agents`, clean copy `agents-base`) with Cua Driver, reached by Claude Code through the

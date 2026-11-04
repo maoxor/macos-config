@@ -1,4 +1,29 @@
-# Agents VM
+# Agents: browser, VM and guard
+
+Every Claude Code session works without touching the user's screen, mouse, keyboard or own apps (2026-11-04):
+
+| Need | Tool | Parallel |
+|---|---|---|
+| Web pages (read, test a web app, sign in, forms, screenshots) | MCP `browser` = `scripts/agents-browser`: Playwright MCP 0.0.83 (pinned, `~/.local/share/agents-browser`), **headless, isolated**, Chromium (`agents-browser mcp webkit` = Safari's engine) | one browser per session, no limit (6 at once measured: 10 s, host untouched) |
+| Desktop apps | MCP `agents-vm` (below) | 2 macOS VMs at once (Apple) |
+| Guard | `scripts/agents-host-guard.py`, PreToolUse hook (Bash) in `~/.claude` and `~/.claude-2` settings: refuses `open <url>`, `open -a <browser>`, osascript to a browser or System Events keys, cliclick, and the same inside the scripts a command runs (plus their local imports) | — |
+| Rules | `tools/claude/CLAUDE.md` linked as `~/.claude/CLAUDE.md` and `~/.claude-2/CLAUDE.md` | — |
+
+- Sign-ins: `agents-browser login default <url>` (the user signs in once in a visible window); `state/default.json` is
+  copied into each session (isolated: sessions never share or overwrite it). `agents-browser states` lists them.
+- Escape hatch: `HOST_GUI_OK=1` in a command, accepted only if the user's latest message in that session names the
+  screen or one of their apps (an agent cannot grant it to itself). Refusals and escapes:
+  `~/Library/Logs/macos-config/agents-host-guard.log`.
+- Why: on 2026-11-04 a session (~/dev/ideas) drove the user's Safari through a Python helper (`outils_safari.py`) to
+  test a Jira app; window-journal showed only Safari (LaunchServices), the transcripts showed the script.
+- Measured: an agent asked to "check the page with a screenshot" used `mcp__browser__*` by itself; no window, no
+  Safari tab, front app unchanged. An agent told to "open it in Safari with open" added HOST_GUI_OK=1 itself
+  and got through (before the escape was tightened): hence the transcript check, tested on both cases.
+- Limits: the guard reads commands and the scripts they name; code downloaded and run in other ways is not inspected.
+  Playwright scripts an agent writes itself should run headless (rule in CLAUDE.md; `playwright-watch` already keeps
+  headed test pages behind the user's windows).
+
+## Agents VM
 
 A macOS virtual machine where AI agents (Claude Code, and any MCP client such as Codex) use a real desktop — apps,
 browser, files, terminal — in the background. The user's screen, mouse and keyboard are never touched: the agent
