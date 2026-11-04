@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Cmd+F3: free XAU/USD prompt (no imposed strategies, timeframes, trade count or session hours; keeps the truth rules,
+  the per-setup state check, the risk budget and the table). Rollback: `git revert`, apply Hammerspoon, restart it.
 - Agents never on the user's screen: MCP `browser` (headless Playwright, one per session, unlimited in parallel), a
   PreToolUse guard refusing commands and scripts that drive the user's browsers or input (escape only if the user's
   latest message asks), global rules in ~/.claude(-2)/CLAUDE.md. Cause: a session drove the user's Safari for Jira

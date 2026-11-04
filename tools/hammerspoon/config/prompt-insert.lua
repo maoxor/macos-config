@@ -1,5 +1,5 @@
--- Cmd+F1: paste a fixed prompt (Cmd+F2: the XAU/USD intraday analysis prompt, in Markdown: # headings, * lists, a
--- table, so its structure survives the paste) at the cursor of the focused text field (Ghostty, editors, browsers).
+-- Cmd+F1: paste a fixed prompt (Cmd+F2: the XAU/USD intraday analysis prompt, Cmd+F3: its free version; Markdown: #
+-- headings, * lists, a table, so the structure survives the paste) at the cursor of the focused text field (Ghostty, editors, browsers).
 -- Pasting, not typing: typed newlines would press Return (and submit in Claude Code). The clipboard is
 -- saved first and put back 0.5 s later, so the paste does not replace it. Bound twice because the F1 key
 -- sends "brightness down" unless fn is held: Cmd+brightness-down (system key) and Cmd+fn+F1 (real F1).
@@ -384,8 +384,96 @@ function M.insert(text)
   end)
 end
 
+-- Cmd+F3: the free XAU/USD prompt (2026-11-04). Same truth rules, state check and risk as Cmd+F2, but no imposed
+-- strategy, timeframes, number of trades or session hours: the model decides what the situation calls for.
+M.xauFree = [==[
+# XAU/USD — ANALYSE LIBRE ET RECOMMANDATIONS DE TRADING
+
+## OBJECTIF
+
+Analyse le XAU/USD (or spot contre dollar américain) comme le ferait le meilleur trader intraday et swing que tu puisses être, et recommande les trades que la situation justifie réellement maintenant.
+
+Tu choisis toi-même les unités de temps, les méthodes, les indicateurs, les types de setups, le nombre d'opportunités, leur direction et leur horizon. Aucune stratégie n'est imposée : pars de ce que le marché montre, confronte les lectures contradictoires et prends position. Si rien ne vaut la peine d'être tradé, dis-le et explique ce qui changerait ton avis.
+
+Travail de fond aussi poussé que nécessaire. Réponse finale courte, chiffrée et directement exploitable.
+
+## CONTEXTE ET DONNÉES
+
+Détermine la date et l'heure de Paris, et la session en cours. Adapte l'horizon des trades à cette session, à la liquidité et au calendrier économique.
+
+Utilise en priorité la dernière cotation XAU/USD spot et les bougies via le connecteur Massive XAUUSD Live ; à défaut, des sources fiables (TradingView, Investing.com, fournisseurs financiers reconnus). Récupère assez d'historique pour reconstituer ce qui s'est passé depuis l'ouverture de la session et depuis la formation de chaque setup, à l'unité la plus fine disponible.
+
+Recherche librement tout ce qui peut éclairer la décision : contexte macro, dollar, rendements, banques centrales, géopolitique, calendrier, flux, sentiment, analyses publiées (par exemple https://fr.tradingview.com/symbols/XAUUSD/minds/). Accorde plus de poids aux faits et aux analyses argumentées qu'au nombre d'opinions.
+
+Une cotation datant de quelques minutes suffit pour préparer des plans. Indique le dernier prix, sa source et son heure réelle ; ne confonds jamais l'heure de consultation d'une page avec celle d'une cotation.
+
+## RÈGLES DE VÉRITÉ
+
+Ces règles ne limitent pas l'analyse : elles garantissent que chaque recommandation est encore valable au moment où tu la donnes.
+
+* Ne fabrique jamais de prix, d'horodatage, de bougie, de signal, de confirmation ou d'invalidation. Ce que les données ne permettent pas de trancher est **non vérifiable**, signalé comme tel, et ne compte ni comme réalisé ni comme non réalisé.
+* Un niveau est **touché** dès qu'une mèche l'atteint. Une validation par clôture n'existe qu'une fois la bougie concernée clôturée ; la bougie en cours ne confirme rien de définitif.
+* Respecte la chronologie : formation du setup → validations → entrée → invalidation, TP ou SL. Un événement antérieur à la formation d'un setup ne le valide pas ; un signal passé n'est jamais présenté comme une confirmation à venir.
+* Avant de recommander un trade, vérifie sur les bougies réellement disponibles : ce qui est déjà validé (totalement ou partiellement), si l'entrée a déjà été touchée, si l'invalidation a déjà été touchée.
+* Un setup dont l'invalidation est déjà touchée est **ANNULÉ**, même si le prix est revenu près de l'entrée ; un nouveau scénario apparu après peut être proposé comme nouveau setup, avec ses propres niveaux. Un setup dont l'entrée est déjà touchée est **DÉJÀ DÉCLENCHÉ** : ce n'est plus un ordre à placer.
+* Ne poursuis pas un mouvement déjà consommé et n'ajuste pas une entrée pour courir après le prix.
+
+## RISQUE
+
+* 0,5 % du capital maximum par trade, 1 % maximum de risque cumulé pour la session, en comptant les ordres susceptibles de se déclencher ensemble.
+* Chaque trade a un SL et un TP fondés sur la structure réelle ; n'invente pas un objectif lointain pour embellir le ratio. Signale clairement les trades alternatifs ou incompatibles entre eux.
+* L'exécution reste soumise au prix, au spread et aux règles du courtier au moment du dépôt.
+
+## RÉPONSE
+
+### A. LECTURE DU MARCHÉ
+Quelques lignes : date, heure de Paris et session ; dernier prix, source et ancienneté ; ta lecture dominante et sa force ; les niveaux et catalyseurs qui comptent ; ce qui est déjà consommé.
+
+### B. RECOMMANDATIONS
+Autant de trades que la situation en justifie (aucun est une réponse valable), classés du plus recommandé au moins recommandé. Un tableau, une colonne par trade :
+
+| Paramètre | Trade 1 | Trade 2 | … |
+|---|---|---|---|
+| Idée (en quelques mots) | | | |
+| BUY / SELL | | | |
+| Type d'ordre | | | |
+| Entrée | | | |
+| Stop-Loss | | | |
+| Take-Profit | | | |
+| Ratio R/R | | | |
+| Distance SL ($) | | | |
+| Distance max. d'entrée | | | |
+| Déjà réalisé / consommé | | | |
+| Ce qu'on doit attendre | | | |
+| Contrôle d'état | | | |
+| Invalidation | | | |
+| Expiration / clôture maximale | | | |
+| Statut | | | |
+
+Dans « Contrôle d'état » : Formé HH:MM · Validations : X/Y réalisées (lesquelles) · Entrée : non touchée / touchée HH:MM · Invalidation : non touchée / touchée HH:MM · Vérifié jusqu'à HH:MM (unité), et toute condition non vérifiable.
+
+Statuts : **PRÊT À SAISIR** (conditions réalisées, entrée et invalidation non touchées, distance d'entrée acceptable) · **CONDITIONNEL** (précise ce qui reste à venir et ce qui est déjà acquis) · **DÉJÀ DÉCLENCHÉ** · **ANNULÉ** · **DONNÉES INSUFFISANTES**.
+
+Sous le tableau, deux ou trois phrases par trade : pourquoi cette opportunité, pourquoi ces niveaux, le principal risque.
+
+### C. DÉCISION
+Ce que tu ferais maintenant, en quelques lignes : le trade prioritaire, ce qu'il faut préparer, ce qu'il faut attendre, ce qu'il ne faut pas cumuler. Puis 3 à 5 sources réellement consultées.
+
+Avant de répondre, relis chaque « Contrôle d'état » : corrige tout trade dont l'entrée ou l'invalidation a déjà été touchée, ou dont une validation présentée comme future a déjà eu lieu.]==]
+
 M.hotkey = hs.hotkey.bind({ "cmd" }, "f1", function() M.insert(M.text) end)
 M.hotkeyXau = hs.hotkey.bind({ "cmd" }, "f2", function() M.insert(M.xau) end)
+M.hotkeyXauFree = hs.hotkey.bind({ "cmd" }, "f3", function() M.insert(M.xauFree) end)
+-- Bare F3 sends Mission Control (keycode 160), not f3: Cmd+that key also pastes the free prompt. Bare F3 stays the
+-- wallpaper key (wallpaper-cycle.lua lets modified presses through).
+M.tapF3 = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(e)
+  if e:getKeyCode() ~= 160 then return false end
+  local f = e:getFlags()
+  if not (f.cmd and not f.alt and not f.ctrl and not f.shift) then return false end
+  if e:getProperty(hs.eventtap.event.properties.keyboardEventAutorepeat) == 0 then M.insert(M.xauFree) end
+  return true
+end)
+M.tapF3:start()
 
 -- Bare F1 / F2 send brightness down / up; only with Cmd and no other modifier.
 local byKey = { BRIGHTNESS_DOWN = "text", BRIGHTNESS_UP = "xau" }
