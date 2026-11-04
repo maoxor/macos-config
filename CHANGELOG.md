@@ -4,6 +4,9 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Zen tabs from Raycast are instant: Mozeidon (Homebrew, signed Zen add-on, native messaging) lists live tabs and
+  switches in ~60 ms (Ctrl+Space, Enter: Zen in front on the tab in ~350 ms, was ~1.5-2.5 s by typing into Zen's
+  tab search, kept as fallback). Rollback: `git revert`, `brew uninstall mozeidon mozeidon-native-app`.
 - Cmd+F2 XAU/USD prompt, validation/invalidation fix: definitions of touched / closed-candle validation, a state
   audit per setup (formation, validations, entry, invalidation, checked-until time; unverifiable is not "not
   happened"), a "Contrôle d'état" table row, statuses tied to that audit plus DÉJÀ DÉCLENCHÉ, a final self-check.

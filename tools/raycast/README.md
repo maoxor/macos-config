@@ -42,8 +42,8 @@ Plain shell files tracked here, so they come back on a new Mac. They expose this
 | Restaurer les sessions | reopen apps and Claude Code sessions after a crash (asks first) | Cmd+F5 twice |
 
 ## Local extension `zen-tabs/` (Onglets Zen)
-A native Raycast list of Zen's open tabs (favicon, title, site, workspace, active tag); Enter calls Hammerspoon's
-`zenTabs.switchTo`, Cmd+K copies the address or a Markdown link. Zen has no AppleScript, so the tabs come from
+A native Raycast list of Zen's open tabs (favicon, title, site, workspace, active tag); Enter switches through Mozeidon
+(instant; Hammerspoon's `zenTabs.switchTo` as fallback), Cmd+K copies the address or a Markdown link. Zen has no AppleScript, so the tabs come from
 `scripts/zen-tabs.py` (its session file). Install on a new Mac: `cd tools/raycast/zen-tabs && npm install && npx ray
 develop` (registers it locally, then stop it); the first Ctrl+Space asks once, answer "Always Run Command".
 

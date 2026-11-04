@@ -24,4 +24,14 @@ add() { # AMO slug, add-on id
 }
 add ublock-origin "uBlock0@raymondhill.net"
 add auto-tab-discard "{c2c003ee-bd69-42a2-b0e9-6f34222cb046}"
+# Mozeidon: lets Raycast list and switch Zen tabs instantly (native messaging; tools/zen/README.md)
+add mozeidon "mozeidon-addon@egovelox.com"
+# Native messaging manifest for Mozeidon's add-on (Zen reads Mozilla's folder; its own is written too, harmless).
+native="$(command -v mozeidon-native-app || true)"
+if [[ -n "$native" ]]; then
+  for d in "$HOME/Library/Application Support/Mozilla/NativeMessagingHosts" "$HOME/Library/Application Support/zen/NativeMessagingHosts"; do
+    mkdir -p "$d"
+    printf '{\n  "name": "mozeidon",\n  "description": "Native messaging add-on to interact with your browser",\n  "path": "%s",\n  "type": "stdio",\n  "allowed_extensions": ["mozeidon-addon@egovelox.com"]\n}\n' "$native" > "$d/mozeidon.json"
+  done
+fi
 echo "Zen profile ready: $profile"

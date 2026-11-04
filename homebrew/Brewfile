@@ -29,3 +29,8 @@ cask "helium-browser"
 # Local AI image upscaler (Real-ESRGAN, free, offline). CLI: /Applications/Upscayl.app/Contents/Resources/bin/upscayl-bin
 # -i in -o out -s 4 -m <Resources>/models -n high-fidelity-4x; run it through `jobgate run --gpu`.
 cask "upscayl"
+# Mozeidon (egovelox, open source, audited 2026-11-04: local IPC only, no network): Raycast lists and switches Zen
+# tabs instantly (~60 ms) through its signed Zen add-on and native messaging (tools/zen/README.md).
+tap "egovelox/homebrew-mozeidon"
+brew "egovelox/mozeidon/mozeidon"
+brew "egovelox/mozeidon/mozeidon-native-app"

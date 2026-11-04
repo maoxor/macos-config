@@ -37,3 +37,10 @@ prints both add-ons `True`.
 ## Rollback
 Remove the profile's `user.js`, uninstall the add-ons in Zen, `brew uninstall --cask zen`; restore Safari as the
 default browser; `git revert` the commit (OmniWM rule, Hammerspoon tab keys).
+
+## Tab search from Raycast (Ctrl+Space)
+Zen has no AppleScript. Mozeidon gives Raycast the live tab list (~30 ms) and the switch (~60 ms): Homebrew CLI +
+native app, its signed add-on (`apply-profile.sh` places it), and a native messaging manifest that
+`apply-profile.sh` writes. The Raycast list is `tools/raycast/zen-tabs`; without Mozeidon it falls back to the
+session file and Hammerspoon (~1.5 s). Check: `mozeidon tabs get`. A tab unloaded by Auto Tab Discard still reloads
+its page when opened.

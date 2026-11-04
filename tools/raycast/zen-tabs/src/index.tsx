@@ -1,6 +1,7 @@
-// Zen's open tabs in a native Raycast list. Zen (Firefox) has no AppleScript: the tabs come from its session file
-// (scripts/zen-tabs.py in the macos-config repo), and the jump goes through Hammerspoon (zen-tabs.lua), which drives
-// Zen's own tab search. Opened by Ctrl+Space (Hammerspoon) or from Raycast.
+// Zen's open tabs in a native Raycast list, opened by Ctrl+Space (Hammerspoon) or from Raycast.
+// Zen (Firefox) has no AppleScript. Mozeidon (Homebrew CLI + native app + its signed Zen add-on, native messaging)
+// lists the live tabs in ~30 ms and switches in ~60 ms; Zen is then brought to the front. Without Mozeidon the list
+// falls back to Zen's session file (scripts/zen-tabs.py) and the jump to Hammerspoon driving Zen's tab search (~1.5 s).
 import { Action, ActionPanel, Icon, List, closeMainWindow, showToast, Toast } from "@raycast/api";
 import { getFavicon } from "@raycast/utils";
 import { execFile, execFileSync } from "child_process";
@@ -9,9 +10,28 @@ import { homedir } from "os";
 import { join } from "path";
 import { useMemo } from "react";
 
-type Tab = { title: string; url: string; selected: boolean; workspace: string; pinned: boolean };
+type Tab = { title: string; url: string; selected: boolean; workspace: string; pinned: boolean; ref?: string };
 
 const HS = "/opt/homebrew/bin/hs";
+const MOZEIDON = "/opt/homebrew/bin/mozeidon";
+const ZEN = "app.zen-browser.zen";
+
+type MozTab = { id: number; windowId: number; pinned: boolean; url: string; title: string; active: boolean; lastAccessed: number };
+
+function mozeidonTabs(): Tab[] | null {
+  if (!existsSync(MOZEIDON)) return null;
+  try {
+    const out = execFileSync(MOZEIDON, ["tabs", "get"], { encoding: "utf8", timeout: 2000 });
+    const data = (JSON.parse(out).data ?? []) as MozTab[];
+    return data
+      .filter((t) => t.url && !t.url.startsWith("about:"))
+      .sort((a, b) => Number(b.active) - Number(a.active) || b.lastAccessed - a.lastAccessed)
+      .map((t) => ({ title: t.title || t.url, url: t.url, selected: t.active, workspace: "", pinned: t.pinned,
+        ref: `${t.windowId}:${t.id}` }));
+  } catch {
+    return null;
+  }
+}
 
 function repoDir(): string {
   const pointer = join(homedir(), ".config/macos-config/repo");
@@ -23,6 +43,8 @@ function repoDir(): string {
 }
 
 function loadTabs(): { tabs: Tab[]; error?: string } {
+  const live = mozeidonTabs();
+  if (live) return { tabs: live };
   try {
     const out = execFileSync("/usr/bin/python3", ["-I", join(repoDir(), "scripts/zen-tabs.py")], {
       encoding: "utf8",
@@ -51,6 +73,13 @@ const short = (t: string) => (t.length > 72 ? t.slice(0, 70).trimEnd() + "…" :
 
 async function jump(tab: Tab) {
   await closeMainWindow({ clearRootSearch: true });
+  if (tab.ref) {
+    execFile(MOZEIDON, ["tabs", "switch", tab.ref], { timeout: 3000 }, (err) => {
+      if (err) showToast({ style: Toast.Style.Failure, title: "Mozeidon ne répond pas", message: err.message });
+      else execFile("/usr/bin/open", ["-b", ZEN]);
+    });
+    return;
+  }
   execFile(HS, ["-c", `zenTabs.switchTo(${lua(tab.url)}, ${lua(tab.title)})`], { timeout: 8000 }, (err) => {
     if (err) showToast({ style: Toast.Style.Failure, title: "Hammerspoon ne répond pas", message: err.message });
   });
