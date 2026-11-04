@@ -121,7 +121,8 @@ def main():
     warm = hd >= 330 or hd <= 60
     if warm:
         hb = 228
-    l0, sd, st = (0.17, 0.06, 0.03) if warm else (0.16, sd, 0.45)
+    # Lightness 0.12 (#1C1D20): 0.17 (#2A2B2F) read too grey to the user.
+    l0, sd, st = (0.12, 0.06, 0.03) if warm else (0.16, sd, 0.45)
     opacity = 0.78 if warm else 0.88
     if LIGHT:
         # Light variant: the background is a pale shade of the colourful tone (lightness 0.78), dark text.
