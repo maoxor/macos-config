@@ -115,9 +115,13 @@ def main():
     # image give a pink text. The background and text are then a neutral charcoal and off-white, and the terminals
     # more opaque so the warm wallpaper barely shows through (2026-11-03: a red-on-black fractal turned every
     # window brown; saturation 0.12 still read brown next to the red image, 0.03 does not).
+    # The user then chose a frosted-glass anthracite over the flat near-black: a light cool grey (#2A2B2F, hue 228,
+    # never warm), translucent and blurred so the wallpaper shows through softly.
     warm = hd >= 330 or hd <= 60
-    l0, sd, st = (0.11, 0.03, 0.03) if warm else (0.16, sd, 0.45)
-    opacity = 0.95 if warm else 0.88
+    if warm:
+        hb = 228
+    l0, sd, st = (0.17, 0.06, 0.03) if warm else (0.16, sd, 0.45)
+    opacity = 0.86 if warm else 0.88
     if LIGHT:
         # Light variant: the background is a pale shade of the colourful tone (lightness 0.78), dark text.
         pal = {
