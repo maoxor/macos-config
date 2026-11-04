@@ -29,7 +29,7 @@ OmniWM details: `docs/omniwm.md`. Shortcuts: `docs/shortcuts.md`. macOS settings
 | Playwright test browsers (Claude Code experiments) | pages created behind the user's windows, in the bottom-right corner (`scripts/playwright-background-pages.py`, applied to each new copy by `playwright-watch`: no flash, nothing seen through translucent Ghostty); OmniWM rules → W4 Atelier, patch 0029; `test-browsers.lua` gives the keyboard back and sends force-floated Safari windows to W4; `window-journal` records any window that still shows (B19) | — |
 | Contexts (workspace + resources) | Hammerspoon `poweruser.lua` | — |
 | Focused-window border: **off** (removed by the user 2026-11-03; ready: `enable = true` gives violet #B026FF, 6 pt, real corner radius, and Raycast's panel ringed by `raycast-dim.lua`) | JankyBorders (`home-manager/borders.nix`) | OmniWM's border (tried 2026-11-03, judged poor; kept off) |
-| Workspace bar | none, by choice | OmniWM's bar, SketchyBar |
+| Top bar (replaces the macOS menu bar, auto-hidden, in its 39 pt band: workspaces, focused window, CPU, memory, sound, Wi-Fi, battery, clock) | SketchyBar, "pills" style (`home-manager/sketchybar.nix`, `tools/sketchybar/`) | OmniWM's shell bar (tried 2026-11-04, removed: judged ugly) |
 | Browsers | Zen = main (W2, `tools/zen/`), Helium = development (W4, `tools/helium/`), Safari kept (W2) | — |
 | Keyboard navigation (hints) | Neru | Raycast |
 | Launcher | Raycast (Cmd+Space; its backdrop: Hammerspoon `raycast-dim.lua`; script commands: `tools/raycast/script-commands/`) | Spotlight shortcut (disabled) |

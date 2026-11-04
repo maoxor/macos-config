@@ -3,7 +3,7 @@ let
   identity = import ./identity.nix;
   profile = import ./profile.nix;
 in {
-  imports = [ ./shell.nix ./startup.nix ./theme.nix ./macos.nix ./borders.nix ];
+  imports = [ ./shell.nix ./startup.nix ./theme.nix ./macos.nix ./borders.nix ./sketchybar.nix ];
   assertions = [
     { assertion = identity.homeDirectory == "/Users/${identity.username}";
       message = "Check the home directory; adapt this assertion if the account uses another path."; }

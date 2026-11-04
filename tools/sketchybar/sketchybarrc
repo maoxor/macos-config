@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# SketchyBar, "pills" style (chosen 2026-11-04): it takes the band of the macOS menu bar (auto-hidden, 39 pt on this
+# screen, notch 222 pt in the middle), one glass pill per group. Colours: colors.sh, written by Home Manager from the
+# wallpaper palette (home-manager/sketchybar.nix). Live updates of OmniWM workspaces and focus come from
+# `omniwmctl watch`, which triggers the custom event omniwm_update. topmost=on puts the bar at window level 25, above
+# the macOS menu bar (24) that still slides in when the pointer touches the top edge ("window" = level 3, under it).
+CONFIG_DIR="${CONFIG_DIR:-$HOME/.config/sketchybar}"
+PLUGINS="$CONFIG_DIR/plugins"
+# shellcheck source=/dev/null
+source "$CONFIG_DIR/colors.sh"
+CTL="$HOME/.local/bin/omniwmctl"
+FONT="JetBrainsMono Nerd Font"
+
+sketchybar --bar position=top height=39 color=0x00000000 border_width=0 shadow=off sticky=on topmost=on \
+                 padding_left=8 padding_right=8 margin=0 y_offset=0 notch_width=222 display=main
+
+sketchybar --default updates=when_shown \
+                     icon.font="$FONT:Bold:14.0" label.font="$FONT:Medium:13.0" \
+                     icon.color="$TEXT" label.color="$TEXT" \
+                     icon.padding_left=4 icon.padding_right=4 label.padding_left=4 label.padding_right=4 \
+                     padding_left=2 padding_right=2 background.height=28
+
+pill() {  # $1 bracket name, $2 fill, $3 border, rest: members
+  local name=$1 fill=$2 border=$3; shift 3
+  sketchybar --add bracket "$name" "$@" \
+             --set "$name" background.color="$fill" background.border_color="$border" background.border_width=1 \
+                           background.corner_radius=14 background.height=28 background.drawing=on
+}
+
+sketchybar --add event omniwm_update
+
+# Left: workspaces (click to switch), then the focused window.
+for n in 1 2 3 4; do
+  sketchybar --add item "ws.$n" left \
+             --set "ws.$n" icon.drawing=off label="$n" label.padding_left=7 label.padding_right=7 label.color="$MUTED" \
+                           click_script="$CTL command switch-workspace $n"
+done
+sketchybar --add item ws.logic left \
+           --set ws.logic drawing=off updates=on script="$PLUGINS/workspaces.sh" \
+           --subscribe ws.logic omniwm_update system_woke
+pill ws "$PILL_ACC" "$BORDER_ACC" ws.1 ws.2 ws.3 ws.4
+
+sketchybar --add item title left \
+           --set title icon="" icon.color="$ACCENT" icon.padding_left=12 label.padding_right=12 \
+                       label.max_chars=48 updates=on script="$PLUGINS/title.sh" \
+           --subscribe title omniwm_update front_app_switched system_woke
+pill title.pill "$PILL" "$BORDER" title
+
+# Right (added right to left): clock, system pill, stats pill.
+sketchybar --add item clock right \
+           --set clock icon.drawing=off label.font="$FONT:Bold:13.0" label.padding_left=12 label.padding_right=12 \
+                       update_freq=15 script="$PLUGINS/clock.sh" \
+           --subscribe clock system_woke
+pill clock.pill "$PILL_ACC" "$BORDER_ACC" clock
+
+sketchybar --add item battery right \
+           --set battery update_freq=120 label.padding_right=12 script="$PLUGINS/battery.sh" \
+           --subscribe battery power_source_change system_woke \
+           --add item wifi right \
+           --set wifi label.drawing=off script="$PLUGINS/wifi.sh" \
+           --subscribe wifi wifi_change system_woke \
+           --add item volume right \
+           --set volume icon.padding_left=12 script="$PLUGINS/volume.sh" \
+           --subscribe volume volume_change
+pill system "$PILL" "$BORDER" volume wifi battery
+
+sketchybar --add item mem right \
+           --set mem icon="󰍛" label.padding_right=12 update_freq=10 script="$PLUGINS/mem.sh" \
+           --add item cpu right \
+           --set cpu icon="" icon.padding_left=12 update_freq=3 script="$PLUGINS/cpu.sh"
+pill stats "$PILL" "$BORDER" cpu mem
+
+# OmniWM events -> omniwm_update (one watcher; a reload replaces it).
+pkill -f "omniwmctl watch focus,active-workspace,windows-changed" 2>/dev/null
+SB="$(command -v sketchybar)"
+nohup "$CTL" watch focus,active-workspace,windows-changed --exec "$SB" --trigger omniwm_update >/dev/null 2>&1 &
+
+sketchybar --update
+sketchybar --trigger omniwm_update

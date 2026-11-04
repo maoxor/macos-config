@@ -37,7 +37,7 @@ in {
       AppleInterfaceStyle = "Dark";
       AppleShowAllExtensions = true;
       _HIHideMenuBar = true;                      # menu bar auto-hides
-      AppleMenuBarVisibleInFullscreen = true;
+      AppleMenuBarVisibleInFullscreen = false;    # no macOS menu bar in full screen either (SketchyBar replaces it)
       AppleMiniaturizeOnDoubleClick = false;
       AppleEnableSwipeNavigateWithScrolls = true;
       KeyRepeat = 2;

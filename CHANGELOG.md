@@ -4,6 +4,9 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Top bar: SketchyBar replaces the macOS menu bar (auto-hidden, now in full screen too), "pills" style chosen from six
+  mockups; workspaces live from OmniWM, focused window, CPU, memory, sound, Wi-Fi, battery, clock; colours follow the
+  wallpaper. Rollback: drop `./sketchybar.nix` from `home.nix`, `scripts/apply.sh home-manager --write`.
 - Palette, warm wallpaper: dark frosted background (#1C1D20, cool hue, opacity 0.78 with blur) instead of the
   flat near-black, the user's choice.
 - Hover focus slow between Ghostty windows (B24): OmniWM patch 0033 (below) and a Ghostty restart; raising on a

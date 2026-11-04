@@ -40,6 +40,10 @@ PY
 
 # --- JankyBorders (home-manager/borders.nix) keeps a fixed violet: not themed.
 
+# --- SketchyBar (home-manager/sketchybar.nix): colors.sh follows the palette at the Home Manager switch; reload the
+# running bar so it takes it at once.
+if [ "$write" = 1 ] && pgrep -xq sketchybar; then sketchybar --reload >/dev/null 2>&1 || true; fi
+
 # --- macOS accent: 8 fixed colours; pick the closest to the theme accent (base0D)
 read -r target name hl <<<"$(python3 -I - "$pal" <<'PY'
 import json, sys
