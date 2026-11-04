@@ -4,6 +4,10 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Cmd+F2 XAU/USD prompt, validation/invalidation fix: definitions of touched / closed-candle validation, a state
+  audit per setup (formation, validations, entry, invalidation, checked-until time; unverifiable is not "not
+  happened"), a "Contrôle d'état" table row, statuses tied to that audit plus DÉJÀ DÉCLENCHÉ, a final self-check.
+  Everything else kept word for word. Rollback: `git revert`, apply Hammerspoon, restart it.
 - Zen tab search is now a native Raycast list (local extension `tools/raycast/zen-tabs`: favicons, site, workspace,
   actions), opened by Ctrl+Space; it replaces the Hammerspoon chooser and the script command.
 - Ctrl+Space: Zen tab search from anywhere (the same chooser as Raycast "Onglets Zen"). Rollback: `git revert`, apply

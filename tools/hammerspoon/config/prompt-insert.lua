@@ -123,7 +123,7 @@ Adapte ces limites aux horaires de marché, à la liquidité et aux événements
 
 Recherche prioritairement la dernière cotation XAU/USD spot et les bougies H4, H1, M15 et M5 via le connecteur Massive XAUUSD Live. À défaut, utilise des sources fiables : TradingView, Investing.com ou fournisseurs financiers reconnus.
 
-Récupère également les bougies précédentes pour reconstituer les mouvements de la session et vérifier chronologiquement les niveaux déjà atteints.
+Récupère également les bougies précédentes pour reconstituer les mouvements de la session et vérifier chronologiquement les niveaux déjà atteints : au minimum depuis l'ouverture de la session en cours et depuis la formation de chaque setup, à l'unité la plus fine disponible (M5, ou M1 si possible), jusqu'à la dernière bougie disponible.
 
 Une cotation horodatée datant de 5 à 10 minutes est acceptable pour préparer les scénarios. N'exige pas inutilement un flux temps réel à la seconde.
 
@@ -146,6 +146,12 @@ Identifie notamment :
 * Configurations en formation et confirmations restant à attendre.
 
 Vérifie la chronologie des bougies pour distinguer les mouvements terminés, les signaux déjà déclenchés et les opportunités encore disponibles. Ne considère pas une ancienne cassure ou un retest déjà effectué comme un nouveau signal.
+
+Lis les signaux avec des définitions constantes :
+* Un niveau est **touché** dès qu'une mèche l'atteint (plus haut ou plus bas de la bougie), même sans clôture au-delà.
+* Une **validation par clôture** n'existe qu'une fois la bougie de l'unité indiquée clôturée. La bougie en cours ne confirme et n'invalide rien de définitif.
+* Chaque événement s'inscrit dans l'ordre : formation du setup → validations → déclenchement de l'entrée → invalidation, TP ou SL. Un événement survenu avant la formation d'un setup ne le valide pas.
+* Toutes les heures sont exprimées en heure de Paris.
 
 Explore également toute autre méthode, indicateur ou configuration susceptible de révéler une opportunité pertinente. Ne privilégie aucune approche par habitude et confronte les interprétations contradictoires.
 
@@ -229,12 +235,26 @@ Privilégie un ratio brut d'au moins 2:1 lorsqu'il est compatible avec des objec
 
 Chaque ordre doit avoir une logique propre et une justification courte.
 
-## 5. VÉRIFICATIONS ET GESTION DU RISQUE
+## 5. AUDIT D'ÉTAT DE CHAQUE SETUP
+
+Avant d'attribuer un statut, établis pour chaque ordre, à partir des bougies réellement disponibles :
+1. **Formation :** heure et prix auxquels le setup s'est formé.
+2. **Validations :** chaque condition requise, avec son état : réalisée (heure, prix), partiellement réalisée (ce qui manque), en attente, ou non vérifiable.
+3. **Entrée :** déjà touchée ou non depuis la formation. Si oui, indique l'heure et vérifie si le SL ou le TP ont été atteints ensuite.
+4. **Invalidation :** déjà touchée ou non depuis la formation, avec heure et prix si oui.
+5. **Vérifié jusqu'à :** heure de la dernière bougie analysée et unité utilisée.
+
+L'absence de données ne prouve pas qu'un événement n'a pas eu lieu. Une condition que les bougies disponibles ne permettent pas de trancher est **non vérifiable** : elle ne compte ni comme réalisée ni comme non réalisée, et elle est signalée.
+
+Un setup dont l'invalidation est déjà touchée est **ANNULÉ**, même si le prix est revenu près de l'entrée. Un nouveau scénario apparu après cette invalidation peut être proposé, à condition de s'être formé après elle, d'avoir ses propres niveaux et d'être présenté comme un nouveau setup.
+
+Un setup dont l'entrée a déjà été touchée est **DÉJÀ DÉCLENCHÉ** : ne le propose pas comme un ordre à placer, indique s'il est encore en cours ou déjà clôturé par son SL ou son TP.
+
+## 6. VÉRIFICATIONS ET GESTION DU RISQUE
 
 Avant la décision finale :
 * Contrôle la compatibilité de chaque type d'ordre avec le dernier marché connu et, si disponibles, le Bid/Ask.
-* Vérifie chronologiquement les bougies précédentes et les niveaux déjà atteints ou invalidés.
-* Vérifie si l'entrée, le SL ou le TP théoriques ont déjà été touchés depuis la formation du signal.
+* Applique l'audit d'état (section 5) à chaque ordre : entrée, SL, TP et invalidation déjà touchés ou non depuis la formation du signal, vérifiés chronologiquement sur les bougies précédentes.
 * Distingue les confirmations déjà obtenues de celles restant à attendre.
 * Compare la distance d'entrée à la tolérance définie.
 * Évalue la cohérence du stop, du TP, du spread et du risque de slippage.
@@ -253,9 +273,9 @@ Les quatre plans proposés ne signifient pas quatre positions simultanées. Dist
 
 Une cotation web datant de dix minutes permet de préparer les niveaux, mais leur exécution nécessite de vérifier le prix, le spread et les règles du courtier au moment du dépôt.
 
-Si certaines données sont indisponibles, travaille avec les éléments fiables et précise les limites réellement importantes. N'interromps pas inutilement l'ensemble de l'analyse.
+Si certaines données sont indisponibles, travaille avec les éléments fiables et précise les limites réellement importantes. N'interromps pas inutilement l'ensemble de l'analyse : marque comme non vérifiable ce qui ne peut pas être contrôlé, sans le présenter comme réalisé ni comme encore à venir.
 
-## 6. FORMAT DE RÉPONSE
+## 7. FORMAT DE RÉPONSE
 
 ### A. SYNTHÈSE DU MARCHÉ
 
@@ -285,6 +305,7 @@ Présente un tableau unique :
 | Distance max. d'entrée | | | | |
 | Déjà réalisé / consommé | | | | |
 | Ce qu'on doit attendre | | | | |
+| Contrôle d'état | | | | |
 | Condition d'activation | | | | |
 | Invalidation | | | | |
 | Expiration | | | | |
@@ -294,6 +315,8 @@ Présente un tableau unique :
 Dans « Déjà réalisé / consommé », indique brièvement les événements déjà observés : cassure, retest, rejet, impulsion, niveau touché ou signal consommé.
 
 Dans « Ce qu'on doit attendre », indique précisément le prochain mouvement, prix ou signal nécessaire. Mentionne « Rien » lorsque toutes les conditions sont déjà réunies.
+
+Dans « Contrôle d'état », reporte l'audit de la section 5 sous la forme : Formé HH:MM · Validations : X/Y réalisées (lesquelles) · Entrée : non touchée / touchée HH:MM · Invalidation : non touchée / touchée HH:MM · Vérifié jusqu'à HH:MM (unité). Signale toute condition non vérifiable.
 
 Distingue les faits confirmés des scénarios attendus. Utilise des prix et des conditions vérifiables, sans supposer qu'un événement s'est produit.
 
@@ -318,17 +341,18 @@ Indique clairement :
 
 **ORDRES À PRÉPARER :** niveaux et conditions exacts.
 
-**SIGNAUX DÉJÀ CONSOMMÉS :** mouvements terminés et ordres à écarter.
+**SIGNAUX DÉJÀ CONSOMMÉS :** mouvements terminés, setups invalidés ou déjà déclenchés, et ordres à écarter.
 
 **CE QU'IL FAUT ATTENDRE :** prochains niveaux, confirmations et déclencheurs prioritaires.
 
 **ORDRES À NE PAS CUMULER :** conflits et annulations nécessaires.
 
 Utilise les statuts :
-* **PRÊT À SAISIR :** plan cohérent avec les dernières données connues, soumis au contrôle du courtier.
-* **CONDITIONNEL :** confirmation ou événement précis encore nécessaire.
+* **PRÊT À SAISIR :** plan cohérent avec les dernières données connues, soumis au contrôle du courtier : toutes les conditions requises réalisées, entrée et invalidation non touchées depuis la formation, distance d'entrée dans la tolérance.
+* **CONDITIONNEL :** confirmation ou événement précis encore nécessaire, invalidation non touchée. Indique les conditions déjà réalisées.
+* **DÉJÀ DÉCLENCHÉ :** entrée déjà touchée depuis la formation ; ce n'est plus un ordre à placer. Précise si la position serait encore ouverte ou déjà clôturée par son SL ou son TP.
 * **ANNULÉ :** signal consommé ou invalidé.
-* **DONNÉES INSUFFISANTES :** niveaux non justifiables de manière fiable.
+* **DONNÉES INSUFFISANTES :** niveaux non justifiables de manière fiable, ou historique insuffisant pour vérifier que l'entrée et l'invalidation n'ont pas déjà été touchées.
 
 Termine par une décision concrète de quelques lignes, sans conclusion générique ni répétition de l'analyse.
 
@@ -343,6 +367,8 @@ Vérifie systématiquement l'historique récent avant de proposer les ordres. Di
 Sois décisif sans inventer de certitudes. Privilégie la qualité des configurations, la cohérence des niveaux, des déclencheurs explicites et une gestion mesurée de l'exposition.
 
 Si moins de quatre opportunités sont justifiables, conserve les quatre emplacements, mais marque les configurations non valides au lieu d'inventer des ordres.
+
+Avant de répondre, relis chaque « Contrôle d'état » : un ordre dont l'entrée ou l'invalidation a déjà été touchée, ou dont une validation présentée comme future a déjà eu lieu, doit être corrigé avant la réponse. Aucun ordre n'est PRÊT À SAISIR ou CONDITIONNEL sans ce contrôle.
 
 Résultat recherché : quatre scénarios hiérarchisés, des prix précis fondés sur des données vérifiables, une lecture claire des mouvements déjà réalisés et des confirmations à attendre, et une décision opérationnelle facile à appliquer.]==]
 
