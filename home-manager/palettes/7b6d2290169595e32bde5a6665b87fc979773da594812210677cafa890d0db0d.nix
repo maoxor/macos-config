@@ -2,20 +2,20 @@
 {
   scheme = "wallpaper (auto)"; author = "macos-config (auto)";
   opacity = 0.78; # Ghostty: the blurred wallpaper shows through slightly
-  base00 = "292a2e";
-  base01 = "333438";
-  base02 = "47484d";
+  base00 = "1d1d20";
+  base01 = "27282b";
+  base02 = "3b3c40";
   base03 = "7d7e82";
   base04 = "bab5b5";
   base05 = "e1dfdf";
   base06 = "ebeaea";
   base07 = "f3f2f2";
-  base08 = "ec6565"; # red: errors, deletions (hue 0°, warm wallpaper set)
+  base08 = "ea5353"; # red: errors, deletions (hue 0°, warm wallpaper set)
   base09 = "e47958"; # orange: constants (hue 14°, warm wallpaper set)
   base0A = "d4b77d"; # gold: warnings (hue 40°, warm wallpaper set)
   base0B = "9bb389"; # green: success, additions, strings (hue 95°, warm wallpaper set)
   base0C = "b0b8bf"; # cyan: escapes, info (hue 210°, warm wallpaper set)
   base0D = "e0859c"; # blue: functions, links, system accent (hue 345°, warm wallpaper set)
   base0E = "c89db6"; # purple: keywords (hue 325°, warm wallpaper set)
-  base0F = "a58d8d"; # brown: deprecated (hue 0°, warm wallpaper set)
+  base0F = "a18787"; # brown: deprecated (hue 0°, warm wallpaper set)
 }
