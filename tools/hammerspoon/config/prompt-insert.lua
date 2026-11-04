@@ -1,4 +1,5 @@
--- Cmd+F1: paste a fixed prompt (Cmd+F2: the XAU/USD intraday analysis prompt) at the cursor of the focused text field (Ghostty, editors, browsers).
+-- Cmd+F1: paste a fixed prompt (Cmd+F2: the XAU/USD intraday analysis prompt, in Markdown: # headings, * lists, a
+-- table, so its structure survives the paste) at the cursor of the focused text field (Ghostty, editors, browsers).
 -- Pasting, not typing: typed newlines would press Return (and submit in Claude Code). The clipboard is
 -- saved first and put back 0.5 s later, so the paste does not replace it. Bound twice because the F1 key
 -- sends "brightness down" unless fn is held: Cmd+brightness-down (system key) and Cmd+fn+F1 (real F1).
@@ -87,70 +88,125 @@ Retourne uniquement le prompt optimisé, adressé directement à Claude Code et 
 </prompt_original>]==]
 
 M.xau = [==[
-XAU/USD — ANALYSE EXPERTE & 4 ORDRES MATIN / SOIR
-MISSION
+# XAU/USD — ANALYSE EXPERTE & 4 ORDRES MATIN / SOIR
+
+## MISSION
+
 Agis comme un analyste professionnel spécialisé dans le trading intraday du XAU/USD (or spot contre dollar américain).
+
 Effectue une recherche web approfondie, confronte les données disponibles et identifie les meilleures opportunités de la session.
+
 Objectif : produire 4 plans d'ordres précis à chaque analyse :
 * A1 — Agressif : saisir rapidement une cassure, une accélération ou toute autre opportunité réactive.
 * A2 — Agressif : exploiter une seconde opportunité réactive, distincte de A1.
 * S1 — Safe : rechercher une configuration solide avec des confirmations adaptées au marché.
 * S2 — Safe : rechercher une autre configuration à confirmation renforcée, avec une invalidation technique claire.
+
 Les quatre ordres peuvent être acheteurs ou vendeurs, selon le marché. Ne force pas une répartition artificielle entre achats et ventes.
+
 Recherche quatre configurations techniquement justifiées, pas quatre variantes presque identiques d'une seule idée.
+
 Les stratégies citées sont des exemples, pas des limites. Explore librement toute approche pertinente, même non mentionnée dans ce prompt, et adapte ton analyse aux conditions réelles du marché.
+
 Adopte une analyse exigeante, précise et engagée. Prends position lorsqu'un scénario domine. Évite les généralités, les validations excessives, les précautions répétitives et les raisonnements interminables dans la réponse.
+
 Travail de fond approfondi. Résultat final court, chiffré et directement exploitable.
-1. SESSION ET DONNÉES
+
+## 1. SESSION ET DONNÉES
+
 Détermine automatiquement la date et l'heure de Paris.
+
 * Matin : 4 ordres pour la journée, avec clôture maximale par défaut à 20 h.
 * Soir : 4 ordres pour la nuit, avec clôture maximale par défaut à 8 h le lendemain.
+
 Adapte ces limites aux horaires de marché, à la liquidité et aux événements économiques.
+
 Recherche prioritairement la dernière cotation XAU/USD spot et les bougies H4, H1, M15 et M5 via le connecteur Massive XAUUSD Live. À défaut, utilise des sources fiables : TradingView, Investing.com ou fournisseurs financiers reconnus.
+
+Récupère également les bougies précédentes pour reconstituer les mouvements de la session et vérifier chronologiquement les niveaux déjà atteints.
+
 Une cotation horodatée datant de 5 à 10 minutes est acceptable pour préparer les scénarios. N'exige pas inutilement un flux temps réel à la seconde.
+
 Indique le dernier prix connu, sa source et son heure réelle lorsque disponible. Ne confonds jamais l'heure de consultation d'une page avec celle d'une cotation.
+
 Ne fabrique jamais de prix, d'horodatage, de chandelier ou de confirmation technique.
-2. RECHERCHE ET ANALYSE
+
+## 2. RECHERCHE ET ANALYSE
+
 Analyse les unités H4, H1, M15 et M5, ainsi que toute autre unité de temps pertinente.
+
 Identifie notamment :
 * Tendance dominante, structure intraday et momentum.
 * Supports, résistances et niveaux de liquidité.
 * Cassures, retests, rejets et retournements potentiels.
 * Plus hauts et plus bas récents.
 * Volatilité, amplitude des mouvements et ATR si disponible.
+* Mouvements déjà réalisés, niveaux déjà traversés et objectifs déjà atteints.
 * Opportunités encore exploitables et signaux déjà consommés.
+* Configurations en formation et confirmations restant à attendre.
+
+Vérifie la chronologie des bougies pour distinguer les mouvements terminés, les signaux déjà déclenchés et les opportunités encore disponibles. Ne considère pas une ancienne cassure ou un retest déjà effectué comme un nouveau signal.
+
 Explore également toute autre méthode, indicateur ou configuration susceptible de révéler une opportunité pertinente. Ne privilégie aucune approche par habitude et confronte les interprétations contradictoires.
+
 Consulte également les publications récentes sur :
 https://fr.tradingview.com/symbols/XAUUSD/minds/
+
 Identifie les principaux biais, arguments et niveaux surveillés par les traders. Accorde plus de valeur aux analyses argumentées qu'au simple nombre d'opinions. N'invente pas de consensus si les données sont insuffisantes.
+
 Vérifie les catalyseurs pertinents : DXY, rendements américains, Fed, statistiques économiques, géopolitique et calendrier des annonces.
+
 Pour l'analyse nocturne, intègre les conditions de liquidité, le rollover et les événements susceptibles d'affecter la session asiatique.
+
 Hiérarchise les informations : prix et structure observables > contexte macroéconomique > sentiment externe.
-3. DIAGNOSTIC DE MARCHÉ
+
+## 3. DIAGNOSTIC DE MARCHÉ
+
 Avant de construire les ordres, détermine :
 1. Biais principal : haussier, baissier ou neutre.
 2. Régime : tendance, range, cassure, retournement ou autre régime pertinent.
 3. Les 2 à 4 niveaux techniques les plus importants.
 4. Les scénarios les plus crédibles pour la session.
-5. Les conditions précises qui invalideraient cette lecture.
+5. Les mouvements déjà consommés et les opportunités restantes.
+6. Les confirmations ou événements à attendre.
+7. Les conditions précises qui invalideraient cette lecture.
+
 Ne privilégie pas systématiquement la tendance H4 si les structures H1/M15 et le momentum immédiat la contredisent clairement.
+
 Recherche également les scénarios alternatifs, les changements de structure et les opportunités contre-tendance lorsqu'ils sont techniquement justifiés. Remets en question ton biais initial si les données le contredisent.
-Ne propose pas une entrée dont le mouvement est déjà consommé.
-4. CONSTRUIRE LES QUATRE ORDRES
-A1 et A2 — AGRESSIFS
+
+Ne propose pas une entrée dont le mouvement est déjà consommé. Vérifie ce qui s'est produit avant le dernier prix connu pour éviter de poursuivre une impulsion terminée ou de réutiliser un signal invalidé.
+
+## 4. CONSTRUIRE LES QUATRE ORDRES
+
+### A1 et A2 — AGRESSIFS
+
 Recherche deux opportunités réactives et réellement distinctes.
+
 Recherche notamment les entrées rapides : cassure de niveau, accélération, impulsion naissante, repli technique exploitable ou toute autre configuration présentant un potentiel intéressant.
+
 Sélectionne librement les stratégies les plus adaptées, sans te limiter à ces exemples.
+
 N'impose pas de confirmation M15 si elle ferait perdre l'intérêt de la stratégie.
+
 Prévois néanmoins une invalidation précise, une distance maximale d'entrée et un stop cohérent avec la volatilité.
-S1 et S2 — SAFE / CONSERVATEURS
+
+### S1 et S2 — SAFE / CONSERVATEURS
+
 Recherche deux opportunités plus sélectives.
+
 Recherche notamment les signaux vérifiables : clôture M5/M15, retest, rejet confirmé, continuation structurée, retournement validé ou toute autre confirmation pertinente.
+
 Adapte les confirmations à la configuration réelle, sans imposer de conditions inutiles qui feraient perdre une opportunité valable.
+
 Définis exactement la confirmation nécessaire.
+
 Si le scénario exige un retest, ne supprime pas cette condition pour rattraper un mouvement.
+
 Les stratégies safe réduisent certains risques de faux signal, mais ne garantissent ni le déclenchement ni un résultat positif.
-PARAMÈTRES OBLIGATOIRES POUR CHAQUE ORDRE
+
+### PARAMÈTRES OBLIGATOIRES POUR CHAQUE ORDRE
+
 * Direction : BUY ou SELL.
 * Type : Buy Stop, Sell Stop, Buy Limit ou Sell Limit.
 * Prix d'entrée exact.
@@ -159,20 +215,32 @@ PARAMÈTRES OBLIGATOIRES POUR CHAQUE ORDRE
 * Ratio rendement/risque.
 * Distance SL en dollars.
 * Distance maximale autorisée entre le prix de marché et l'entrée.
+* Ce qui a déjà eu lieu sur la configuration.
+* Ce qui reste à attendre avant l'entrée.
 * Condition de placement ou de déclenchement.
 * Niveau d'invalidation.
 * Heure d'expiration et clôture maximale.
+
 Choisis les niveaux à partir de la structure technique réellement documentée.
+
+Pour chaque ordre, distingue clairement les étapes déjà réalisées des confirmations encore nécessaires. Ne présente pas comme futur un événement déjà survenu.
+
 Privilégie un ratio brut d'au moins 2:1 lorsqu'il est compatible avec des objectifs réalistes. N'invente jamais un TP éloigné uniquement pour améliorer le ratio.
+
 Chaque ordre doit avoir une logique propre et une justification courte.
-5. VÉRIFICATIONS ET GESTION DU RISQUE
+
+## 5. VÉRIFICATIONS ET GESTION DU RISQUE
+
 Avant la décision finale :
 * Contrôle la compatibilité de chaque type d'ordre avec le dernier marché connu et, si disponibles, le Bid/Ask.
-* Vérifie que les niveaux n'ont pas déjà été atteints ou invalidés.
+* Vérifie chronologiquement les bougies précédentes et les niveaux déjà atteints ou invalidés.
+* Vérifie si l'entrée, le SL ou le TP théoriques ont déjà été touchés depuis la formation du signal.
+* Distingue les confirmations déjà obtenues de celles restant à attendre.
 * Compare la distance d'entrée à la tolérance définie.
 * Évalue la cohérence du stop, du TP, du spread et du risque de slippage.
 * Identifie les ordres concurrents, incompatibles ou susceptibles de se déclencher ensemble.
 * Ne réajuste pas arbitrairement une entrée pour poursuivre le prix.
+
 Risque :
 * Maximum théorique : 0,5 % du capital par trade.
 * Budget de risque cumulé par session : 1 % maximum, en tenant compte des ordres susceptibles d'être exécutés ensemble.
@@ -180,59 +248,103 @@ Risque :
 * Utiliser des ordres OCO ou une annulation des ordres concurrents lorsque le courtier le permet.
 * Prévoir SL et TP pour chaque position, avec fermeture à l'heure limite si celle-ci est prise en charge.
 * Ne pas élargir un stop après déclenchement.
+
 Les quatre plans proposés ne signifient pas quatre positions simultanées. Distingue les ordres pouvant être déposés ensemble de ceux qui sont alternatifs.
+
 Une cotation web datant de dix minutes permet de préparer les niveaux, mais leur exécution nécessite de vérifier le prix, le spread et les règles du courtier au moment du dépôt.
+
 Si certaines données sont indisponibles, travaille avec les éléments fiables et précise les limites réellement importantes. N'interromps pas inutilement l'ensemble de l'analyse.
-6. FORMAT DE RÉPONSE
-A. SYNTHÈSE DU MARCHÉ
+
+## 6. FORMAT DE RÉPONSE
+
+### A. SYNTHÈSE DU MARCHÉ
+
 Indique :
 * Date, heure de Paris et session JOUR/NUIT.
 * Dernier prix XAU/USD connu, source et ancienneté.
 * Biais dominant et force de ce biais.
 * Principaux niveaux techniques.
+* Mouvements déjà consommés et niveaux encore exploitables.
 * Catalyseurs et risques de la session.
+
 Maximum 8 lignes de synthèse.
-B. LES 4 ORDRES
+
+### B. LES 4 ORDRES
+
 Présente un tableau unique :
-Paramètre    A1 Agressif    A2 Agressif    S1 Safe    S2 Safe
-BUY / SELL                
-Type d'ordre                
-Entrée                
-Stop-Loss                
-Take-Profit                
-Ratio R/R                
-Distance SL ($)                
-Distance max. d'entrée                
-Condition d'activation                
-Invalidation                
-Expiration                
-Clôture maximale                
-Statut                
+
+| Paramètre | A1 Agressif | A2 Agressif | S1 Safe | S2 Safe |
+|---|---|---|---|---|
+| BUY / SELL | | | | |
+| Type d'ordre | | | | |
+| Entrée | | | | |
+| Stop-Loss | | | | |
+| Take-Profit | | | | |
+| Ratio R/R | | | | |
+| Distance SL ($) | | | | |
+| Distance max. d'entrée | | | | |
+| Déjà réalisé / consommé | | | | |
+| Ce qu'on doit attendre | | | | |
+| Condition d'activation | | | | |
+| Invalidation | | | | |
+| Expiration | | | | |
+| Clôture maximale | | | | |
+| Statut | | | | |
+
+Dans « Déjà réalisé / consommé », indique brièvement les événements déjà observés : cassure, retest, rejet, impulsion, niveau touché ou signal consommé.
+
+Dans « Ce qu'on doit attendre », indique précisément le prochain mouvement, prix ou signal nécessaire. Mentionne « Rien » lorsque toutes les conditions sont déjà réunies.
+
+Distingue les faits confirmés des scénarios attendus. Utilise des prix et des conditions vérifiables, sans supposer qu'un événement s'est produit.
+
 Ajoute sous le tableau une justification de 2 à 3 phrases par ordre, expliquant l'opportunité, le choix des niveaux et le principal risque.
-C. CLASSEMENT ET DÉCISION OPÉRATIONNELLE
+
+### C. CLASSEMENT ET DÉCISION OPÉRATIONNELLE
+
 Classe les quatre plans du meilleur au moins intéressant selon :
 * Solidité technique.
 * Probabilité relative de déclenchement et de réussite, sans inventer de pourcentage statistique.
 * Rendement/risque.
 * Proximité de l'entrée et conditions de liquidité.
+* État d'avancement du signal et potentiel restant.
+
 Indique clairement :
-ORDRE PRIORITAIRE : celui présentant le meilleur compromis global.
-MEILLEUR AGRESSIF : A1 ou A2.
-MEILLEUR SAFE : S1 ou S2.
-ORDRES À PRÉPARER : niveaux et conditions exacts.
-ORDRES À NE PAS CUMULER : conflits et annulations nécessaires.
+
+**ORDRE PRIORITAIRE :** celui présentant le meilleur compromis global.
+
+**MEILLEUR AGRESSIF :** A1 ou A2.
+
+**MEILLEUR SAFE :** S1 ou S2.
+
+**ORDRES À PRÉPARER :** niveaux et conditions exacts.
+
+**SIGNAUX DÉJÀ CONSOMMÉS :** mouvements terminés et ordres à écarter.
+
+**CE QU'IL FAUT ATTENDRE :** prochains niveaux, confirmations et déclencheurs prioritaires.
+
+**ORDRES À NE PAS CUMULER :** conflits et annulations nécessaires.
+
 Utilise les statuts :
-* PRÊT À SAISIR : plan cohérent avec les dernières données connues, soumis au contrôle du courtier.
-* CONDITIONNEL : confirmation ou événement précis encore nécessaire.
-* ANNULÉ : signal consommé ou invalidé.
-* DONNÉES INSUFFISANTES : niveaux non justifiables de manière fiable.
+* **PRÊT À SAISIR :** plan cohérent avec les dernières données connues, soumis au contrôle du courtier.
+* **CONDITIONNEL :** confirmation ou événement précis encore nécessaire.
+* **ANNULÉ :** signal consommé ou invalidé.
+* **DONNÉES INSUFFISANTES :** niveaux non justifiables de manière fiable.
+
 Termine par une décision concrète de quelques lignes, sans conclusion générique ni répétition de l'analyse.
+
 Cite 3 à 5 sources majeures réellement consultées.
-INSTRUCTION FINALE
+
+## INSTRUCTION FINALE
+
 Recherche prioritairement 4 plans distincts : 2 agressifs et 2 safe, à chaque exécution du prompt.
+
+Vérifie systématiquement l'historique récent avant de proposer les ordres. Distingue ce qui a déjà eu lieu, ce qui est consommé et ce qu'il reste à attendre.
+
 Sois décisif sans inventer de certitudes. Privilégie la qualité des configurations, la cohérence des niveaux, des déclencheurs explicites et une gestion mesurée de l'exposition.
+
 Si moins de quatre opportunités sont justifiables, conserve les quatre emplacements, mais marque les configurations non valides au lieu d'inventer des ordres.
-Résultat recherché : quatre scénarios hiérarchisés, des prix précis fondés sur des données vérifiables, et une décision opérationnelle facile à appliquer.]==]
+
+Résultat recherché : quatre scénarios hiérarchisés, des prix précis fondés sur des données vérifiables, une lecture claire des mouvements déjà réalisés et des confirmations à attendre, et une décision opérationnelle facile à appliquer.]==]
 
 local restoreTimer
 

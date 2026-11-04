@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Cmd+F2: the XAU/USD prompt replaced by the user's new version, in Markdown (# headings, * lists, the orders table),
+  so its structure survives the paste. Rollback: `git revert`, apply Hammerspoon, restart it.
 - Zen tab search: Raycast "Onglets Zen" (alias z) opens a chooser of Zen's open tabs (`scripts/zen-tabs.py` reads
   the session file; Zen has no AppleScript) and Enter jumps to the tab through Zen's own tab search (`zen-tabs.lua`).
 - Top bar, geek edition: app icons per workspace (animated current chip), CPU graph, GPU, network speed, popups (busiest
