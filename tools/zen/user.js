@@ -27,3 +27,11 @@ user_pref("app.shield.optoutstudies.enabled", false);
 user_pref("browser.discovery.enabled", false);
 // about:config without the warning page.
 user_pref("browser.aboutConfig.showWarning", false);
+// Layout (2026-11-04): compact mode hides only the top bar (address bar); the tab sidebar stays, collapsed to icons.
+// Zen deletes prefs equal to its defaults and its compact-mode menu rewrites these two, so user.js sets them at each
+// start. Single toolbar must stay off: with it, compact mode hides the sidebar instead of the top bar.
+user_pref("zen.view.use-single-toolbar", false);
+user_pref("zen.view.compact.enable-at-startup", true);
+user_pref("zen.view.compact.hide-toolbar", true);
+user_pref("zen.view.compact.hide-tabbar", false);
+user_pref("browser.toolbars.bookmarks.visibility", "never");
