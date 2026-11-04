@@ -8,6 +8,9 @@ local blocked = { [160] = true, [177] = true, [131] = true }
 
 M.tap = hs.eventtap.new({ hs.eventtap.event.types.keyDown, hs.eventtap.event.types.keyUp }, function(e)
   if not blocked[e:getKeyCode()] then return false end
+  -- Cmd alone + F3 (160) is the free XAU prompt (prompt-insert.lua, whose tap runs after this one): let it through.
+  local f = e:getFlags()
+  if e:getKeyCode() == 160 and f.cmd and not (f.alt or f.ctrl or f.shift) then return false end
   return true
 end)
 M.tap:start()

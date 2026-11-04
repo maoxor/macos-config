@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Cmd+F3 did nothing with lock-down on: function-keys.lua swallowed every modified F3 (Mission Control) before
+  prompt-insert saw it; Cmd alone + F3 now passes through.
 - Cmd+F3: free XAU/USD prompt (no imposed strategies, timeframes, trade count or session hours; keeps the truth rules,
   the per-setup state check, the risk budget and the table). Rollback: `git revert`, apply Hammerspoon, restart it.
 - Agents never on the user's screen: MCP `browser` (headless Playwright, one per session, unlimited in parallel), a
