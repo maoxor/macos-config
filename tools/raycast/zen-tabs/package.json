@@ -1,0 +1,32 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "zen-tabs",
+  "title": "Onglets Zen",
+  "description": "Chercher un onglet ouvert dans Zen et y aller (macos-config).",
+  "icon": "icon.png",
+  "author": "maoxor",
+  "license": "MIT",
+  "categories": ["Productivity"],
+  "commands": [
+    {
+      "name": "index",
+      "title": "Onglets Zen",
+      "subtitle": "Zen",
+      "description": "Liste les onglets ouverts dans Zen ; Entrée bascule sur l'onglet.",
+      "mode": "view"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.94.0",
+    "@raycast/utils": "^1.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "typescript": "^5.7.0"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop"
+  }
+}

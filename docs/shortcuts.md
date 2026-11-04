@@ -44,7 +44,7 @@ Two deliberate exceptions: Option+Tab (types nothing) and Option+F (costs the `�
 | Hyper+P | Hammerspoon | pick a context (workspace + resources) |
 | Cmd+E | Hammerspoon | bring Finder to front (opens ~ if no window); closing the last Finder window gives the focus back to the window under the mouse |
 | Cmd+← / Cmd+→ (Zen, Helium, Safari) | Hammerspoon | previous / next tab; inside a text field they keep start / end of line |
-| **Ctrl+Space** | Hammerspoon | search Zen's open tabs from anywhere, Enter jumps to the tab (`zen-tabs.lua`); again = close |
+| **Ctrl+Space** | Hammerspoon → Raycast | search Zen's open tabs from anywhere (Raycast list "Onglets Zen"), Enter jumps to the tab |
 | Cmd+Shift+F (Zen, Helium, Safari) | Hammerspoon → OmniWM | fullscreen under the top bar (OmniWM `toggle-fullscreen`), not macOS native fullscreen, where the macOS menu bar takes the top; same keys exit |
 | Ctrl+Tab (Zen) | Zen | last used tab first (`tools/zen/user.js`) |
 | Cmd+F1 | Hammerspoon | paste the prompt-optimisation prompt at the cursor (text in `prompt-insert.lua`; clipboard restored after 0.5 s; works with or without fn) |

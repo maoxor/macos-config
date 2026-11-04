@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Zen tab search is now a native Raycast list (local extension `tools/raycast/zen-tabs`: favicons, site, workspace,
+  actions), opened by Ctrl+Space; it replaces the Hammerspoon chooser and the script command.
 - Ctrl+Space: Zen tab search from anywhere (the same chooser as Raycast "Onglets Zen"). Rollback: `git revert`, apply
   Hammerspoon.
 - Cmd+F2: the XAU/USD prompt replaced by the user's new version, in Markdown (# headings, * lists, the orders table),

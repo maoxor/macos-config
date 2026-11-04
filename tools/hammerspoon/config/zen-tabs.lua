@@ -1,8 +1,8 @@
 -- Search Zen's open tabs and jump to one (2026-11-04). Zen has no AppleScript and Raycast's Zen extension cannot list
 -- tabs, so: scripts/zen-tabs.py reads Zen's session file, a chooser filters title and address as you type, and the
 -- jump goes through Zen's own tab search: Cmd+L, "% " + the address, Return (the first result is "Switch to tab").
--- Opened from anywhere by Ctrl+Space (free: macOS input-source switching is off, home-manager/macos.nix), the
--- Raycast script command "Onglets Zen", or `hs -c 'zenTabs.show()'`. Ctrl+Space again closes it.
+-- Ctrl+Space (free: macOS input-source switching is off, home-manager/macos.nix) opens the Raycast extension
+-- "Onglets Zen" (tools/raycast/zen-tabs), which lists the tabs and calls M.switchTo.
 -- The session file is rewritten a few seconds after tabs change, so a tab opened just now may be missing.
 local M = {}
 local SCRIPT = require("repo-path") .. "/scripts/zen-tabs.py"
@@ -79,8 +79,9 @@ function M.show()
   M.chooser:show()
 end
 
-M.hotkey = hs.hotkey.bind({ "ctrl" }, "space", function()
-  if M.chooser and M.chooser:isVisible() then M.chooser:hide() else M.show() end
-end)
+-- Ctrl+Space opens the Raycast command "Onglets Zen" (tools/raycast/zen-tabs, a native Raycast list with favicons);
+-- it calls M.switchTo for the jump. The chooser above stays as a fallback: `hs -c 'zenTabs.show()'`.
+M.RAYCAST = "raycast://extensions/maoxor/zen-tabs/index"
+M.hotkey = hs.hotkey.bind({ "ctrl" }, "space", function() hs.urlevent.openURL(M.RAYCAST) end)
 
 return M
