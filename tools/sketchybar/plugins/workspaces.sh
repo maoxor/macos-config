@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2154  # icon_result is set by __icon_map, from the sourced icon_map.sh
 # Workspaces 1-4: app icons of their windows (one per app), current workspace on an accent chip (animated).
 source "$HOME/.config/sketchybar/colors.sh"
 # shellcheck source=/dev/null

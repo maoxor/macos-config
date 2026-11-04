@@ -4,6 +4,9 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Agents VM: a Lume macOS VM (`agents`, clean copy `agents-base`) with Cua Driver, reached by Claude Code through the
+  MCP server `agents-vm` (SSH); agents use apps there while the host screen, mouse and keyboard stay untouched
+  (measured). Shared folder ~/AgentsShare, Raycast "VM des agents", telemetry off. `tools/agents-vm/README.md`.
 - Raycast `z <text>`: searches with Zen's own engine in a new tab of the open Zen window ("Rechercher sur Zen" in the
   local extension, Mozeidon `tabs new`; Google URL as fallback).
 - Zen tabs from Raycast are instant: Mozeidon (Homebrew, signed Zen add-on, native messaging) lists live tabs and

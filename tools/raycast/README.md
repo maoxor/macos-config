@@ -37,6 +37,7 @@ Plain shell files tracked here, so they come back on a new Mac. They expose this
 | Title | Does | Also |
 |---|---|---|
 | Chercher une fenêtre | OmniWM's window palette | Hyper+Space |
+| VM des agents | the agents VM's screen (starts it if needed): watch or take over | `agents-vm view` |
 | État du Mac | memory / CPU / GPU over 24 h, heaviest processes, memory-guard margin | `perf-journal.py report` |
 | Fond d'écran suivant | next wallpaper, the theme follows | F3 |
 | Nettoyer le clavier | keyboard locked until a click on the card | F4 |

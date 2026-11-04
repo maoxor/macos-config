@@ -178,6 +178,9 @@ in {
   # jobgate: heavy jobs wait for real free memory and pause only while the Mac thrashes (docs/performance.md).
   home.file.".local/bin/jobgate".source =
     config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/jobgate.py";
+  # agents-vm: the macOS VM where AI agents use a desktop without touching the user's (tools/agents-vm/README.md).
+  home.file.".local/bin/agents-vm".source =
+    config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/agents-vm";
   home.file.".local/bin/xdr-boost".source =
     config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/xdr-boost.sh";
   home.file.".local/bin/memory-guard".source =

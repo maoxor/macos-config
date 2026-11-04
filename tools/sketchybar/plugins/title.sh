@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2154  # icon_result is set by __icon_map, from the sourced icon_map.sh
 # Focused window: the app's icon (sketchybar-app-font) and the window title (the app name when it has none).
 # shellcheck source=/dev/null
 source "$(command -v icon_map.sh)"

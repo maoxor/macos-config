@@ -1,0 +1,53 @@
+#!/bin/bash
+# agents-vm: the macOS VM where AI agents use a real desktop without touching the user's screen, mouse or keyboard
+# (Lume VM "agents", Cua Driver inside; tools/agents-vm/README.md).
+#   agents-vm up        start it headless if stopped, wait for SSH (shared folder ~/AgentsShare)
+#   agents-vm mcp       MCP stdio bridge to Cua Driver in the VM (what Claude Code runs); starts the VM if needed
+#   agents-vm view      open a window on the VM's screen (watch or take over)
+#   agents-vm shot [f]  save a screenshot of the VM (headless) to f (default ~/AgentsShare/vm.png)
+#   agents-vm ssh [cmd] shell or command in the VM
+#   agents-vm new <name> second VM from the clean copy agents-base (Apple allows 2 macOS VMs at once);
+#                       use it with AGENTS_VM=<name> agents-vm ..., and register a second MCP server
+#   agents-vm status | down
+set -euo pipefail
+VM="${AGENTS_VM:-agents}"
+SHARE="$HOME/AgentsShare"
+KNOWN="$HOME/.ssh/known_hosts_agents"
+LUME="$(command -v lume || echo /opt/homebrew/bin/lume)"
+
+# Every call made before `exec ssh ... mcp` keeps away from stdin: it carries the MCP client's first messages, and a
+# plain ssh or lume reads it (the initialize request vanished and Claude Code timed out, 2026-11-04).
+info() { "$LUME" get "$VM" --format json 2>/dev/null </dev/null | /usr/bin/python3 -I -c 'import json,sys; d=json.load(sys.stdin)[0]; print(d.get(sys.argv[1]) or "")' "$1"; }
+ip() { info ipAddress; }
+sshvm() { ssh -n -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$KNOWN" "lume@$(ip)" "$@"; }
+
+up() {
+  mkdir -p "$SHARE"
+  if [ "$(info status)" != running ]; then
+    "$LUME" run "$VM" --detach --display none --shared-dir "$SHARE" >/dev/null </dev/null
+  fi
+  for _ in $(seq 1 90); do
+    [ "$(info status)" = running ] && [ -n "$(ip)" ] && sshvm true 2>/dev/null && return 0
+    sleep 2
+  done
+  echo "agents-vm: the VM did not answer over SSH within 3 minutes" >&2; return 1
+}
+
+case "${1:-status}" in
+  up) up; echo "running at $(ip)" ;;
+  mcp) up >&2; exec ssh -T -o BatchMode=yes -o UserKnownHostsFile="$KNOWN" "lume@$(ip)" /Users/lume/.local/bin/cua-driver mcp ;;
+  view) up; exec "$LUME" attach "$VM" ;;
+  shot)
+    up; out="${2:-$SHARE/vm.png}"
+    # Through Cua Driver: it holds the guest's Screen Recording grant (plain screencapture over SSH has no display).
+    sshvm '/Users/lume/.local/bin/cua-driver call get_desktop_state "{}"' \
+      | /usr/bin/python3 -I -c 'import base64,json,sys; open(sys.argv[1],"wb").write(base64.b64decode(json.load(sys.stdin)["screenshot_png_b64"]))' "$out" \
+      && echo "$out" ;;
+  ssh) up; shift; if [ $# -gt 0 ]; then ssh -o BatchMode=yes -o UserKnownHostsFile="$KNOWN" "lume@$(ip)" "$@"; else exec ssh -o UserKnownHostsFile="$KNOWN" "lume@$(ip)"; fi ;;
+  new)
+    [ -n "${2:-}" ] || { echo "usage: agents-vm new <name>" >&2; exit 2; }
+    "$LUME" clone agents-base "$2" </dev/null && echo "created $2: AGENTS_VM=$2 agents-vm up" ;;
+  status) printf '%s: %s %s\n' "$VM" "$(info status)" "$(ip)" ;;
+  down) "$LUME" stop "$VM" ;;
+  *) sed -n '2,12p' "$0"; exit 2 ;;
+esac
