@@ -11,4 +11,4 @@ title=$(jq -r '.title // empty' <<<"$info"); artist=$(jq -r '.artist // empty' <
 [ -z "$title" ] && { sketchybar --set "$NAME" drawing=off --set gap.l3 drawing=off; exit 0; }
 label="$title"; [ -n "$artist" ] && label="$artist — $title"
 if [ "$playing" = true ]; then icon="󰎈"; color="$ACCENT"; else icon="󰏤"; color="$MUTED"; fi
-sketchybar --set "$NAME" drawing=on --set gap.l3 drawing=on icon="$icon" icon.color="$color" label="$label"
+sketchybar --set "$NAME" drawing=on icon="$icon" icon.color="$color" label="$label" --set gap.l3 drawing=on
