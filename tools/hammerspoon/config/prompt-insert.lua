@@ -166,6 +166,8 @@ Pour l'analyse nocturne, intègre les conditions de liquidité, le rollover et l
 
 Hiérarchise les informations : prix et structure observables > contexte macroéconomique > sentiment externe.
 
+Avant de construire les ordres, relève les dernières bougies clés (heure, plus haut, plus bas, clôture, événement). Construis les ordres à partir de ce relevé : un événement qui y figure est déjà réalisé, jamais à attendre.
+
 ## 3. DIAGNOSTIC DE MARCHÉ
 
 Avant de construire les ordres, détermine :
@@ -196,6 +198,8 @@ Sélectionne librement les stratégies les plus adaptées, sans te limiter à ce
 N'impose pas de confirmation M15 si elle ferait perdre l'intérêt de la stratégie.
 
 Prévois néanmoins une invalidation précise, une distance maximale d'entrée et un stop cohérent avec la volatilité.
+
+Pour un rejet ou un retest, place l'entrée dans la zone du signal, sans dépasser son extrême.
 
 ### S1 et S2 — SAFE / CONSERVATEURS
 
@@ -238,7 +242,7 @@ Chaque ordre doit avoir une logique propre et une justification courte.
 ## 5. AUDIT D'ÉTAT DE CHAQUE SETUP
 
 Avant d'attribuer un statut, établis pour chaque ordre, à partir des bougies réellement disponibles :
-1. **Formation :** heure et prix auxquels le setup s'est formé.
+1. **Formation :** heure et prix de la bougie qui a formé le setup, jamais l'heure de l'analyse.
 2. **Validations :** chaque condition requise, avec son état : réalisée (heure, prix), partiellement réalisée (ce qui manque), en attente, ou non vérifiable.
 3. **Entrée :** déjà touchée ou non depuis la formation. Si oui, indique l'heure et vérifie si le SL ou le TP ont été atteints ensuite.
 4. **Invalidation :** déjà touchée ou non depuis la formation, avec heure et prix si oui.
@@ -352,7 +356,7 @@ Utilise les statuts :
 * **CONDITIONNEL :** confirmation ou événement précis encore nécessaire, invalidation non touchée. Indique les conditions déjà réalisées.
 * **DÉJÀ DÉCLENCHÉ :** entrée déjà touchée depuis la formation ; ce n'est plus un ordre à placer. Précise si la position serait encore ouverte ou déjà clôturée par son SL ou son TP.
 * **ANNULÉ :** signal consommé ou invalidé.
-* **DONNÉES INSUFFISANTES :** niveaux non justifiables de manière fiable, ou historique insuffisant pour vérifier que l'entrée et l'invalidation n'ont pas déjà été touchées.
+* **DONNÉES INSUFFISANTES :** niveaux non justifiables de manière fiable, ou bougies manquantes entre la formation et la dernière bougie disponible. L'absence de bougies après la dernière disponible ne justifie jamais ce statut : le statut vaut à l'heure « Vérifié jusqu'à ».
 
 Termine par une décision concrète de quelques lignes, sans conclusion générique ni répétition de l'analyse.
 
