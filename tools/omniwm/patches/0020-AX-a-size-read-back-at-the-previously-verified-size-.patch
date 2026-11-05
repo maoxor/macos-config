@@ -1,7 +1,7 @@
-From 0de4d87801601e8cf09ebfdd70efdabce24f5475 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Fri, 16 Oct 2026 14:30:22 +0200
-Subject: [PATCH 20/28] AX: a size read back at the previously verified size is
+Subject: [PATCH 19/30] AX: a size read back at the previously verified size is
  stale, not a minimum
 
 Leaving OmniWM fullscreen, Safari read back its 2074 pt fullscreen width twice after a 1025 pt
@@ -15,7 +15,7 @@ axis still equals the size OmniWM last verified for that window.
  3 files changed, 39 insertions(+), 3 deletions(-)
 
 diff --git a/Sources/OmniWM/Core/Ax/AXFrameApplicationLedger.swift b/Sources/OmniWM/Core/Ax/AXFrameApplicationLedger.swift
-index 6336b0b2..8e9d6d80 100644
+index 39d11ac8..c0c0e90c 100644
 --- a/Sources/OmniWM/Core/Ax/AXFrameApplicationLedger.swift
 +++ b/Sources/OmniWM/Core/Ax/AXFrameApplicationLedger.swift
 @@ -450,7 +450,10 @@ extension AXFrameApplicationLedger {
@@ -31,7 +31,7 @@ index 6336b0b2..8e9d6d80 100644
              outcome.stableSizeClamps.append(result)
          }
 diff --git a/Sources/OmniWM/Core/Ax/AXFrameFailureAssessment.swift b/Sources/OmniWM/Core/Ax/AXFrameFailureAssessment.swift
-index 35501ba2..1786e445 100644
+index 278b8742..d3b53a77 100644
 --- a/Sources/OmniWM/Core/Ax/AXFrameFailureAssessment.swift
 +++ b/Sources/OmniWM/Core/Ax/AXFrameFailureAssessment.swift
 @@ -9,7 +9,11 @@ struct AXFrameFailureAssessment {
@@ -64,7 +64,7 @@ index 35501ba2..1786e445 100644
                 observedFrame.height >= result.targetFrame.height - FrameTolerance.frameWrite,
                 observedFrame.width > result.targetFrame.width + FrameTolerance.frameWrite
 diff --git a/Tests/OmniWMTests/ObservedMinimumSizeClampTests.swift b/Tests/OmniWMTests/ObservedMinimumSizeClampTests.swift
-index 012fd69a..c5a2d41d 100644
+index 1ce57ada..aa246f16 100644
 --- a/Tests/OmniWMTests/ObservedMinimumSizeClampTests.swift
 +++ b/Tests/OmniWMTests/ObservedMinimumSizeClampTests.swift
 @@ -51,6 +51,28 @@ final class ObservedMinimumSizeClampTests: XCTestCase {
@@ -96,3 +96,6 @@ index 012fd69a..c5a2d41d 100644
      func testStableClampClassifiesEachAxisByConvergenceBound() throws {
          let fixture = try makeFixture()
          let manager = fixture.controller.workspaceManager
+-- 
+2.54.0 (Apple Git-157)
+

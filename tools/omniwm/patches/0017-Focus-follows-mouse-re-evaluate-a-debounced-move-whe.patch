@@ -1,7 +1,7 @@
-From 17cbf99465d82048643b3ddfa90334e59b87a153 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Fri, 16 Oct 2026 10:36:46 +0200
-Subject: [PATCH 17/28] Focus follows mouse: re-evaluate a debounced move when
+Subject: [PATCH 16/30] Focus follows mouse: re-evaluate a debounced move when
  the debounce expires (trailing edge)
 
 A pointer that arrived quickly and stopped kept an unfocused window under it: 8 of 15 fast stops in the old build and 10 of 15 in the new one, measured with a pointer driver. One pending re-evaluation, replaced by newer moves, using the latest mouse sample.
@@ -10,10 +10,10 @@ A pointer that arrived quickly and stopped kept an unfocused window under it: 8 
  1 file changed, 33 insertions(+), 2 deletions(-)
 
 diff --git a/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift b/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
-index 0ecac0a8..005de1ad 100644
+index 5ae63908..a69c36b9 100644
 --- a/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
 +++ b/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
-@@ -132,10 +132,26 @@ extension MouseEventHandler {
+@@ -141,10 +141,26 @@ extension MouseEventHandler {
          }
  
          let now = Date()
@@ -31,7 +31,7 @@ index 0ecac0a8..005de1ad 100644
 +                else { return }
 +                guard let sample = self.state.latestFocusFollowsMouseSample,
 +                      !controller.settings.focus.lockModifier.isHeld(inRawFlags: sample.modifiersRawValue),
-+                      !self.shouldBlockOwnWindowInput(at: sample.location),
++                      !self.shouldBlockOwnWindowInput(at: sample.location, windowIdUnderPointer: sample.windowIdUnderPointer),
 +                      self.shouldHandleFocusFollowsMouse(at: sample.location)
 +                else { return }
 +                self.handleFocusFollowsMouse(at: sample.location, windowIdUnderPointer: sample.windowIdUnderPointer)
@@ -39,10 +39,10 @@ index 0ecac0a8..005de1ad 100644
              return
          }
 +        FocusFollowsMouseTrailingEdge.cancel()
- 
-         guard let target = resolveFocusFollowsMouseTarget(
-             at: location,
-@@ -385,3 +401,18 @@ enum NativeFocusCheck {
+         if controller.settings.focus.followsMouseOnlyFullyVisible, let windowIdUnderPointer, windowIdUnderPointer > 0,
+            controller.workspaceManager.nativeManagedFocusToken?.windowId == windowIdUnderPointer
+         {
+@@ -439,3 +455,18 @@ enum NativeFocusCheck {
          return windowId == token.windowId
      }
  }
@@ -61,3 +61,6 @@ index 0ecac0a8..005de1ad 100644
 +
 +    static func cancel() { pending?.cancel(); pending = nil }
 +}
+-- 
+2.54.0 (Apple Git-157)
+

@@ -1,7 +1,7 @@
-From 34428c02ebc8c0e178495b2d634eaba70119daf1 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Thu, 15 Oct 2026 17:36:24 +0200
-Subject: [PATCH 07/28] Swipe preview: log whether each window used a native
+Subject: [PATCH 07/30] Swipe preview: log whether each window used a native
  snapshot or the stream capture
 
 ---
@@ -9,18 +9,18 @@ Subject: [PATCH 07/28] Swipe preview: log whether each window used a native
  1 file changed, 5 insertions(+)
 
 diff --git a/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift b/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift
-index 537566d0..b45a8864 100644
+index e7528a47..e7c908ff 100644
 --- a/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift
 +++ b/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift
 @@ -2,6 +2,7 @@
- // Copyright (C) 2026 BarutSRB — https://github.com/OmniNull/OmniWM
+ // Copyright (C) 2026 OmniNull — https://github.com/OmniNull/OmniWM
  
  import AppKit
 +import OSLog
  import IOSurface
  import QuartzCore
  
-@@ -261,9 +262,11 @@ final class WorkspaceSwipePreview {
+@@ -353,9 +354,11 @@ extension WorkspaceSwipePreview {
                  still.contentsGravity = .resize
                  still.contents = native
                  layer.addSublayer(still)
@@ -32,9 +32,12 @@ index 537566d0..b45a8864 100644
              let content = Content(
                  preview: preview,
                  frame: item.frame.offsetBy(dx: -frame.minX, dy: -frame.minY),
-@@ -327,3 +330,5 @@ private final class WorkspaceSwipePreviewPanel: NSPanel {
+@@ -428,3 +431,5 @@ private final class WorkspaceSwipePreviewPanel: NSPanel {
          false
      }
  }
 +
 +private let nativeSnapshotLog = Logger(subsystem: "com.barut.OmniWM", category: "swipe-snapshot")
+-- 
+2.54.0 (Apple Git-157)
+

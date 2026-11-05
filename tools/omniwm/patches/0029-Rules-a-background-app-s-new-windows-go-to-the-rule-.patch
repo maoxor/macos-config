@@ -1,7 +1,7 @@
-From c60629837704b1177d7aab7804cd7bd62209f759 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: maoxor <118530756+maoxor@users.noreply.github.com>
 Date: Thu, 29 Oct 2026 01:08:47 +0100
-Subject: [PATCH] Rules: a background app's new windows go to the rule
+Subject: [PATCH 27/30] Rules: a background app's new windows go to the rule
  workspace without pulling the view there
 
 ---
@@ -13,7 +13,7 @@ Subject: [PATCH] Rules: a background app's new windows go to the rule
  5 files changed, 99 insertions(+), 7 deletions(-)
 
 diff --git a/Sources/OmniWM/Core/Controller/AXEventHandler+AppActivation.swift b/Sources/OmniWM/Core/Controller/AXEventHandler+AppActivation.swift
-index 5cc636d3..0c3be02b 100644
+index 65b776f5..8cac550f 100644
 --- a/Sources/OmniWM/Core/Controller/AXEventHandler+AppActivation.swift
 +++ b/Sources/OmniWM/Core/Controller/AXEventHandler+AppActivation.swift
 @@ -17,6 +17,11 @@ extension AXEventHandler {
@@ -29,7 +29,7 @@ index 5cc636d3..0c3be02b 100644
              pid: pid,
              source: source,
 diff --git a/Sources/OmniWM/Core/Controller/AXEventHandler+ManagedActivation.swift b/Sources/OmniWM/Core/Controller/AXEventHandler+ManagedActivation.swift
-index 96542355..03c91f2a 100644
+index 22fdf941..728e2c2b 100644
 --- a/Sources/OmniWM/Core/Controller/AXEventHandler+ManagedActivation.swift
 +++ b/Sources/OmniWM/Core/Controller/AXEventHandler+ManagedActivation.swift
 @@ -38,6 +38,10 @@ extension AXEventHandler {
@@ -44,12 +44,12 @@ index 96542355..03c91f2a 100644
              source: source,
              confirmRequest: confirmRequest,
 diff --git a/Sources/OmniWM/Core/Workspace/PlacementResolver.swift b/Sources/OmniWM/Core/Workspace/PlacementResolver.swift
-index c95abe25..97b88f78 100644
+index 84a10973..582a70b2 100644
 --- a/Sources/OmniWM/Core/Workspace/PlacementResolver.swift
 +++ b/Sources/OmniWM/Core/Workspace/PlacementResolver.swift
 @@ -1,6 +1,7 @@
  // SPDX-License-Identifier: GPL-2.0-only
- // Copyright (C) 2026 BarutSRB — https://github.com/OmniNull/OmniWM
+ // Copyright (C) 2026 OmniNull — https://github.com/OmniNull/OmniWM
  
 +import AppKit
  import CoreGraphics
@@ -114,10 +114,10 @@ index c95abe25..97b88f78 100644
  
      func floatingSpawnMonitorId(pid: pid_t) -> Monitor.ID? {
 diff --git a/Sources/OmniWM/Core/Workspace/WorkspaceManager.swift b/Sources/OmniWM/Core/Workspace/WorkspaceManager.swift
-index 635c4d28..14dc4052 100644
+index f725fa70..4ac08ad0 100644
 --- a/Sources/OmniWM/Core/Workspace/WorkspaceManager.swift
 +++ b/Sources/OmniWM/Core/Workspace/WorkspaceManager.swift
-@@ -32,6 +32,19 @@ final class WorkspaceManager {
+@@ -33,6 +33,19 @@ final class WorkspaceManager {
          save: { [unowned self] in self.settings.savePersistedWindowRestoreCatalog($0) }
      )
      var persistedRestoreBundleIdProvider: ((pid_t) -> String?)?
@@ -138,10 +138,10 @@ index 635c4d28..14dc4052 100644
      private lazy var projections = WorkspaceProjectionCache(manager: self)
  
 diff --git a/Tests/OmniWMTests/FloatingCreatePlacementTests.swift b/Tests/OmniWMTests/FloatingCreatePlacementTests.swift
-index fe5df999..205749aa 100644
+index 52160a1a..17d13d9d 100644
 --- a/Tests/OmniWMTests/FloatingCreatePlacementTests.swift
 +++ b/Tests/OmniWMTests/FloatingCreatePlacementTests.swift
-@@ -827,11 +827,12 @@ final class FloatingCreatePlacementTests: XCTestCase {
+@@ -783,11 +783,12 @@ final class FloatingCreatePlacementTests: XCTestCase {
      func testResolveLaterTiledWindowIgnoresInitialWorkspaceRule() throws {
          let fixture = try makeTwoMonitorFixture()
          let pid: pid_t = 6_129
@@ -155,7 +155,7 @@ index fe5df999..205749aa 100644
          )
  
          let resolved = resolvePlacement(
-@@ -852,6 +853,48 @@ final class FloatingCreatePlacementTests: XCTestCase {
+@@ -808,6 +809,48 @@ final class FloatingCreatePlacementTests: XCTestCase {
          XCTAssertEqual(resolved.rung, .interactionWorkspace)
      }
  
@@ -204,7 +204,7 @@ index fe5df999..205749aa 100644
      func testWorkspaceRuleAppliesOnlyWhileAppHasNoTrackedWindows() throws {
          let fixture = try makeTwoMonitorFixture()
          let pid: pid_t = 6_130
-@@ -869,11 +912,12 @@ final class FloatingCreatePlacementTests: XCTestCase {
+@@ -825,11 +868,12 @@ final class FloatingCreatePlacementTests: XCTestCase {
              windowFrame: fixture.primary.frame,
              fallbackWorkspaceId: fixture.primaryWorkspace
          )
@@ -218,7 +218,7 @@ index fe5df999..205749aa 100644
              mode: .floating
          )
          let second = resolvePlacement(
-@@ -1392,9 +1436,13 @@ final class FloatingCreatePlacementTests: XCTestCase {
+@@ -1348,9 +1392,13 @@ final class FloatingCreatePlacementTests: XCTestCase {
          windowFrame: CGRect?,
          existingEntry: WindowState? = nil,
          fallbackWorkspaceId: WorkspaceDescriptor.ID?,

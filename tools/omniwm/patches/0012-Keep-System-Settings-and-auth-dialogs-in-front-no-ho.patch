@@ -1,7 +1,7 @@
-From cd6bdfe48a2e681b16511f73dc237a7410d113ec Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Fri, 9 Oct 2026 15:43:56 +0200
-Subject: [PATCH 12/28] Keep System Settings and auth dialogs in front: no
+Subject: [PATCH 11/30] Keep System Settings and auth dialogs in front: no
  hover focus while they own focus
 
 (cherry picked from commit 22ee801b9ba25a62599ae9670ec8b4636f8d61d0)
@@ -10,7 +10,7 @@ Subject: [PATCH 12/28] Keep System Settings and auth dialogs in front: no
  1 file changed, 14 insertions(+), 2 deletions(-)
 
 diff --git a/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift b/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
-index 440b06bf..64f1b7ee 100644
+index 18ba386c..e2a8b5c0 100644
 --- a/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
 +++ b/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
 @@ -16,12 +16,24 @@ extension MouseEventHandler {
@@ -40,3 +40,6 @@ index 440b06bf..64f1b7ee 100644
      private enum FocusFollowsMouseTarget {
          case niri(workspaceId: WorkspaceDescriptor.ID, window: NiriWindow)
          case dwindle(workspaceId: WorkspaceDescriptor.ID, token: WindowToken)
+-- 
+2.54.0 (Apple Git-157)
+

@@ -1,23 +1,22 @@
-From 7c9f9e54b50206d10ac86f09abeb96f1ba1b590c Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Thu, 15 Oct 2026 17:11:03 +0200
-Subject: [PATCH 05/28] Swipe: leave out Niri columns whose settled frame is
+Subject: [PATCH 05/30] Swipe: leave out Niri columns whose settled frame is
  edge-clamped over a visible one; tests for click-swallowing masks and 2x
  captures
 
 ---
  .../WorkspaceSwipePresentation+Geometry.swift | 28 ++++++++++++++
- Tests/OmniWMTests/ParkingEdgeMaskTests.swift  |  6 +--
  .../WorkspaceSwipeNiriClampTests.swift        | 37 +++++++++++++++++++
  .../WorkspaceSwipePreviewWarmupTests.swift    |  2 +-
- 4 files changed, 69 insertions(+), 4 deletions(-)
+ 3 files changed, 66 insertions(+), 1 deletion(-)
  create mode 100644 Tests/OmniWMTests/WorkspaceSwipeNiriClampTests.swift
 
 diff --git a/Sources/OmniWM/Core/Controller/WorkspaceSwipePresentation+Geometry.swift b/Sources/OmniWM/Core/Controller/WorkspaceSwipePresentation+Geometry.swift
-index 56c0c750..50a12bc8 100644
+index dedb364f..a3fcb9e5 100644
 --- a/Sources/OmniWM/Core/Controller/WorkspaceSwipePresentation+Geometry.swift
 +++ b/Sources/OmniWM/Core/Controller/WorkspaceSwipePresentation+Geometry.swift
-@@ -93,12 +93,40 @@ extension WorkspaceSwipePresentation {
+@@ -102,12 +102,40 @@ extension WorkspaceSwipePresentation {
              guard let frame, !frame.isNull, !frame.isInfinite, frame.width > 0, frame.height > 0 else { return nil }
              if frame.intersects(monitor.visibleFrame) { items.append(.init(handle: handle, frame: frame)) }
          }
@@ -58,34 +57,6 @@ index 56c0c750..50a12bc8 100644
      func participantsAreCurrent(_ flight: Flight) -> Bool {
          guard let controller,
                let monitor = controller.workspaceManager.monitor(byId: flight.preparation.monitor.id),
-diff --git a/Tests/OmniWMTests/ParkingEdgeMaskTests.swift b/Tests/OmniWMTests/ParkingEdgeMaskTests.swift
-index 25c41536..8471a463 100644
---- a/Tests/OmniWMTests/ParkingEdgeMaskTests.swift
-+++ b/Tests/OmniWMTests/ParkingEdgeMaskTests.swift
-@@ -192,7 +192,7 @@ final class ParkingEdgeMaskTests: XCTestCase {
-     }
- 
-     @MainActor
--    func testManagerRegistersReusesAndRemovesClickThroughMask() throws {
-+    func testManagerRegistersReusesAndRemovesClickSwallowingMask() throws {
-         let manager = ParkingEdgeMaskManager()
-         let key = ParkingEdgeMaskKey(
-             monitorId: Monitor.ID(displayId: 95_001),
-@@ -209,12 +209,12 @@ final class ParkingEdgeMaskTests: XCTestCase {
-         )
-         let firstWindow = try XCTUnwrap(firstInfo.window)
-         XCTAssertEqual(firstInfo.kind, .parkingEdgeMask)
--        XCTAssertEqual(firstInfo.hitTestPolicy, .passthrough)
-+        XCTAssertEqual(firstInfo.hitTestPolicy, .interactive)  // swallows clicks (2026-10-15)
-         XCTAssertEqual(firstInfo.capturePolicy, .excluded)
-         XCTAssertFalse(firstInfo.suppressesManagedFocusRecovery)
-         XCTAssertEqual(firstInfo.frame, firstFrame)
-         XCTAssertEqual(firstWindow.level, .statusBar)
--        XCTAssertTrue(firstWindow.ignoresMouseEvents)
-+        XCTAssertFalse(firstWindow.ignoresMouseEvents)
- 
-         manager.apply([DesiredParkingEdgeMask(key: key, frame: secondFrame)])
- 
 diff --git a/Tests/OmniWMTests/WorkspaceSwipeNiriClampTests.swift b/Tests/OmniWMTests/WorkspaceSwipeNiriClampTests.swift
 new file mode 100644
 index 00000000..ede92961
@@ -130,10 +101,10 @@ index 00000000..ede92961
 +    }
 +}
 diff --git a/Tests/OmniWMTests/WorkspaceSwipePreviewWarmupTests.swift b/Tests/OmniWMTests/WorkspaceSwipePreviewWarmupTests.swift
-index db01cc66..0b00d873 100644
+index fdcd508b..c8f73a46 100644
 --- a/Tests/OmniWMTests/WorkspaceSwipePreviewWarmupTests.swift
 +++ b/Tests/OmniWMTests/WorkspaceSwipePreviewWarmupTests.swift
-@@ -166,7 +166,7 @@ final class WorkspaceSwipePreviewWarmupTests: XCTestCase {
+@@ -196,7 +196,7 @@ final class WorkspaceSwipePreviewWarmupTests: XCTestCase {
      }
  
      func testSevenRetinaCandidatesRemainCachedAfterWarmup() async throws {
@@ -141,4 +112,7 @@ index db01cc66..0b00d873 100644
 +        let budget = 512 * 1_024 * 1_024  // production swipe budget (WorkspaceSwipePreview); captures are at 2x since 2026-10-15
          let driver = OverviewPreviewTestDriver()
          let capture = driver.makeCapture(maximumRetainedBytes: budget)
-         let items = (0 ..< 7).map { index in
+         defer {
+-- 
+2.54.0 (Apple Git-157)
+

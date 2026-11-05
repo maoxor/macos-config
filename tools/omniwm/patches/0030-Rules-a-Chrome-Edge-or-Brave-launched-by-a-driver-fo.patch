@@ -1,8 +1,8 @@
-From 0edf7001aca27f2c99306f1600e8c5d4352fb6e5 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: maoxor <118530756+maoxor@users.noreply.github.com>
 Date: Thu, 29 Oct 2026 22:33:46 +0100
-Subject: [PATCH] Rules: a Chrome, Edge or Brave launched by a driver follows
- the test browser's rules
+Subject: [PATCH 28/30] Rules: a Chrome, Edge or Brave launched by a driver
+ follows the test browser's rules
 
 ---
  .../Controller/WMController+WindowFacts.swift |   2 +-
@@ -13,10 +13,10 @@ Subject: [PATCH] Rules: a Chrome, Edge or Brave launched by a driver follows
  create mode 100644 Tests/OmniWMTests/AutomationBrowserRuleTests.swift
 
 diff --git a/Sources/OmniWM/Core/Controller/WMController+WindowFacts.swift b/Sources/OmniWM/Core/Controller/WMController+WindowFacts.swift
-index 3d8e5d5b..849b7255 100644
+index 4c83c275..87634070 100644
 --- a/Sources/OmniWM/Core/Controller/WMController+WindowFacts.swift
 +++ b/Sources/OmniWM/Core/Controller/WMController+WindowFacts.swift
-@@ -115,7 +115,7 @@ extension WMController {
+@@ -126,7 +126,7 @@ extension WMController {
      ) -> WindowDecisionEvaluation {
          let manualOverride = workspaceManager.manualLayoutOverride(for: token)
          let baseDecision = windowRuleEngine.decision(

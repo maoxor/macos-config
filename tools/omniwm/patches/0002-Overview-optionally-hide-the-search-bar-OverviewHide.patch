@@ -1,7 +1,7 @@
-From a23a7ada167cf1c9900ad2cdf1868121108f344a Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Thu, 15 Oct 2026 16:30:47 +0200
-Subject: [PATCH 02/28] Overview: optionally hide the search bar
+Subject: [PATCH 02/30] Overview: optionally hide the search bar
  (OverviewHideSearchBar default)
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 02/28] Overview: optionally hide the search bar
  2 files changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/Sources/OmniWM/Core/Overview/OverviewLayerRenderer+Chrome.swift b/Sources/OmniWM/Core/Overview/OverviewLayerRenderer+Chrome.swift
-index 30ca109d..67d1c1ec 100644
+index fcd17f45..d22106c6 100644
 --- a/Sources/OmniWM/Core/Overview/OverviewLayerRenderer+Chrome.swift
 +++ b/Sources/OmniWM/Core/Overview/OverviewLayerRenderer+Chrome.swift
 @@ -213,6 +213,7 @@ extension OverviewLayerRenderer {
@@ -22,18 +22,21 @@ index 30ca109d..67d1c1ec 100644
          if searchText.string as? String != text { searchText.string = text }
          searchText.foregroundColor = state.searchQuery.isEmpty ? Colors.textDimmed : Colors.textWhite
 diff --git a/Sources/OmniWM/Core/Overview/OverviewLayoutGeometry.swift b/Sources/OmniWM/Core/Overview/OverviewLayoutGeometry.swift
-index 944ba8c9..d4f2f330 100644
+index f1715c06..8f1ea142 100644
 --- a/Sources/OmniWM/Core/Overview/OverviewLayoutGeometry.swift
 +++ b/Sources/OmniWM/Core/Overview/OverviewLayoutGeometry.swift
 @@ -21,8 +21,9 @@ struct OverviewLayoutGeometry {
  
-     init(screenFrame: CGRect, scale: CGFloat) {
+     init(screenFrame: CGRect, scale: CGFloat, topSafeAreaInset: CGFloat = 0) {
          let metricsScale = OverviewLayoutCalculator.clampedScale(scale)
 -        let scaledSearchBarHeight = OverviewLayoutMetrics.searchBarHeight * metricsScale
 -        let scaledSearchBarPadding = OverviewLayoutMetrics.searchBarPadding * metricsScale
 +        let hideSearchBar = UserDefaults.standard.bool(forKey: "OverviewHideSearchBar")
 +        let scaledSearchBarHeight = hideSearchBar ? 0 : OverviewLayoutMetrics.searchBarHeight * metricsScale
 +        let scaledSearchBarPadding = hideSearchBar ? 0 : OverviewLayoutMetrics.searchBarPadding * metricsScale
-         let searchBarY = screenFrame.maxY - scaledSearchBarHeight - scaledSearchBarPadding
+         let searchBarY = screenFrame.maxY - max(0, topSafeAreaInset) - scaledSearchBarHeight - scaledSearchBarPadding
          let searchBarFrame = CGRect(
              x: screenFrame.minX + screenFrame.width * 0.25,
+-- 
+2.54.0 (Apple Git-157)
+

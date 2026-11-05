@@ -1,7 +1,7 @@
-From 0bf70933b2048545b7496d67150c350b00ac5ba3 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Fri, 16 Oct 2026 15:22:36 +0200
-Subject: [PATCH 22/28] Bench: replay a 3-finger column scroll on a Darwin
+Subject: [PATCH 21/30] Bench: replay a 3-finger column scroll on a Darwin
  notification
 
 notifyutil -p com.barut.OmniWM.bench.columnScroll feeds the same 120 Hz gesture (slow, fast,
@@ -105,7 +105,7 @@ index 00000000..6a3b4222
 +    }
 +}
 diff --git a/Sources/OmniWM/Core/Controller/ServiceLifecycleManager.swift b/Sources/OmniWM/Core/Controller/ServiceLifecycleManager.swift
-index 4ccf2272..c3235348 100644
+index 56082169..734e2db3 100644
 --- a/Sources/OmniWM/Core/Controller/ServiceLifecycleManager.swift
 +++ b/Sources/OmniWM/Core/Controller/ServiceLifecycleManager.swift
 @@ -18,6 +18,7 @@ enum ActivationEventSource: String, Sendable {
@@ -124,3 +124,6 @@ index 4ccf2272..c3235348 100644
          controller.syncMouseWarpPolicy()
          controller.syncWorkspaceBarRevealMonitor()
          monitorConfiguration.startObserving()
+-- 
+2.54.0 (Apple Git-157)
+

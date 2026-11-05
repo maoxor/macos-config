@@ -1,7 +1,7 @@
-From eead0304fa3b682906d9ce475439d24f7d3afce6 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Fri, 16 Oct 2026 00:49:21 +0200
-Subject: [PATCH 14/28] Test: WorkspaceSwipeSensitivity shortens the vertical
+Subject: [PATCH 13/30] Test: WorkspaceSwipeSensitivity shortens the vertical
  swipe trigger and travel
 
 ---
@@ -41,3 +41,6 @@ index 00000000..d275c4eb
 +        XCTAssertEqual(WorkspaceSwipeMotion.sensitivity, 3)
 +    }
 +}
+-- 
+2.54.0 (Apple Git-157)
+

@@ -1,7 +1,7 @@
-From 3cbc841c087b050b45019bbc484e9121e6a9a003 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Sat, 17 Oct 2026 22:23:38 +0200
-Subject: [PATCH 27/28] Bench: dump the targets of the animation ticks of a
+Subject: [PATCH 26/30] Bench: dump the targets of the animation ticks of a
  bench gesture to ~/Library/Logs/OmniWM/scroll-bench.tsv
 
 For the macos-config measurement tools (tools/omniwm/bench); no effect outside a bench gesture.
@@ -57,10 +57,10 @@ index 6a3b4222..f6467d89 100644
  
      private func send(_ phase: NSEvent.Phase, x: CGFloat, at time: TimeInterval) {
 diff --git a/Sources/OmniWM/Core/Controller/LayoutDiffExecutor.swift b/Sources/OmniWM/Core/Controller/LayoutDiffExecutor.swift
-index d696ccb7..2f9ada00 100644
+index fee50329..0937e895 100644
 --- a/Sources/OmniWM/Core/Controller/LayoutDiffExecutor.swift
 +++ b/Sources/OmniWM/Core/Controller/LayoutDiffExecutor.swift
-@@ -128,6 +128,7 @@ final class LayoutDiffExecutor {
+@@ -130,6 +130,7 @@ final class LayoutDiffExecutor {
              // An unverified size was otherwise re-written, unverified, on every tick of the scroll: Safari then
              // re-laid out its page each frame (2026-10-16 bench: one column wrote its size on ~95 % of ticks).
              // Verify those size writes so the next ticks move the window only.
@@ -68,3 +68,6 @@ index d696ccb7..2f9ada00 100644
              axManager.applyFramesParallel(frameUpdates.filter { $0.components == .position }, verify: false)
              axManager.applyFramesParallel(frameUpdates.filter { $0.components != .position }, verify: true)
              return
+-- 
+2.54.0 (Apple Git-157)
+

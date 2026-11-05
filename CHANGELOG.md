@@ -4,6 +4,12 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- OmniWM rebased on upstream 0d886db9 (2026-11-05, 759 commits newer): workspace swipe previews warmed from settled
+  frames, parking fins no longer re-hidden every pass, chained swipes, Niri edge overscroll, resting pictures streamed
+  instead of polled (tccd/replayd CPU). Patches 0008 and 0032 dropped (merged upstream as #1055 and #1056); 30 patches
+  left, 312 filtered tests pass. `build-local.sh` now picks the Swift snapshot named by upstream's `.swift-version`
+  (tools 6.5 > Xcode's 6.4) and a Nix Python >= 3.11. Rollback: `mv ~/.local/state/macos-power-user-deploy/backups/
+  OmniWM-local-prev.app /Applications/OmniWM.app` (after quitting OmniWM), and revert this commit.
 - Top bar: now playing, power draw and CPU temperature (macmon), VPN badge. btop styled from the wallpaper palette
   (`home-manager/monitors.nix`: transparent background, rounded corners, braille graphs, vim keys).
 - Top bar spacing: gaps between pills, workspaces off the pill edges. btop and macmon (Brewfile) as Raycast commands

@@ -1,7 +1,7 @@
-From 20a162827d22e44fcfd84869a7af934caa7a4ee5 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Thu, 15 Oct 2026 17:32:48 +0200
-Subject: [PATCH 06/28] Swipe previews use WindowServer-composited snapshots of
+Subject: [PATCH 06/30] Swipe previews use WindowServer-composited snapshots of
  the visible workspace (keeps Ghostty blur and colours); edge masks unchanged
 
 ---
@@ -109,10 +109,10 @@ index 00000000..62c40746
 +    }
 +}
 diff --git a/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift b/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift
-index 04f1d0a3..537566d0 100644
+index 0d099141..e7528a47 100644
 --- a/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift
 +++ b/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift
-@@ -98,6 +98,7 @@ final class WorkspaceSwipePreview {
+@@ -110,6 +110,7 @@ final class WorkspaceSwipePreview {
      }
  
      func prepare(source: [Item], destination: [Item], monitor: Monitor, workingFrame: CGRect? = nil) {
@@ -120,7 +120,7 @@ index 04f1d0a3..537566d0 100644
          reconcile(
              source: source,
              destination: destination,
-@@ -178,6 +179,7 @@ final class WorkspaceSwipePreview {
+@@ -230,6 +231,7 @@ final class WorkspaceSwipePreview {
          root.addSublayer(destinationLayer)
          self.sourceLayer = sourceLayer
          self.destinationLayer = destinationLayer
@@ -128,7 +128,7 @@ index 04f1d0a3..537566d0 100644
          self.panel = panel
          CATransaction.commit()
  
-@@ -208,8 +210,18 @@ final class WorkspaceSwipePreview {
+@@ -297,9 +299,19 @@ final class WorkspaceSwipePreview {
          CATransaction.commit()
      }
  
@@ -136,6 +136,7 @@ index 04f1d0a3..537566d0 100644
 +
      func stop() {
          isWarming = false
+         dropSourceSnapshot()
 +        if let (items, monitor) = landedItems {
 +            landedItems = nil
 +            // Whichever workspace ends up visible, its windows are on screen ~0.6 s later.
@@ -147,7 +148,7 @@ index 04f1d0a3..537566d0 100644
          let previous = contents.values.flatMap { $0.map(\.preview) }
          CATransaction.begin()
          CATransaction.setDisableActions(true)
-@@ -242,6 +254,15 @@ final class WorkspaceSwipePreview {
+@@ -334,6 +346,15 @@ extension WorkspaceSwipePreview {
          layer.masksToBounds = true
          layer.addSublayer(makeWallpaperLayer(image, monitor: monitor, frame: frame))
          for item in items {
@@ -163,3 +164,6 @@ index 04f1d0a3..537566d0 100644
              guard let preview = capture.preview(for: item.handle) else { continue }
              let content = Content(
                  preview: preview,
+-- 
+2.54.0 (Apple Git-157)
+

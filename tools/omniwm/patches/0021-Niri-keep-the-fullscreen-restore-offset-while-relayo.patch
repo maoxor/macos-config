@@ -1,7 +1,7 @@
-From 47fcc9664e60b317777abf9008a119c422995a1a Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Fri, 16 Oct 2026 15:03:15 +0200
-Subject: [PATCH 21/28] Niri: keep the fullscreen restore offset while
+Subject: [PATCH 20/30] Niri: keep the fullscreen restore offset while
  relayouts re-target the same column
 
 Entering OmniWM fullscreen saves the viewport offset; every relayout of the selection re-targets
@@ -15,10 +15,10 @@ the right). Keep the saved offset when the same column is re-targeted while full
  create mode 100644 Tests/OmniWMTests/NiriFullscreenRestoreOffsetTests.swift
 
 diff --git a/Sources/OmniWM/Core/Layout/Niri/ViewportState+ColumnTransitions.swift b/Sources/OmniWM/Core/Layout/Niri/ViewportState+ColumnTransitions.swift
-index 90e65c7a..6e7d9042 100644
+index 9a65bac0..c8e11006 100644
 --- a/Sources/OmniWM/Core/Layout/Niri/ViewportState+ColumnTransitions.swift
 +++ b/Sources/OmniWM/Core/Layout/Niri/ViewportState+ColumnTransitions.swift
-@@ -151,9 +151,15 @@ extension ViewportState {
+@@ -162,9 +162,15 @@ extension ViewportState {
              gap: gap,
              sizeKeyPath: orientation.renderedSpanKeyPath
          )
@@ -83,3 +83,6 @@ index 00000000..23c08671
 +        XCTAssertNil(state.viewOffsetToRestore)
 +    }
 +}
+-- 
+2.54.0 (Apple Git-157)
+

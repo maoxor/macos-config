@@ -1,23 +1,27 @@
-From 109c9832968d4031dc71fdd106c63e2ae6c60b7f Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Thu, 15 Oct 2026 16:41:01 +0200
-Subject: [PATCH 03/28] Overview: hidden search bar keeps a 44 pt top inset
+Subject: [PATCH 03/30] Overview: hidden search bar keeps a 44 pt top inset
  (notch band)
 
 ---
- Sources/OmniWM/Core/Overview/OverviewLayoutGeometry.swift | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Sources/OmniWM/Core/Overview/OverviewLayoutGeometry.swift | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/Sources/OmniWM/Core/Overview/OverviewLayoutGeometry.swift b/Sources/OmniWM/Core/Overview/OverviewLayoutGeometry.swift
-index d4f2f330..0b1cf0d7 100644
+index 8f1ea142..eac633fa 100644
 --- a/Sources/OmniWM/Core/Overview/OverviewLayoutGeometry.swift
 +++ b/Sources/OmniWM/Core/Overview/OverviewLayoutGeometry.swift
-@@ -23,7 +23,7 @@ struct OverviewLayoutGeometry {
+@@ -23,7 +23,8 @@ struct OverviewLayoutGeometry {
          let metricsScale = OverviewLayoutCalculator.clampedScale(scale)
          let hideSearchBar = UserDefaults.standard.bool(forKey: "OverviewHideSearchBar")
          let scaledSearchBarHeight = hideSearchBar ? 0 : OverviewLayoutMetrics.searchBarHeight * metricsScale
 -        let scaledSearchBarPadding = hideSearchBar ? 0 : OverviewLayoutMetrics.searchBarPadding * metricsScale
-+        let scaledSearchBarPadding = hideSearchBar ? 44 : OverviewLayoutMetrics.searchBarPadding * metricsScale  // clears the notch band
-         let searchBarY = screenFrame.maxY - scaledSearchBarHeight - scaledSearchBarPadding
++        // A hidden bar still clears the notch band: 44 pt from the top in all, the safe-area inset included.
++        let scaledSearchBarPadding = hideSearchBar ? max(0, 44 - max(0, topSafeAreaInset)) : OverviewLayoutMetrics.searchBarPadding * metricsScale
+         let searchBarY = screenFrame.maxY - max(0, topSafeAreaInset) - scaledSearchBarHeight - scaledSearchBarPadding
          let searchBarFrame = CGRect(
              x: screenFrame.minX + screenFrame.width * 0.25,
+-- 
+2.54.0 (Apple Git-157)
+

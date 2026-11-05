@@ -1,7 +1,7 @@
-From df4d16551168d4fe00883937c02cff9bfcacada4 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: maoxor <118530756+maoxor@users.noreply.github.com>
 Date: Fri, 30 Oct 2026 11:58:14 +0100
-Subject: [PATCH] Swipe previews never start from a stale image: a native
+Subject: [PATCH 29/30] Swipe previews never start from a stale image: a native
  snapshot whose window title changed is not used, the visible workspace is
  re-snapshotted after a title change, and a live frame older than 2 s is
  recaptured at the first contact
@@ -18,22 +18,22 @@ Subject: [PATCH] Swipe previews never start from a stale image: a native
  create mode 100644 Tests/OmniWMTests/NativeWindowSnapshotStalenessTests.swift
 
 diff --git a/Sources/OmniWM/Core/Controller/AXEventHandler+WindowEvents.swift b/Sources/OmniWM/Core/Controller/AXEventHandler+WindowEvents.swift
-index 2967ec45..8afb0704 100644
+index 0eb15a71..ffba326f 100644
 --- a/Sources/OmniWM/Core/Controller/AXEventHandler+WindowEvents.swift
 +++ b/Sources/OmniWM/Core/Controller/AXEventHandler+WindowEvents.swift
-@@ -69,6 +69,7 @@ extension AXEventHandler {
-         controller.requestWorkspaceBarRefresh()
-         updateManagedReplacementTitle(windowInfo: windowInfo, token: token)
-         scheduleWindowRuleReevaluationIfNeeded(targets: [.window(token)])
+@@ -88,6 +88,7 @@ extension AXEventHandler {
+         if controller.windowRuleEngine.needsTitleReevaluation(for: bundleId, appName: appInfo?.name) {
+             scheduleWindowRuleReevaluationIfNeeded(targets: [.window(token)])
+         }
 +        controller.layoutRefreshController.workspaceSwipe.refreshVisibleSnapshots(containing: token)
      }
  
      private func handleCGSWindowClosed(windowId: UInt32) {
 diff --git a/Sources/OmniWM/Core/Controller/WorkspaceSwipePresentation+Geometry.swift b/Sources/OmniWM/Core/Controller/WorkspaceSwipePresentation+Geometry.swift
-index 50a12bc8..e4d8de16 100644
+index a3fcb9e5..c50b251b 100644
 --- a/Sources/OmniWM/Core/Controller/WorkspaceSwipePresentation+Geometry.swift
 +++ b/Sources/OmniWM/Core/Controller/WorkspaceSwipePresentation+Geometry.swift
-@@ -21,6 +21,22 @@ extension WorkspaceSwipePresentation {
+@@ -22,6 +22,22 @@ extension WorkspaceSwipePresentation {
          )
      }
  
@@ -54,13 +54,13 @@ index 50a12bc8..e4d8de16 100644
 +    }
 +
      func handleInvalidation(workspaceId: WorkspaceDescriptor.ID?, domains: InvalidationDomain) {
-         guard let flight else { return }
-         if flight.committing {
+         for flight in Array(flights.values) {
+             if flight.committing {
 diff --git a/Sources/OmniWM/Core/Overview/OverviewThumbnailCapture.swift b/Sources/OmniWM/Core/Overview/OverviewThumbnailCapture.swift
-index 382e60ea..61bd03f6 100644
+index 5b28f6dd..12b63437 100644
 --- a/Sources/OmniWM/Core/Overview/OverviewThumbnailCapture.swift
 +++ b/Sources/OmniWM/Core/Overview/OverviewThumbnailCapture.swift
-@@ -40,6 +40,8 @@ final class OverviewThumbnailCapture {
+@@ -41,6 +41,8 @@ final class OverviewThumbnailCapture {
          let token: WindowToken
          var lastRequestedUse: UInt64
          let capturedAt: UInt64
@@ -68,8 +68,8 @@ index 382e60ea..61bd03f6 100644
 +        var receivedAt = Date()
      }
  
-     private let consumer: OverviewFrameTrace.PreviewConsumer
-@@ -298,6 +300,12 @@ final class OverviewThumbnailCapture {
+     private static let startTimeout: Duration = .seconds(3)
+@@ -338,6 +340,12 @@ final class OverviewThumbnailCapture {
  }
  
  extension OverviewThumbnailCapture {
@@ -199,10 +199,10 @@ index 62c40746..30b00b8c 100644
 +
 +private let nativeSnapshotCacheLog = Logger(subsystem: "com.barut.OmniWM", category: "swipe-snapshot")
 diff --git a/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift b/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift
-index b45a8864..bfc94bca 100644
+index e7c908ff..7ea4522c 100644
 --- a/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift
 +++ b/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift
-@@ -63,6 +63,8 @@ final class WorkspaceSwipePreview {
+@@ -67,6 +67,8 @@ final class WorkspaceSwipePreview {
      private var destinationLayer: CALayer?
      private var contents: [WindowHandle: [Content]] = [:]
      private(set) var isWarming = false
@@ -211,7 +211,7 @@ index b45a8864..bfc94bca 100644
  
      var isVisible: Bool {
          panel?.isVisible == true
-@@ -128,7 +130,11 @@ final class WorkspaceSwipePreview {
+@@ -178,7 +180,11 @@ final class WorkspaceSwipePreview {
          tokens = Dictionary(items.map { ($0.handle, $0.handle.token) }, uniquingKeysWith: { _, latest in latest })
          let scale = Self.scale(for: monitor)
          isWarming = warming
@@ -289,10 +289,10 @@ index 00000000..0693144f
 +    }
 +}
 diff --git a/Tests/OmniWMTests/WorkspaceSwipePreviewWarmupTests.swift b/Tests/OmniWMTests/WorkspaceSwipePreviewWarmupTests.swift
-index 0b00d873..2b9c437c 100644
+index c8f73a46..85144c21 100644
 --- a/Tests/OmniWMTests/WorkspaceSwipePreviewWarmupTests.swift
 +++ b/Tests/OmniWMTests/WorkspaceSwipePreviewWarmupTests.swift
-@@ -250,6 +250,29 @@ final class WorkspaceSwipePreviewWarmupTests: XCTestCase {
+@@ -289,6 +289,29 @@ final class WorkspaceSwipePreviewWarmupTests: XCTestCase {
          capture.releaseCache()
      }
  
@@ -303,18 +303,18 @@ index 0b00d873..2b9c437c 100644
 +        let window = item(1)
 +        let old = try makeOverviewPreviewFrame()
 +        preview.warm(source: [], destination: [window], monitor: monitor)
-+        await driver.waitForStarts(1)
++        try await driver.waitForStarts(1)
 +        driver.completeAllStarts()
-+        await publish(old, through: driver.streams[0], into: capture)
-+        await driver.waitForStops(1)
++        try await publish(old, through: driver.streams[0], into: capture)
++        try await driver.waitForStops(1)
 +        WorkspaceSwipePreview.staleFrameAge = 0
 +        defer { WorkspaceSwipePreview.staleFrameAge = 2 }
 +        preview.warm(source: [], destination: [window], monitor: monitor)
-+        await driver.waitForStarts(2)
++        try await driver.waitForStarts(2)
 +        let fresh = try makeOverviewPreviewFrame()
 +        driver.completeAllStarts()
-+        await publish(fresh, through: driver.streams[1], into: capture)
-+        await driver.waitForStops(2)
++        try await publish(fresh, through: driver.streams[1], into: capture)
++        try await driver.waitForStops(2)
 +        XCTAssertTrue(capture.preview(for: window.handle) === fresh)
 +        preview.stop()
 +    }

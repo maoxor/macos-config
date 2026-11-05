@@ -1,7 +1,7 @@
-From 28440f4e946b75e7563a5a1ef0a63fc75cd9dab0 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Fri, 16 Oct 2026 11:28:12 +0200
-Subject: [PATCH 18/28] Focus follows mouse when windows move under a still
+Subject: [PATCH 17/30] Focus follows mouse when windows move under a still
  pointer (workspace switch, Niri scroll end)
 
 ---
@@ -12,10 +12,10 @@ Subject: [PATCH 18/28] Focus follows mouse when windows move under a still
  4 files changed, 50 insertions(+)
 
 diff --git a/Sources/OmniWM/Core/Controller/LayoutRefreshController+DisplayLink.swift b/Sources/OmniWM/Core/Controller/LayoutRefreshController+DisplayLink.swift
-index 8118a5e2..1ac8a617 100644
+index 1292eaeb..90a7ea14 100644
 --- a/Sources/OmniWM/Core/Controller/LayoutRefreshController+DisplayLink.swift
 +++ b/Sources/OmniWM/Core/Controller/LayoutRefreshController+DisplayLink.swift
-@@ -179,6 +179,11 @@ extension LayoutRefreshController {
+@@ -178,6 +178,11 @@ extension LayoutRefreshController {
      }
  
      func stopScrollAnimation(for displayId: CGDirectDisplayID) {
@@ -28,7 +28,7 @@ index 8118a5e2..1ac8a617 100644
              niriHandler.terminateViewportGesture(
                  for: workspaceId,
 diff --git a/Sources/OmniWM/Core/Controller/LayoutRefreshController+Scheduling.swift b/Sources/OmniWM/Core/Controller/LayoutRefreshController+Scheduling.swift
-index 38d2d10c..c7526737 100644
+index 2658236f..e0abb8c8 100644
 --- a/Sources/OmniWM/Core/Controller/LayoutRefreshController+Scheduling.swift
 +++ b/Sources/OmniWM/Core/Controller/LayoutRefreshController+Scheduling.swift
 @@ -131,6 +131,11 @@ extension LayoutRefreshController {
@@ -44,10 +44,10 @@ index 38d2d10c..c7526737 100644
  
      func collectUnusedWorkspacesIfIdle() {
 diff --git a/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift b/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
-index 005de1ad..2e4aa642 100644
+index a69c36b9..e398410f 100644
 --- a/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
 +++ b/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
-@@ -416,3 +416,42 @@ enum FocusFollowsMouseTrailingEdge {
+@@ -470,3 +470,42 @@ enum FocusFollowsMouseTrailingEdge {
  
      static func cancel() { pending?.cancel(); pending = nil }
  }
@@ -91,10 +91,10 @@ index 005de1ad..2e4aa642 100644
 +    }
 +}
 diff --git a/Sources/OmniWM/Core/Controller/WMController+WorldObservation.swift b/Sources/OmniWM/Core/Controller/WMController+WorldObservation.swift
-index def0102f..792181d2 100644
+index 140dd985..285dbd28 100644
 --- a/Sources/OmniWM/Core/Controller/WMController+WorldObservation.swift
 +++ b/Sources/OmniWM/Core/Controller/WMController+WorldObservation.swift
-@@ -21,6 +21,7 @@ extension WMController {
+@@ -23,6 +23,7 @@ extension WMController {
              surfaceReconciler.noteBorderChanged()
          }
          let changeSet = focusNotificationDispatcher.notifyFocusChangesIfNeeded()
@@ -102,3 +102,6 @@ index def0102f..792181d2 100644
          if statusBarRefreshIsEnabled {
              refreshStatusBar()
          }
+-- 
+2.54.0 (Apple Git-157)
+

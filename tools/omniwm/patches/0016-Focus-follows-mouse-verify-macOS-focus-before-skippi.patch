@@ -1,7 +1,7 @@
-From babf591f09f11c58e9147dde3f395ac28005b3f4 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Fri, 16 Oct 2026 10:01:44 +0200
-Subject: [PATCH 16/28] Focus follows mouse: verify macOS focus before skipping
+Subject: [PATCH 15/30] Focus follows mouse: verify macOS focus before skipping
  an 'already focused' window
 
 OmniWM's native-focus record is not updated by same-app hand-offs, so hovering back onto a window it still named did nothing while macOS focused another window. Check frontmost app + AX focused window once per pointer entry.
@@ -10,7 +10,7 @@ OmniWM's native-focus record is not updated by same-app hand-offs, so hovering b
  1 file changed, 44 insertions(+), 2 deletions(-)
 
 diff --git a/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift b/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
-index cc52a50b..0ecac0a8 100644
+index 17158378..5ae63908 100644
 --- a/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
 +++ b/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
 @@ -4,6 +4,7 @@
@@ -21,7 +21,7 @@ index cc52a50b..0ecac0a8 100644
  
  extension MouseEventHandler {
      var hasLatestFocusFollowsMouseSample: Bool {
-@@ -145,8 +146,20 @@ extension MouseEventHandler {
+@@ -159,8 +160,20 @@ extension MouseEventHandler {
          }
          let token = focusFollowsMouseToken(for: target)
  
@@ -44,7 +44,7 @@ index cc52a50b..0ecac0a8 100644
              return
          }
          var allowed = false
-@@ -343,3 +356,32 @@ enum FocusTrace {
+@@ -397,3 +410,32 @@ enum FocusTrace {
          log.info("\(line, privacy: .public)")
      }
  }
@@ -77,3 +77,6 @@ index cc52a50b..0ecac0a8 100644
 +        return windowId == token.windowId
 +    }
 +}
+-- 
+2.54.0 (Apple Git-157)
+

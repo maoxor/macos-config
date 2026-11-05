@@ -1,7 +1,7 @@
-From ad75f90551380c556f1758555da124739bd6ac2d Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Fri, 16 Oct 2026 00:59:57 +0200
-Subject: [PATCH 15/28] Focus: trace focus-follows-mouse decisions (category
+Subject: [PATCH 14/30] Focus: trace focus-follows-mouse decisions (category
  focus-trace); hover exemption uses the per-pid bundle cache
 
 ---
@@ -9,11 +9,11 @@ Subject: [PATCH 15/28] Focus: trace focus-follows-mouse decisions (category
  1 file changed, 46 insertions(+), 4 deletions(-)
 
 diff --git a/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift b/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
-index 64f1b7ee..cc52a50b 100644
+index e2a8b5c0..17158378 100644
 --- a/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
 +++ b/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
 @@ -2,6 +2,7 @@
- // Copyright (C) 2026 BarutSRB — https://github.com/OmniNull/OmniWM
+ // Copyright (C) 2026 OmniNull — https://github.com/OmniNull/OmniWM
  
  import AppKit
 +import OSLog
@@ -42,7 +42,7 @@ index 64f1b7ee..cc52a50b 100644
 @@ -63,6 +65,7 @@ extension MouseEventHandler {
          }
  
-         if shouldBlockOwnWindowInput(at: location) {
+         if shouldBlockOwnWindowInput(at: location, windowIdUnderPointer: windowIdUnderPointer) {
 +            FocusTrace.decision("skip: pointer over an OmniWM surface", controller: controller)
              resetHoveredEdgesIfNeeded()
              return
@@ -61,7 +61,7 @@ index 64f1b7ee..cc52a50b 100644
          }
  
          guard !state.isResizing else { return }
-@@ -116,25 +126,36 @@ extension MouseEventHandler {
+@@ -125,11 +135,13 @@ extension MouseEventHandler {
                !hasPendingNativeFullscreenTransition(at: location),
                !isPointerDisplayShowingFullscreenSpace(at: location)
          else {
@@ -74,7 +74,8 @@ index 64f1b7ee..cc52a50b 100644
 +            FocusTrace.decision("skip: debounce (no retry if the pointer stops here)", controller: controller)
              return
          }
- 
+         if controller.settings.focus.followsMouseOnlyFullyVisible, let windowIdUnderPointer, windowIdUnderPointer > 0,
+@@ -141,14 +153,23 @@ extension MouseEventHandler {
          guard let target = resolveFocusFollowsMouseTarget(
              at: location,
              windowIdUnderPointer: windowIdUnderPointer
@@ -99,8 +100,8 @@ index 64f1b7ee..cc52a50b 100644
 +        FocusTrace.decision(allowed ? "focus requested" : "skip: focus policy denied", controller: controller, token: token)
      }
  
-     private func hasPendingNativeFullscreenTransition(at location: CGPoint) -> Bool {
-@@ -301,3 +322,24 @@ extension MouseEventHandler {
+     func hasPendingNativeFullscreenTransition(at location: CGPoint) -> Bool {
+@@ -355,3 +376,24 @@ extension MouseEventHandler {
          }
      }
  }
@@ -125,3 +126,6 @@ index 64f1b7ee..cc52a50b 100644
 +        log.info("\(line, privacy: .public)")
 +    }
 +}
+-- 
+2.54.0 (Apple Git-157)
+

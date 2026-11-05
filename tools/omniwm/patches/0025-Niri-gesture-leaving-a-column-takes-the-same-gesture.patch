@@ -1,7 +1,7 @@
-From 4922f80c6ffe6db93227af1d0d361d1fb31e44ef Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Fri, 16 Oct 2026 16:36:03 +0200
-Subject: [PATCH 25/28] Niri gesture: leaving a column takes the same gesture
+Subject: [PATCH 24/30] Niri gesture: leaving a column takes the same gesture
  whatever its width
 
 Snap used the snap point nearest to the projected position, and neighbouring points are a column
@@ -19,12 +19,12 @@ reaches further); shorter travel returns. Narrow and half-width columns are unch
  create mode 100644 Tests/OmniWMTests/NiriGestureIntentSnapTests.swift
 
 diff --git a/Sources/OmniWM/Core/Controller/MouseEventHandler+TrackpadLifecycle.swift b/Sources/OmniWM/Core/Controller/MouseEventHandler+TrackpadLifecycle.swift
-index 93c66810..ecc36e69 100644
+index 2db3b21a..eeffdc8c 100644
 --- a/Sources/OmniWM/Core/Controller/MouseEventHandler+TrackpadLifecycle.swift
 +++ b/Sources/OmniWM/Core/Controller/MouseEventHandler+TrackpadLifecycle.swift
-@@ -331,7 +331,8 @@ extension MouseEventHandler {
-                 centerMode: engine.centerFocusedColumn,
-                 alwaysCenterSingleColumn: engine.alwaysCenterSingleColumn,
+@@ -336,7 +336,8 @@ extension MouseEventHandler {
+                 centerMode: settings.centerFocusedColumn,
+                 alwaysCenterSingleColumn: settings.alwaysCenterSingleColumn,
                  viewFrame: monitor.frame,
 -                scale: geometry.scale
 +                scale: geometry.scale,
@@ -33,11 +33,11 @@ index 93c66810..ecc36e69 100644
          }
          completeTrackpadViewportGesture(selectedWindow, engine: engine, workspaceId: wsId, focus: shouldFocusSelection)
 diff --git a/Sources/OmniWM/Core/Layout/Niri/NiriGestureSnapPlan.swift b/Sources/OmniWM/Core/Layout/Niri/NiriGestureSnapPlan.swift
-index 9d8ea26a..b3bf28d5 100644
+index ce7ba1d2..1b81fa06 100644
 --- a/Sources/OmniWM/Core/Layout/Niri/NiriGestureSnapPlan.swift
 +++ b/Sources/OmniWM/Core/Layout/Niri/NiriGestureSnapPlan.swift
-@@ -142,6 +142,26 @@ struct NiriGestureSnapPlan {
-         points.append(Point(viewPos: viewPos, columnIndex: columnIndex))
+@@ -147,6 +147,26 @@ struct NiriGestureSnapPlan {
+         ))
      }
  
 +    /// From the point the strip rested on when the gesture began, a projected travel past halfway to the next point,
@@ -64,10 +64,10 @@ index 9d8ea26a..b3bf28d5 100644
          points.sort { $0.viewPos < $1.viewPos }
          return points.min(by: { abs($0.viewPos - projectedViewPos) < abs($1.viewPos - projectedViewPos) })
 diff --git a/Sources/OmniWM/Core/Layout/Niri/NiriProjection.swift b/Sources/OmniWM/Core/Layout/Niri/NiriProjection.swift
-index 351d16bf..de336618 100644
+index 25131b94..b6650b14 100644
 --- a/Sources/OmniWM/Core/Layout/Niri/NiriProjection.swift
 +++ b/Sources/OmniWM/Core/Layout/Niri/NiriProjection.swift
-@@ -335,7 +335,8 @@ extension NiriLayoutEngine {
+@@ -334,7 +334,8 @@ extension NiriLayoutEngine {
          centerMode: CenterFocusedColumn = .never,
          alwaysCenterSingleColumn: Bool = false,
          viewFrame: CGRect? = nil,
@@ -77,7 +77,7 @@ index 351d16bf..de336618 100644
      ) -> NiriWindow? {
          let projectedColumns = projectedColumns(in: context.workspaceId)
          guard !projectedColumns.isEmpty else { return nil }
-@@ -369,7 +370,8 @@ extension NiriLayoutEngine {
+@@ -371,7 +372,8 @@ extension NiriLayoutEngine {
                  motion: context.motion,
                  snapToColumn: snapToColumn,
                  centerMode: centerMode,
@@ -86,9 +86,9 @@ index 351d16bf..de336618 100644
 +                gestureStartOffset: gestureStartOffset
              )
  
-             let projectedIndex = projectedState.activeColumnIndex
+             projectedState.rebaseOffset(by: -singleOriginOffset)
 diff --git a/Sources/OmniWM/Core/Layout/Niri/ViewportState+Gestures.swift b/Sources/OmniWM/Core/Layout/Niri/ViewportState+Gestures.swift
-index 89444445..25896bb2 100644
+index 08e50338..39c60cbc 100644
 --- a/Sources/OmniWM/Core/Layout/Niri/ViewportState+Gestures.swift
 +++ b/Sources/OmniWM/Core/Layout/Niri/ViewportState+Gestures.swift
 @@ -5,6 +5,10 @@ import AppKit
@@ -135,9 +135,9 @@ index 89444445..25896bb2 100644
      ) -> NiriGestureSnapPlan.Point {
          guard !columns.isEmpty else { return NiriGestureSnapPlan.Point(viewPos: 0, columnIndex: 0) }
          var plan = consume plan
-@@ -128,7 +138,14 @@ extension ViewportState {
-             let bounds = gestureSnapBounds(columns: columns, plan: &plan)
-             plan.appendBoundedPoints(in: columns, bounds: bounds)
+@@ -132,7 +142,14 @@ extension ViewportState {
+             plan.appendPoint(Double(bounds.lowerBound), columnIndex: 0, isOverscrollBoundary: true)
+             plan.appendPoint(Double(bounds.upperBound), columnIndex: columns.count - 1, isOverscrollBoundary: true)
          }
 -        guard let closest = plan.closestPoint(to: projectedViewPos) else {
 +        let target = if let intent, !plan.geometry.isCentering {
@@ -150,7 +150,7 @@ index 89444445..25896bb2 100644
 +        guard let closest = target else {
              return NiriGestureSnapPlan.Point(viewPos: 0, columnIndex: 0)
          }
-         guard !plan.geometry.isCentering else { return closest }
+         guard !plan.geometry.isCentering, !closest.isOverscrollBoundary else { return closest }
 diff --git a/Tests/OmniWMTests/NiriGestureIntentSnapTests.swift b/Tests/OmniWMTests/NiriGestureIntentSnapTests.swift
 new file mode 100644
 index 00000000..870666f9
@@ -212,3 +212,6 @@ index 00000000..870666f9
 +        XCTAssertEqual(landing(widths: [2058, 2058, 2058], travel: 4200), 2)
 +    }
 +}
+-- 
+2.54.0 (Apple Git-157)
+

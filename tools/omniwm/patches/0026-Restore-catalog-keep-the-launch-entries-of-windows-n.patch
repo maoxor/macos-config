@@ -1,7 +1,7 @@
-From d7f699f9024795f6f46a268b542309468390253e Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Fri, 16 Oct 2026 17:03:36 +0200
-Subject: [PATCH 26/28] Restore catalog: keep the launch entries of windows not
+Subject: [PATCH 25/30] Restore catalog: keep the launch entries of windows not
  seen again this session
 
 A save made while the screen was locked found no window and wrote an empty catalog; the next launch
@@ -13,7 +13,7 @@ session are kept in every save.
  2 files changed, 44 insertions(+), 2 deletions(-)
 
 diff --git a/Sources/OmniWM/Core/Reconcile/PersistedRestoreCatalogStore.swift b/Sources/OmniWM/Core/Reconcile/PersistedRestoreCatalogStore.swift
-index b7eddee3..7a77d852 100644
+index 7795c64c..c2234be0 100644
 --- a/Sources/OmniWM/Core/Reconcile/PersistedRestoreCatalogStore.swift
 +++ b/Sources/OmniWM/Core/Reconcile/PersistedRestoreCatalogStore.swift
 @@ -148,7 +148,19 @@ final class PersistedRestoreCatalogStore {
@@ -92,3 +92,6 @@ index cf2c45e5..28c21512 100644
 +        XCTAssertEqual(saved.last?.entries, [], "once restored, the live world is the source of truth")
 +    }
  }
+-- 
+2.54.0 (Apple Git-157)
+

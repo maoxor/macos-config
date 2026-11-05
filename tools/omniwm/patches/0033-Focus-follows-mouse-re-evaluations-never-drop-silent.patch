@@ -1,8 +1,8 @@
-From c599055858eb0e52442ad9e7f6cdb7fc5831103b Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: maoxor <118530756+maoxor@users.noreply.github.com>
 Date: Wed, 4 Nov 2026 00:07:37 +0100
-Subject: [PATCH] Focus follows mouse: re-evaluations never drop silently, a
- policy denial is retried, 40 ms debounce
+Subject: [PATCH 30/30] Focus follows mouse: re-evaluations never drop
+ silently, a policy denial is retried, 40 ms debounce
 
 The trailing-edge re-evaluation re-ran the debounce check with a Date that could be a hair short of the dispatch
 deadline and dropped silently when the latest sample was gone, so the window under a stopped pointer stayed
@@ -10,16 +10,16 @@ unfocused until the next move. It now skips the debounce, falls back to the live
 A hover denied by a short policy lease (0.4 s after an app switch) is retried every 50 ms for up to 1 s.
 The debounce goes from 0.1 s to 0.04 s.
 ---
- .../MouseEventHandler+FocusFollowsMouse.swift | 74 +++++++++++++++----
+ .../MouseEventHandler+FocusFollowsMouse.swift | 76 +++++++++++++++----
  .../Core/Controller/MouseInputState.swift     |  4 +-
- 2 files changed, 64 insertions(+), 14 deletions(-)
+ 2 files changed, 65 insertions(+), 15 deletions(-)
 
 diff --git a/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift b/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
-index 2e4aa642..62d1479b 100644
+index e398410f..476aa2d4 100644
 --- a/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
 +++ b/Sources/OmniWM/Core/Controller/MouseEventHandler+FocusFollowsMouse.swift
-@@ -121,8 +121,13 @@ extension MouseEventHandler {
-         return controller.isPointInOwnWindow(location)
+@@ -130,8 +130,13 @@ extension MouseEventHandler {
+         controller?.ownedWindowRegistry.contains(point: location, excluding: SurfaceKind.gestureTransparent) == true
      }
  
 -    private func handleFocusFollowsMouse(at location: CGPoint, windowIdUnderPointer: Int?) {
@@ -33,7 +33,7 @@ index 2e4aa642..62d1479b 100644
          guard !externalFocusBlocksFocusFollowsMouse,
                !hasPendingNativeFullscreenTransition(at: location),
                !isPointerDisplayShowingFullscreenSpace(at: location)
-@@ -133,22 +138,18 @@ extension MouseEventHandler {
+@@ -142,22 +147,18 @@ extension MouseEventHandler {
  
          let now = Date()
          let elapsed = now.timeIntervalSince(state.lastFocusFollowsMouseTime)
@@ -51,7 +51,7 @@ index 2e4aa642..62d1479b 100644
 -                else { return }
 -                guard let sample = self.state.latestFocusFollowsMouseSample,
 -                      !controller.settings.focus.lockModifier.isHeld(inRawFlags: sample.modifiersRawValue),
--                      !self.shouldBlockOwnWindowInput(at: sample.location),
+-                      !self.shouldBlockOwnWindowInput(at: sample.location, windowIdUnderPointer: sample.windowIdUnderPointer),
 -                      self.shouldHandleFocusFollowsMouse(at: sample.location)
 -                else { return }
 -                self.handleFocusFollowsMouse(at: sample.location, windowIdUnderPointer: sample.windowIdUnderPointer)
@@ -64,7 +64,7 @@ index 2e4aa642..62d1479b 100644
              return
          }
          FocusFollowsMouseTrailingEdge.cancel()
-@@ -185,6 +186,51 @@ extension MouseEventHandler {
+@@ -199,6 +200,51 @@ extension MouseEventHandler {
              activateFocusFollowsMouseTarget(target)
          }
          FocusTrace.decision(allowed ? "focus requested" : "skip: focus policy denied", controller: controller, token: token)
@@ -103,7 +103,7 @@ index 2e4aa642..62d1479b 100644
 +                FocusTrace.decision("re-evaluation dropped: lock modifier held", controller: controller)
 +                return
 +            }
-+            guard !self.shouldBlockOwnWindowInput(at: at) else {
++            guard !self.shouldBlockOwnWindowInput(at: at, windowIdUnderPointer: windowId) else {
 +                FocusTrace.decision("re-evaluation dropped: pointer over an OmniWM surface", controller: controller)
 +                return
 +            }
@@ -115,8 +115,17 @@ index 2e4aa642..62d1479b 100644
 +        }
      }
  
-     private func hasPendingNativeFullscreenTransition(at location: CGPoint) -> Bool {
-@@ -406,6 +452,8 @@ enum NativeFocusCheck {
+     func hasPendingNativeFullscreenTransition(at location: CGPoint) -> Bool {
+@@ -365,7 +411,7 @@ extension MouseEventHandler {
+               controller.isEnabled,
+               controller.focusFollowsMouseEnabled,
+               !controller.isOverviewOpen(),
+-              !shouldBlockOwnWindowInput(at: sample.location),
++              !shouldBlockOwnWindowInput(at: sample.location, windowIdUnderPointer: sample.windowIdUnderPointer),
+               !controller.settings.focus.lockModifier.isHeld(inRawFlags: sample.modifiersRawValue),
+               !state.isMoving,
+               !state.isResizing,
+@@ -460,6 +506,8 @@ enum NativeFocusCheck {
  @MainActor
  enum FocusFollowsMouseTrailingEdge {
      private static var pending: DispatchWorkItem?
@@ -126,10 +135,10 @@ index 2e4aa642..62d1479b 100644
      static func schedule(after delay: TimeInterval, _ body: @escaping @MainActor () -> Void) {
          pending?.cancel()
 diff --git a/Sources/OmniWM/Core/Controller/MouseInputState.swift b/Sources/OmniWM/Core/Controller/MouseInputState.swift
-index 0e3b7dec..e2df950b 100644
+index f39f738b..11f9a813 100644
 --- a/Sources/OmniWM/Core/Controller/MouseInputState.swift
 +++ b/Sources/OmniWM/Core/Controller/MouseInputState.swift
-@@ -86,7 +86,9 @@ struct MouseInputState {
+@@ -118,7 +118,9 @@ struct MouseInputState {
  
      var lastFocusFollowsMouseTime: Date = .distantPast
      var latestFocusFollowsMouseSample: FocusFollowsMouseSample?

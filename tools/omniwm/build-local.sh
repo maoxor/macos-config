@@ -41,6 +41,20 @@ echo "OmniWM source ready: $SRC @ $(git -C "$SRC" rev-parse --short HEAD) (upstr
 hash="$(security find-identity -p codesigning | awk -v n="\"$CERT\"" 'index($0,n){print $2; exit}')"
 [ -n "$hash" ] || { echo "Certificate \"$CERT\" missing: run tools/omniwm/create-signing-cert.sh first." >&2; exit 2; }
 cd "$SRC"
+# Upstream may need a newer Swift than Xcode's (2026-11-05: tools 6.5, Xcode has 6.4): use the toolchain its
+# .swift-version names (e.g. main-snapshot-2026-10-11, installed by swiftly) through TOOLCHAINS, which /usr/bin/swift
+# honours. The app only links the OS runtime (checked: no symbol from the newer one), so it runs on the current macOS.
+if [ -f .swift-version ] && [[ "$(cat .swift-version)" == main-snapshot-* ]]; then
+  tc="$HOME/Library/Developer/Toolchains/swift-DEVELOPMENT-SNAPSHOT-$(sed 's/main-snapshot-//' .swift-version)-a.xctoolchain"
+  [ -d "$tc" ] || { echo "Swift toolchain missing: swiftly install $(cat .swift-version)" >&2; exit 2; }
+  TOOLCHAINS="$(plutil -extract CFBundleIdentifier raw "$tc/Info.plist")"; export TOOLCHAINS
+fi
+# Upstream's build checks need Python >= 3.11 (tomllib); macOS's /usr/bin/python3 is 3.9: take a newer one from Nix.
+if ! python3 -c 'import tomllib' 2>/dev/null; then
+  py="$(ls -d /nix/store/*-python3-3.1[1-9]*/bin/python3 2>/dev/null | sort -t- -k3 -V | tail -1)"
+  [ -n "$py" ] || { echo "Python >= 3.11 needed (tomllib): none found" >&2; exit 2; }
+  PATH="$(dirname "$py"):$PATH"
+fi
 OMNIWM_SIGNING_IDENTITY="$CERT" Scripts/package-app.sh release dev >/dev/null
 app="$SRC/dist/OmniWM.app"
 codesign --force --sign "$hash" "$app/Contents/MacOS/omniwmctl"

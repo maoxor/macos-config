@@ -1,7 +1,7 @@
-From b2ddfcda8e07728c6263c5fea04a5818872d9391 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Fri, 9 Oct 2026 17:48:28 +0200
-Subject: [PATCH 13/28] Overview: restart preview captures of an app unhidden
+Subject: [PATCH 12/30] Overview: restart preview captures of an app unhidden
  while the Overview is open
 
 (cherry picked from commit 6e122beb24d5b9303ac571d349446037464fc51d)
@@ -11,10 +11,10 @@ Subject: [PATCH 13/28] Overview: restart preview captures of an app unhidden
  2 files changed, 23 insertions(+)
 
 diff --git a/Sources/OmniWM/Core/Overview/OverviewController.swift b/Sources/OmniWM/Core/Overview/OverviewController.swift
-index 0e3d3264..0fb3685d 100644
+index 67034748..92cfd4a0 100644
 --- a/Sources/OmniWM/Core/Overview/OverviewController.swift
 +++ b/Sources/OmniWM/Core/Overview/OverviewController.swift
-@@ -27,6 +27,7 @@ final class OverviewController {
+@@ -31,6 +31,7 @@ final class OverviewController {
      private var presentation: OverviewPresentation
  
      private let thumbnailCapture: OverviewThumbnailCapture
@@ -22,7 +22,7 @@ index 0e3d3264..0fb3685d 100644
      let windowSession: OverviewWindowSession
      private(set) var animator: OverviewAnimator?
  
-@@ -121,6 +122,19 @@ final class OverviewController {
+@@ -125,6 +126,19 @@ final class OverviewController {
          windowSession.onLayoutsUpdated = { [weak self] in
              self?.updatePreviewVisibility()
          }
@@ -43,10 +43,10 @@ index 0e3d3264..0fb3685d 100644
              thumbnailCapture?.preview(for: handle)
          }
 diff --git a/Sources/OmniWM/Core/Overview/OverviewThumbnailCapture.swift b/Sources/OmniWM/Core/Overview/OverviewThumbnailCapture.swift
-index 5820d6cf..382e60ea 100644
+index 94a9d667..5b28f6dd 100644
 --- a/Sources/OmniWM/Core/Overview/OverviewThumbnailCapture.swift
 +++ b/Sources/OmniWM/Core/Overview/OverviewThumbnailCapture.swift
-@@ -153,6 +153,15 @@ final class OverviewThumbnailCapture {
+@@ -175,6 +175,15 @@ final class OverviewThumbnailCapture {
          onReadinessChange()
      }
  
@@ -62,3 +62,6 @@ index 5820d6cf..382e60ea 100644
      func clear() {
          generation &+= 1
          isPresenting = false
+-- 
+2.54.0 (Apple Git-157)
+

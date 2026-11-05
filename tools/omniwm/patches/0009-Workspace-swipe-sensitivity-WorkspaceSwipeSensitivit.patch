@@ -1,7 +1,7 @@
-From be5c12d2f6a7fdd94fec294b5b8c648bf3c23208 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Sat, 10 Oct 2026 19:26:54 +0200
-Subject: [PATCH 09/28] Workspace swipe sensitivity
+Subject: [PATCH 08/30] Workspace swipe sensitivity
  (WorkspaceSwipeSensitivity): less finger travel per workspace
 
 (cherry picked from commit 24b32344cd6f220a97cc4d8e016f2d597a6262a8)
@@ -11,7 +11,7 @@ Subject: [PATCH 09/28] Workspace swipe sensitivity
  2 files changed, 15 insertions(+), 2 deletions(-)
 
 diff --git a/Sources/OmniWM/Core/Animation/WorkspaceSwipeMotion.swift b/Sources/OmniWM/Core/Animation/WorkspaceSwipeMotion.swift
-index ea87315e..cdedcd69 100644
+index af211b7d..77d18bf4 100644
 --- a/Sources/OmniWM/Core/Animation/WorkspaceSwipeMotion.swift
 +++ b/Sources/OmniWM/Core/Animation/WorkspaceSwipeMotion.swift
 @@ -4,7 +4,17 @@
@@ -34,7 +34,7 @@ index ea87315e..cdedcd69 100644
      private static let resistance = 0.55
      private static let stretch = 0.30
 diff --git a/Sources/OmniWM/Core/Input/TrackpadGestureIntent.swift b/Sources/OmniWM/Core/Input/TrackpadGestureIntent.swift
-index 1a4d23bb..9b8179ee 100644
+index d2b5246f..b4734b9a 100644
 --- a/Sources/OmniWM/Core/Input/TrackpadGestureIntent.swift
 +++ b/Sources/OmniWM/Core/Input/TrackpadGestureIntent.swift
 @@ -81,7 +81,10 @@ enum TrackpadGestureIntent {
@@ -49,3 +49,6 @@ index 1a4d23bb..9b8179ee 100644
      static let workspaceSwipeReleaseVelocityFloor: Double = 800.0
  
      static func effectiveWorkspaceSwipeAxis(
+-- 
+2.54.0 (Apple Git-157)
+

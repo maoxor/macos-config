@@ -1,7 +1,7 @@
-From 25b094badf95d5ed27add3c70a8fc3aea0765eca Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Sat, 10 Oct 2026 20:51:25 +0200
-Subject: [PATCH 10/28] Wallpaper cache: drop the captured wallpaper when the
+Subject: [PATCH 09/30] Wallpaper cache: drop the captured wallpaper when the
  desktop picture changes
 
 The SkyLight wallpaper capture was keyed by display frame only, so after a
@@ -15,7 +15,7 @@ showing the old picture until the display frame changed.
  2 files changed, 28 insertions(+), 4 deletions(-)
 
 diff --git a/Sources/OmniWM/Core/Overview/OverviewWallpaperCache.swift b/Sources/OmniWM/Core/Overview/OverviewWallpaperCache.swift
-index da65b67e..2c0769c4 100644
+index df6bea98..e7eaea32 100644
 --- a/Sources/OmniWM/Core/Overview/OverviewWallpaperCache.swift
 +++ b/Sources/OmniWM/Core/Overview/OverviewWallpaperCache.swift
 @@ -13,11 +13,14 @@ final class OverviewWallpaperCache {
@@ -55,7 +55,7 @@ index da65b67e..2c0769c4 100644
          guard let capture = capturesByDisplay[displayId] else { return nil }
          if let thumbnail = capture.thumbnails[maxPixelSize] { return thumbnail }
 diff --git a/Tests/OmniWMTests/OverviewWallpaperCacheTests.swift b/Tests/OmniWMTests/OverviewWallpaperCacheTests.swift
-index 61674d17..b8972e0e 100644
+index b22913e6..b3bd65dc 100644
 --- a/Tests/OmniWMTests/OverviewWallpaperCacheTests.swift
 +++ b/Tests/OmniWMTests/OverviewWallpaperCacheTests.swift
 @@ -110,6 +110,24 @@ final class OverviewWallpaperCacheTests: XCTestCase {
@@ -83,3 +83,6 @@ index 61674d17..b8972e0e 100644
      func testUnavailableCaptureFallsBackToFileAndRetriesNextSession() throws {
          let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).png")
          defer { try? FileManager.default.removeItem(at: url) }
+-- 
+2.54.0 (Apple Git-157)
+

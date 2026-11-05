@@ -1,7 +1,7 @@
-From f60e01c65d68a8b7b37343a38fe748d6ed9f660d Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Fri, 16 Oct 2026 11:37:55 +0200
-Subject: [PATCH 19/28] Workspace switch: with focus follows mouse, focus the
+Subject: [PATCH 18/30] Workspace switch: with focus follows mouse, focus the
  window landing under the pointer, not the remembered one
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 19/28] Workspace switch: with focus follows mouse, focus the
  1 file changed, 34 insertions(+), 1 deletion(-)
 
 diff --git a/Sources/OmniWM/Core/Controller/WorkspaceNavigationHandler+TransitionFocus.swift b/Sources/OmniWM/Core/Controller/WorkspaceNavigationHandler+TransitionFocus.swift
-index 2104a138..0ce81234 100644
+index 76ed885f..1fb3142f 100644
 --- a/Sources/OmniWM/Core/Controller/WorkspaceNavigationHandler+TransitionFocus.swift
 +++ b/Sources/OmniWM/Core/Controller/WorkspaceNavigationHandler+TransitionFocus.swift
 @@ -20,7 +20,13 @@ extension WorkspaceNavigationHandler {
@@ -61,3 +61,6 @@ index 2104a138..0ce81234 100644
      func clearManagedFocusAfterEmptyWorkspaceSwitch() {
          guard let controller else { return }
          let canceledRequest = controller.intentLedger.cancelManagedRequest()
+-- 
+2.54.0 (Apple Git-157)
+

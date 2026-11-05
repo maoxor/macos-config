@@ -1,7 +1,7 @@
-From e80b80752182f9f1790bcb20a4750a77c4247a29 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Fri, 9 Oct 2026 17:00:04 +0200
-Subject: [PATCH 11/28] Allow suppressing the Secure Input explanation panel
+Subject: [PATCH 10/30] Allow suppressing the Secure Input explanation panel
  (SuppressSecureInputExplanation default)
 
 (cherry picked from commit ed3e15fb90f219e5dd387d6f4824294593ca49c1)
@@ -10,7 +10,7 @@ Subject: [PATCH 11/28] Allow suppressing the Secure Input explanation panel
  1 file changed, 7 insertions(+)
 
 diff --git a/Sources/OmniWM/UI/SecureInputIndicator.swift b/Sources/OmniWM/UI/SecureInputIndicator.swift
-index 2a9b6647..b1fc61de 100644
+index bed39b35..4ac51f62 100644
 --- a/Sources/OmniWM/UI/SecureInputIndicator.swift
 +++ b/Sources/OmniWM/UI/SecureInputIndicator.swift
 @@ -87,7 +87,14 @@ final class SecureInputIndicatorController {
@@ -28,3 +28,6 @@ index 2a9b6647..b1fc61de 100644
          let scheduledGeneration = generation
          let sleep = sleep
          explanationTask = Task { @MainActor [weak self] in
+-- 
+2.54.0 (Apple Git-157)
+

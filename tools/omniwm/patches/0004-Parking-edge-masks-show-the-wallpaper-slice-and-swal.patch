@@ -1,28 +1,29 @@
-From 64365292fc14c61fb15ebc7d4f1225e3e14d19a1 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Thu, 15 Oct 2026 17:06:12 +0200
-Subject: [PATCH 04/28] Parking edge masks show the wallpaper slice and swallow
+Subject: [PATCH 04/30] Parking edge masks show the wallpaper slice and swallow
  clicks; Retina swipe captures; swipe geometry log
 
 ---
- .../WorkspaceSwipePresentation+Geometry.swift |  6 +++
- .../OmniWM/Core/Surface/ParkingEdgeMask.swift | 37 +++++++++++++++++--
- .../Core/Surface/WorkspaceSwipePreview.swift  |  4 +-
- 3 files changed, 42 insertions(+), 5 deletions(-)
+ .../WorkspaceSwipePresentation+Geometry.swift |  6 ++++
+ .../OmniWM/Core/Surface/ParkingEdgeMask.swift | 33 +++++++++++++++++--
+ .../Core/Surface/WorkspaceSwipePreview.swift  |  4 ++-
+ .../WorkspaceSwipePresentationTests.swift     |  4 ++-
+ 4 files changed, 43 insertions(+), 4 deletions(-)
 
 diff --git a/Sources/OmniWM/Core/Controller/WorkspaceSwipePresentation+Geometry.swift b/Sources/OmniWM/Core/Controller/WorkspaceSwipePresentation+Geometry.swift
-index d2c9d935..56c0c750 100644
+index 456b757b..dedb364f 100644
 --- a/Sources/OmniWM/Core/Controller/WorkspaceSwipePresentation+Geometry.swift
 +++ b/Sources/OmniWM/Core/Controller/WorkspaceSwipePresentation+Geometry.swift
 @@ -2,6 +2,7 @@
- // Copyright (C) 2026 BarutSRB — https://github.com/OmniNull/OmniWM
+ // Copyright (C) 2026 OmniNull — https://github.com/OmniNull/OmniWM
  
  import AppKit
 +import OSLog
  
  extension WorkspaceSwipePresentation {
      func warmPreviews() {
-@@ -92,6 +93,9 @@ extension WorkspaceSwipePresentation {
+@@ -101,6 +102,9 @@ extension WorkspaceSwipePresentation {
              guard let frame, !frame.isNull, !frame.isInfinite, frame.width > 0, frame.height > 0 else { return nil }
              if frame.intersects(monitor.visibleFrame) { items.append(.init(handle: handle, frame: frame)) }
          }
@@ -32,14 +33,14 @@ index d2c9d935..56c0c750 100644
          return Workspace(id: id, items: items)
      }
  
-@@ -118,3 +122,5 @@ extension WorkspaceSwipePresentation {
+@@ -127,3 +131,5 @@ extension WorkspaceSwipePresentation {
          return true
      }
  }
 +
 +private let swipeGeometryLog = Logger(subsystem: "com.barut.OmniWM", category: "swipe-geometry")
 diff --git a/Sources/OmniWM/Core/Surface/ParkingEdgeMask.swift b/Sources/OmniWM/Core/Surface/ParkingEdgeMask.swift
-index bd917417..583ba093 100644
+index b04ca5a5..67e91f9f 100644
 --- a/Sources/OmniWM/Core/Surface/ParkingEdgeMask.swift
 +++ b/Sources/OmniWM/Core/Surface/ParkingEdgeMask.swift
 @@ -5,6 +5,10 @@ import AppKit
@@ -51,18 +52,18 @@ index bd917417..583ba093 100644
 +    /// wallpaper, so the edge looks like the desktop; black only when no wallpaper is available.
 +    private let wallpaperCache = OverviewWallpaperCache()
      private var windowsByKey: [ParkingEdgeMaskKey: ParkingEdgeMaskWindow] = [:]
- 
-     isolated deinit {
-@@ -23,7 +27,7 @@ final class ParkingEdgeMaskManager {
+     private let pointerLocation: @MainActor () -> CGPoint
+     private let sleep: @MainActor (Duration) async throws -> Void
+@@ -47,7 +51,7 @@ final class ParkingEdgeMaskManager {
                  windowsByKey[mask.key] = window
                  return window
              }()
--            window.apply(frame: mask.frame)
-+            window.apply(frame: mask.frame, wallpaper: wallpaperSlice(for: mask))
+-            window.apply(mask)
++            window.apply(mask, wallpaper: wallpaperSlice(for: mask))
          }
  
          for key in staleKeys {
-@@ -31,6 +35,24 @@ final class ParkingEdgeMaskManager {
+@@ -55,6 +59,24 @@ final class ParkingEdgeMaskManager {
          }
      }
  
@@ -87,42 +88,31 @@ index bd917417..583ba093 100644
      func removeAll() {
          for window in windowsByKey.values {
              window.destroy()
-@@ -58,7 +80,9 @@ private final class ParkingEdgeMaskWindow: NSPanel {
+@@ -116,6 +138,8 @@ final class ParkingEdgeMaskWindow: NSPanel {
          isOpaque = true
          backgroundColor = .black
          level = .statusBar
--        ignoresMouseEvents = true
 +        // Swallow clicks: passing them through reached the parked window's last point, which
 +        // focused it and switched workspace.
-+        ignoresMouseEvents = false
+         ignoresMouseEvents = false
+         acceptsMouseMovedEvents = true
          hasShadow = false
-         hidesOnDeactivate = false
-         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
-@@ -83,7 +107,7 @@ private final class ParkingEdgeMaskWindow: NSPanel {
-             id: surfaceId,
-             policy: SurfacePolicy(
-                 kind: .parkingEdgeMask,
--                hitTestPolicy: .passthrough,
-+                hitTestPolicy: .interactive,
-                 capturePolicy: .excluded,
-                 suppressesManagedFocusRecovery: false
-             )
-@@ -98,7 +122,12 @@ private final class ParkingEdgeMaskWindow: NSPanel {
+@@ -159,7 +183,12 @@ final class ParkingEdgeMaskWindow: NSPanel {
          false
      }
  
--    func apply(frame: CGRect) {
-+    func apply(frame: CGRect, wallpaper: (CGImage, CGRect)?) {
+-    func apply(_ mask: DesiredParkingEdgeMask) {
++    func apply(_ mask: DesiredParkingEdgeMask, wallpaper: (CGImage, CGRect)? = nil) {
 +        if let layer = contentView?.layer {
 +            layer.contents = wallpaper?.0
 +            layer.contentsRect = wallpaper?.1 ?? CGRect(x: 0, y: 0, width: 1, height: 1)
 +            layer.contentsGravity = .resize
 +        }
-         if appliedFrame != frame || self.frame != frame {
-             setFrame(frame, display: true)
-             contentView?.frame = CGRect(origin: .zero, size: frame.size)
+         let previous = appliedMask
+         appliedMask = mask
+         if previous?.frame != mask.frame || frame != mask.frame {
 diff --git a/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift b/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift
-index b1300f13..04f1d0a3 100644
+index 390cc766..0d099141 100644
 --- a/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift
 +++ b/Sources/OmniWM/Core/Surface/WorkspaceSwipePreview.swift
 @@ -19,7 +19,9 @@ final class WorkspaceSwipePreview {
@@ -136,3 +126,21 @@ index b1300f13..04f1d0a3 100644
              return OverviewPreviewRequest(
                  handle: handle,
                  pixelWidth: Int(ceil(frame.width * scale)),
+diff --git a/Tests/OmniWMTests/WorkspaceSwipePresentationTests.swift b/Tests/OmniWMTests/WorkspaceSwipePresentationTests.swift
+index 6e42f6e7..8069f433 100644
+--- a/Tests/OmniWMTests/WorkspaceSwipePresentationTests.swift
++++ b/Tests/OmniWMTests/WorkspaceSwipePresentationTests.swift
+@@ -1129,7 +1129,9 @@ final class WorkspaceSwipePresentationTests: XCTestCase {
+         fixture.swipe.warmPreviews()
+         XCTAssertEqual(fixture.controller.workspaceManager.worldSeq, seq)
+         try await fixture.driver.waitForStarts(1)
+-        XCTAssertEqual(fixture.driver.streams[0].request.pixelWidth, Int(ceil(settledWidth)))
++        // Captured at the display's backing scale (macos-config: Retina swipe captures), from the settled width.
++        let pixelWidth = fixture.driver.streams[0].request.pixelWidth
++        XCTAssertTrue([1, 2, 3].map { Int(ceil(settledWidth * CGFloat($0))) }.contains(pixelWidth), "\(pixelWidth)")
+     }
+ 
+     func testTurningSwipeOrAnimationsOffReleasesThePreviewAndItsCache() async throws {
+-- 
+2.54.0 (Apple Git-157)
+

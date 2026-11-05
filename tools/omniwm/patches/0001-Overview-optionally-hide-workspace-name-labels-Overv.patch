@@ -1,7 +1,7 @@
-From 03522b957b75e1a58429d1ff9f7a208d0ed96956 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: YamadaBlog <118530756+YamadaBlog@users.noreply.github.com>
 Date: Thu, 15 Oct 2026 16:24:07 +0200
-Subject: [PATCH 01/28] Overview: optionally hide workspace name labels
+Subject: [PATCH 01/30] Overview: optionally hide workspace name labels
  (OverviewHideWorkspaceLabels default)
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 01/28] Overview: optionally hide workspace name labels
  1 file changed, 8 insertions(+), 6 deletions(-)
 
 diff --git a/Sources/OmniWM/Core/Overview/OverviewLayerRenderer+Chrome.swift b/Sources/OmniWM/Core/Overview/OverviewLayerRenderer+Chrome.swift
-index 83259c92..30ca109d 100644
+index bcc82a92..fcd17f45 100644
 --- a/Sources/OmniWM/Core/Overview/OverviewLayerRenderer+Chrome.swift
 +++ b/Sources/OmniWM/Core/Overview/OverviewLayerRenderer+Chrome.swift
 @@ -21,12 +21,14 @@ extension OverviewLayerRenderer {
@@ -33,3 +33,6 @@ index 83259c92..30ca109d 100644
              addColumnChrome(section, layout: layout, to: sectionLayer)
              for control in layout.tabControls(for: section) {
                  guard let window = layout.window(for: control.handle),
+-- 
+2.54.0 (Apple Git-157)
+
