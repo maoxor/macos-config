@@ -133,7 +133,7 @@ Ne fabrique jamais de prix, d'horodatage, de chandelier ou de confirmation techn
 
 ## 2. RECHERCHE ET ANALYSE
 
-Analyse les unités H4, H1, M15, M5 et M1 (la M1 pour le timing fin de l'entrée, sans en faire une tendance), ainsi que toute autre unité de temps pertinente.
+Analyse les unités H4, H1, M15, M5 et M1, ainsi que toute autre unité de temps pertinente.
 
 Identifie notamment :
 * Tendance dominante, structure intraday et momentum.
