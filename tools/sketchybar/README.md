@@ -12,6 +12,9 @@ The top bar, in place of the macOS menu bar (which stays auto-hidden, full scree
   current = accent chip, animated; hover highlight; a click switches), focused window with its app icon; CPU graph
   and share (red from 70 %), GPU use (IOAccelerator), memory in use, network down/up on the default interface;
   sound, Wi-Fi, battery (red at 20 % or less, green on power); date and time in French.
+- **Also (2026-11-05):** now playing (`media-control`, hidden when nothing plays, click = play/pause), power draw and
+  CPU temperature from macmon in the stats pill, a VPN badge when the default route goes through a tunnel. The Wi-Fi
+  name is not shown: macOS redacts it without the Location permission.
 - **Spacing:** a 10 pt gap between pills (`gap`), the first and last workspace 6 pt off their pill's edges.
 - **Monitors:** a click on GPU opens macmon; Raycast "btop" and "macmon" open them in a new Ghostty window
   (`scripts/geek-monitor`).

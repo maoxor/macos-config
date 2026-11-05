@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Top bar: now playing, power draw and CPU temperature (macmon), VPN badge. btop styled from the wallpaper palette
+  (`home-manager/monitors.nix`: transparent background, rounded corners, braille graphs, vim keys).
 - Top bar spacing: gaps between pills, workspaces off the pill edges. btop and macmon (Brewfile) as Raycast commands
   and on the GPU click (`scripts/geek-monitor`).
 - Cmd+F3 free prompt, second research pass: spot vs futures vs broker levels never mixed, Paris times of fixings,

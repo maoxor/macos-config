@@ -41,3 +41,5 @@ brew "lume"
 # macmon = Apple Silicon GPU, power, temperatures without sudo.
 brew "btop"
 brew "macmon"
+# Now playing in the top bar: macOS restricts MediaRemote; media-control goes through its adapter.
+brew "media-control"

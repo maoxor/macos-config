@@ -66,6 +66,12 @@ sketchybar --add item title left \
                        label.max_chars=46 updates=on script="$PLUGINS/title.sh" \
            --subscribe title omniwm_update front_app_switched system_woke
 pill title.pill "$PILL" "$BORDER" title
+gap gap.l2 left
+sketchybar --add item media left \
+           --set media icon.padding_left=12 label.padding_right=12 label.max_chars=40 update_freq=5 \
+                       script="$PLUGINS/media.sh" drawing=off \
+           --subscribe media mouse.clicked system_woke
+pill media.pill "$PILL" "$BORDER" media
 
 # ---- Right (added right to left): clock, system, stats.
 sketchybar --add item clock right \
@@ -83,18 +89,24 @@ gap gap.r1 right
 sketchybar --add item battery right \
            --set battery update_freq=120 label.padding_right=12 script="$PLUGINS/battery.sh" \
            --subscribe battery power_source_change system_woke \
+           --add item vpn right \
+           --set vpn icon="󰦝" label.font="$FONT:Bold:12.0" update_freq=10 script="$PLUGINS/vpn.sh" drawing=off \
+           --subscribe vpn wifi_change system_woke \
            --add item wifi right \
            --set wifi label.drawing=off script="$PLUGINS/wifi.sh" \
            --subscribe wifi wifi_change system_woke \
            --add item volume right \
            --set volume icon.padding_left=12 script="$PLUGINS/volume.sh" \
            --subscribe volume volume_change
-pill system "$PILL" "$BORDER" volume wifi battery
+pill system "$PILL" "$BORDER" volume wifi vpn battery
 gap gap.r2 right
 
 # Stats: one updater (stats.sh, every 2 s) sets all of them; the CPU graph scrolls with each sample.
-sketchybar --add item net right \
-           --set net icon="󰇚" icon.color="$OK" label.font="$FONT:Medium:12.0" label.width=150 label.align=left label.padding_right=12 \
+sketchybar --add item power right \
+           --set power icon="󱐋" icon.color="$ACCENT" label.padding_right=12 update_freq=5 script="$PLUGINS/power.sh" \
+           --subscribe power system_woke \
+           --add item net right \
+           --set net icon="󰇚" icon.color="$OK" label.font="$FONT:Medium:12.0" label.width=150 label.align=left \
            --add item mem right \
            --set mem icon="󰍛" \
            --add item gpu right \
@@ -114,7 +126,7 @@ for i in 0 1 2 3 4 5 6; do
                                 icon.width=62 icon.align=right icon.padding_left=10 label.padding_left=10 \
                                 label.padding_right=14 background.height=22
 done
-pill stats "$PILL" "$BORDER" cpu.graph cpu gpu mem net
+pill stats "$PILL" "$BORDER" cpu.graph cpu gpu mem net power
 
 # OmniWM events -> omniwm_update (one watcher; a reload replaces it).
 pkill -f "omniwmctl watch focus,active-workspace,windows-changed" 2>/dev/null
