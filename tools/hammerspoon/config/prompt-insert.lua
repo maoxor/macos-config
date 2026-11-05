@@ -121,7 +121,7 @@ Détermine automatiquement la date et l'heure de Paris.
 
 Adapte ces limites aux horaires de marché, à la liquidité et aux événements économiques.
 
-Recherche prioritairement la dernière cotation XAU/USD spot et les bougies H4, H1, M15 et M5 via le connecteur Massive XAUUSD Live. À défaut, utilise des sources fiables : TradingView, Investing.com ou fournisseurs financiers reconnus.
+Recherche prioritairement la dernière cotation XAU/USD spot et les bougies H4, H1, M15, M5 et M1 via le connecteur Massive XAUUSD Live. À défaut, utilise des sources fiables : TradingView, Investing.com ou fournisseurs financiers reconnus.
 
 Récupère également les bougies précédentes pour reconstituer les mouvements de la session et vérifier chronologiquement les niveaux déjà atteints : au minimum depuis l'ouverture de la session en cours et depuis la formation de chaque setup, à l'unité la plus fine disponible (M5, ou M1 si possible), jusqu'à la dernière bougie disponible.
 
@@ -133,7 +133,7 @@ Ne fabrique jamais de prix, d'horodatage, de chandelier ou de confirmation techn
 
 ## 2. RECHERCHE ET ANALYSE
 
-Analyse les unités H4, H1, M15 et M5, ainsi que toute autre unité de temps pertinente.
+Analyse les unités H4, H1, M15, M5 et M1 (la M1 pour le timing fin de l'entrée, sans en faire une tendance), ainsi que toute autre unité de temps pertinente.
 
 Identifie notamment :
 * Tendance dominante, structure intraday et momentum.
@@ -201,7 +201,7 @@ Prévois néanmoins une invalidation précise, une distance maximale d'entrée e
 
 Recherche deux opportunités plus sélectives.
 
-Recherche notamment les signaux vérifiables : clôture M5/M15, retest, rejet confirmé, continuation structurée, retournement validé ou toute autre confirmation pertinente.
+Recherche notamment les signaux vérifiables : clôture M1/M5/M15, retest, rejet confirmé, continuation structurée, retournement validé ou toute autre confirmation pertinente.
 
 Adapte les confirmations à la configuration réelle, sans imposer de conditions inutiles qui feraient perdre une opportunité valable.
 
