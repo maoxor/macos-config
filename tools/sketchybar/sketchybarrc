@@ -45,6 +45,20 @@ gap() {  # $1 name, $2 side: empty space between two pills
 
 sketchybar --add event omniwm_update
 
+# ---- Left: power button (lock, sleep, restart, shut down; macOS confirms restart and shut down).
+sketchybar --add item session left \
+           --set session icon="⏻" icon.font="$FONT:Bold:15.0" icon.color="$ACCENT" icon.padding_left=11 \
+                         icon.padding_right=11 label.drawing=off popup.height=24 script="$PLUGINS/session.sh" \
+           --subscribe session mouse.clicked mouse.exited.global
+for a in "lock:󰌾:Verrouiller" "sleep:󰒲:Suspendre" "restart:󰜉:Redémarrer…" "shutdown:󰐥:Éteindre…"; do
+  IFS=: read -r id ic lb <<<"$a"
+  sketchybar --add item "session.$id" popup.session \
+             --set "session.$id" icon="$ic" label="$lb" icon.padding_left=12 label.padding_right=14 background.height=22 \
+                   click_script="$PLUGINS/session.sh $id"
+done
+pill session.pill "$PILL" "$BORDER" session
+gap gap.l0 left
+
 # ---- Left: workspaces, each with the icons of its apps; the current one gets an accent chip.
 for n in 1 2 3 4; do
   sketchybar --add item "ws.$n" left \
