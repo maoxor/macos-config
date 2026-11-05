@@ -15,7 +15,9 @@ CTL="$HOME/.local/bin/omniwmctl"
 FONT="JetBrainsMono Nerd Font"
 APPFONT="sketchybar-app-font:Regular:14.0"
 
-sketchybar --bar position=top height=39 color=0x00000000 border_width=0 shadow=off sticky=on topmost=on \
+# The band is opaque ($BAR): macOS still slides its menu bar in when the pointer touches the top edge, but under this
+# bar (level 25 over 24), so it never shows. A transparent band let it show between the pills (2026-11-05).
+sketchybar --bar position=top height=39 color="$BAR" border_width=0 shadow=off sticky=on topmost=on \
                  padding_left=8 padding_right=8 margin=0 y_offset=0 notch_width=222 display=main
 
 sketchybar --default updates=when_shown \

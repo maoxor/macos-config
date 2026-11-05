@@ -19,7 +19,7 @@ The top bar, in place of the macOS menu bar (which stays auto-hidden, full scree
   fullscreen instead (`tools/hammerspoon/config/browser-fullscreen.lua`): the window fills the screen under the bar.
 - **Live data:** `omniwmctl watch focus,active-workspace,windows-changed` fires the custom event `omniwm_update`
   (started by `sketchybarrc`, replaced on reload).
-- **Above the macOS menu bar:** `topmost=on` (window level 25; the menu bar is 24). The menu bar still slides in if
-  the pointer touches the very top edge; the pills stay over it.
+- **Above the macOS menu bar:** `topmost=on` (window level 25; the menu bar is 24). The menu bar still slides in when
+  the pointer touches the very top edge, but the band is opaque (`$BAR`, theme background), so it stays hidden under it.
 - **Check:** `sketchybar --query bar`, `launchctl list | grep sketchybar`. Reload: `sketchybar --reload`.
 - **Remove:** drop `./sketchybar.nix` from `home-manager/home.nix` imports, `scripts/apply.sh home-manager --write`.

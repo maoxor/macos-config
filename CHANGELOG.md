@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+- Top bar band now opaque (theme background): the macOS menu bar still slides in at the top edge but stays hidden
+  under SketchyBar (level 25 over 24) instead of showing between the pills.
 - Raycast `o <name>`: jumps straight to the matching Zen tab in one Enter ("Ouvrir un onglet Zen"); no match opens the
   tab list with the text typed. Guard: also refuses a visible Chrome/Chromium started with remote debugging (a session's
   Chrome took the front with a sign-in page).
