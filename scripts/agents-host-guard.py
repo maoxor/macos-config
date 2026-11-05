@@ -29,6 +29,7 @@ HINT = ("Do not use the user's own browser or screen: they are working. For web 
         "(mcp__browser__*: a headless browser of your own, sign-ins from `agents-browser login`); for desktop apps use "
         "'agents-vm' (mcp__agents-vm__*: a macOS VM). Only if the user explicitly asked you to act on their screen, "
         "add HOST_GUI_OK=1 to the command.")
+CMD_KEY = re.compile(r"""\b(key\s+code|keystroke)\b[^\n]{0,200}\busing\b[^\n]{0,80}command|(command|cmd)\s+down""", re.I)
 SCRIPT_RE = re.compile(r"""(?:^|\s)([^\s'";|&<>]+\.(?:py|sh|js|mjs|ts|applescript|scpt|rb))\b""")
 
 
@@ -106,6 +107,18 @@ def main():
     if data.get("tool_name") != "Bash":
         return
     cmd = (data.get("tool_input") or {}).get("command") or ""
+    # Never allowed, even with the escape: a synthetic key with Command. 2026-11-05 an agent sent "key code 0 using
+    # command down" (Cmd+A on QWERTY) on this French AZERTY Mac, where key code 0 is Q: with Shift still down from the
+    # previous Shift+Tab it was Shift+Cmd+Q, macOS logged the user out and closed every app.
+    texts = [cmd] + [open(p, errors="replace").read(400_000) for p in scripts_of(cmd, data.get("cwd") or os.getcwd())]
+    if any(CMD_KEY.search(t) and "System Events" in t and not t.lstrip().startswith("#!/usr/bin/env python3\n\"\"\"Claude Code PreToolUse") for t in texts):
+        log(f"refused (synthetic Command key) cwd={data.get('cwd')} cmd={cmd[:300]!r}")
+        json.dump({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
+                   "permissionDecisionReason": "Refused, even with HOST_GUI_OK=1: a synthetic key with Command "
+                   "(key codes depend on the layout: on this AZERTY Mac key code 0 is Q, and Shift+Cmd+Q logged the "
+                   "user out on 2026-11-05). Select or edit text another way (AX value, the agents VM, or ask the "
+                   "user)."}}, sys.stdout)
+        return
     escape = "HOST_GUI_OK=1" in cmd
     if escape:
         asked = USER_ASKS.search(last_user_text(data.get("transcript_path") or ""))
