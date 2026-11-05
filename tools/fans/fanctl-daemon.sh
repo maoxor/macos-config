@@ -3,7 +3,7 @@
 # Reads the mode the user picked from $MODE_FILE (auto | eco | equilibre | perf | max), every 3 s:
 #   auto       macOS decides (fans automatic, energy mode automatic)
 #   eco        Low Power Mode, fans automatic
-#   equilibre  energy automatic, fans ramp from 50 °C (earlier than Apple, which waits until ~70-80 °C)
+#   equilibre  energy automatic, fans never below 25 % (about Apple's idle speed), ramp from 50 °C (Apple waits until ~70-80 °C)
 #   perf       High Power Mode, fans ramp from 45 °C, never below 40 %
 #   max        High Power Mode, fans at full speed
 # Control, as Linux fan daemons do it (CoolerControl, thinkfan, fancontrol):
@@ -39,7 +39,7 @@ while sleep 3; do
   raw=$(reading)
   if [ -n "$raw" ]; then avg=$(awk -v a="${avg:-$raw}" -v r="$raw" 'BEGIN{printf "%.1f", a + 0.25*(r-a)}'); else avg=""; fi
   # curve: start °C, full °C, floor %
-  case "$mode" in auto) c="";; eco) c="";; equilibre) c="50 90 0";; perf) c="45 80 40";; max) c="0 1 100";; *) mode=auto; c="";; esac
+  case "$mode" in auto) c="";; eco) c="";; equilibre) c="50 90 25";; perf) c="45 80 40";; max) c="0 1 100";; *) mode=auto; c="";; esac
   [ "$mode" = "$last" ] || { log "mode $mode"; pct=0; set_at=0; }
   case "$mode" in auto|equilibre) energy 0;; eco) energy 1;; perf|max) energy 2;; esac
   if [ -z "$c" ]; then

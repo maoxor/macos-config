@@ -6,7 +6,7 @@ Menu bar item **fan** (SketchyBar, stats pill): current mode and the fastest fan
 |---|---|---|
 | Automatique | automatic | macOS |
 | Économie | Low Power | macOS |
-| Équilibré | automatic | ramp 50 → 90 °C (earlier than Apple) |
+| Équilibré | automatic | floor 25 %, ramp 50 → 90 °C (earlier than Apple) |
 | Performance | High Power | ramp 45 → 80 °C, floor 40 % |
 | Maximum | High Power | full speed |
 
