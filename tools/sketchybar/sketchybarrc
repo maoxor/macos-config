@@ -63,15 +63,27 @@ gap gap.l1 left
 
 sketchybar --add item title left \
            --set title icon.font="$APPFONT" icon.color="$ACCENT" icon.padding_left=12 label.padding_right=12 \
-                       label.max_chars=46 updates=on script="$PLUGINS/title.sh" \
+                       label.max_chars=34 updates=on script="$PLUGINS/title.sh" \
            --subscribe title omniwm_update front_app_switched system_woke
 pill title.pill "$PILL" "$BORDER" title
 gap gap.l2 left
 sketchybar --add item media left \
-           --set media icon.padding_left=12 label.padding_right=12 label.max_chars=40 update_freq=5 \
+           --set media icon.padding_left=12 label.padding_right=12 label.max_chars=28 update_freq=5 \
                        script="$PLUGINS/media.sh" drawing=off \
            --subscribe media mouse.clicked system_woke
 pill media.pill "$PILL" "$BORDER" media
+gap gap.l3 left
+# Fans and energy mode (tools/fans), left of the notch: the right half is full.
+sketchybar --add item fan left \
+           --set fan icon="󰈐" icon.color="$ACCENT" update_freq=5 script="$PLUGINS/fan.sh" popup.height=24 \
+           --subscribe fan mouse.clicked mouse.exited.global system_woke
+for m in "auto:Automatique (macOS)" "eco:Économie (basse consommation)" "equilibre:Équilibré (ventilation plus tôt)" \
+         "perf:Performance (haute puissance)" "max:Maximum (ventilos à fond)"; do
+  sketchybar --add item "fan.mode.${m%%:*}" popup.fan \
+             --set "fan.mode.${m%%:*}" label="${m#*:}" icon.padding_left=12 label.padding_right=14 background.height=22 \
+                   click_script="$PLUGINS/fan.sh ${m%%:*}"
+done
+pill fan.pill "$PILL" "$BORDER" fan
 
 # ---- Right (added right to left): clock, system, stats.
 sketchybar --add item clock right \
@@ -102,20 +114,11 @@ pill system "$PILL" "$BORDER" volume wifi vpn battery
 gap gap.r2 right
 
 # Stats: one updater (stats.sh, every 2 s) sets all of them; the CPU graph scrolls with each sample.
-sketchybar --add item fan right \
-           --set fan icon="󰈐" icon.color="$ACCENT" update_freq=5 script="$PLUGINS/fan.sh" popup.height=24 \
-           --subscribe fan mouse.clicked mouse.exited.global system_woke
-for m in "auto:Automatique (macOS)" "eco:Économie (basse consommation)" "equilibre:Équilibré (ventilation plus tôt)" \
-         "perf:Performance (haute puissance)" "max:Maximum (ventilos à fond)"; do
-  sketchybar --add item "fan.mode.${m%%:*}" popup.fan \
-             --set "fan.mode.${m%%:*}" label="${m#*:}" icon.padding_left=12 label.padding_right=14 background.height=22 \
-                   click_script="$PLUGINS/fan.sh ${m%%:*}"
-done
 sketchybar --add item power right \
            --set power icon="󱐋" icon.color="$ACCENT" label.padding_right=12 update_freq=5 script="$PLUGINS/power.sh" \
            --subscribe power system_woke \
            --add item net right \
-           --set net icon="󰇚" icon.color="$OK" label.font="$FONT:Medium:12.0" label.width=150 label.align=left \
+           --set net icon="󰇚" icon.color="$OK" label.font="$FONT:Medium:12.0" label.width=135 label.align=left \
            --add item mem right \
            --set mem icon="󰍛" \
            --add item gpu right \
@@ -135,7 +138,7 @@ for i in 0 1 2 3 4 5 6; do
                                 icon.width=62 icon.align=right icon.padding_left=10 label.padding_left=10 \
                                 label.padding_right=14 background.height=22
 done
-pill stats "$PILL" "$BORDER" cpu.graph cpu gpu mem net power fan
+pill stats "$PILL" "$BORDER" cpu.graph cpu gpu mem net power
 
 # OmniWM events -> omniwm_update (one watcher; a reload replaces it).
 pkill -f "omniwmctl watch focus,active-workspace,windows-changed" 2>/dev/null
