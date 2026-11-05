@@ -30,7 +30,6 @@ in {
     export ACCENT=${argb "ff" palette.base0D}
     export OK=${argb "ff" palette.base0B}
     export ALERT=${argb "ff" palette.base08}
-    export BAR=${argb "ff" palette.base00}
     export PILL=${argb "e6" palette.base00}
     export BORDER=0x1affffff
     export PILL_ACC=${argb "f0" (mix 22 palette.base0D palette.base00)}

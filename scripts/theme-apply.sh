@@ -42,6 +42,11 @@ PY
 
 # --- SketchyBar (home-manager/sketchybar.nix): colors.sh follows the palette at the Home Manager switch; reload the
 # running bar so it takes it at once.
+# Its background is the top strip of the current wallpaper (scripts/bar-strip.py): the macOS menu bar slides in under
+# it unseen, and the bar still looks transparent. Regenerated here at each wallpaper change.
+if [ "$write" = 1 ] && [ -f "$REPO/wallpapers/actuel.png" ]; then
+  python3 -I "$REPO/scripts/bar-strip.py" "$REPO/wallpapers/actuel.png" "$HOME/.cache/macos-config/bar-strip.png" 39 || true
+fi
 if [ "$write" = 1 ] && pgrep -xq sketchybar; then sketchybar --reload >/dev/null 2>&1 || true; fi
 
 # --- macOS accent: 8 fixed colours; pick the closest to the theme accent (base0D)
