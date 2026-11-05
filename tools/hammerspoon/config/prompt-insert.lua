@@ -399,13 +399,15 @@ Travail de fond aussi poussé que nécessaire. Réponse finale courte, chiffrée
 
 ## CONTEXTE ET DONNÉES
 
-Détermine la date et l'heure de Paris, et la session en cours. Adapte l'horizon des trades à cette session, à la liquidité et au calendrier économique.
+Détermine la date et l'heure de Paris, et la session en cours. Adapte l'horizon des trades à cette session, à la liquidité et au calendrier économique : situe à l'heure de Paris les moments où le prix et le spread se comportent autrement (annonces, fixings LBMA, ouvertures de sessions, rollover, fin de semaine).
 
 Utilise en priorité la dernière cotation XAU/USD spot et les bougies via le connecteur Massive XAUUSD Live ; à défaut, des sources fiables (TradingView, Investing.com, fournisseurs financiers reconnus). Récupère assez d'historique pour reconstituer ce qui s'est passé depuis l'ouverture de la session et depuis la formation de chaque setup, à l'unité la plus fine disponible.
 
-Recherche librement tout ce qui peut éclairer la décision : contexte macro, dollar, rendements, banques centrales, géopolitique, calendrier, flux, sentiment, analyses publiées (par exemple https://fr.tradingview.com/symbols/XAUUSD/minds/). Accorde plus de poids aux faits et aux analyses argumentées qu'au nombre d'opinions. Date chaque information externe et privilégie les données de marché et les sources primaires aux commentaires ; quand des sources se contredisent, dis-le.
+Recherche librement tout ce qui peut éclairer la décision : contexte macro, dollar, rendements, banques centrales, géopolitique, calendrier, flux, sentiment, analyses publiées (par exemple https://fr.tradingview.com/symbols/XAUUSD/minds/). Accorde plus de poids aux faits et aux analyses argumentées qu'au nombre d'opinions. Date chaque information externe et privilégie les données de marché et les sources primaires aux commentaires ; quand des sources se contredisent, dis-le. Arrête de chercher quand de nouvelles sources ne changeraient plus ta décision.
 
 Une cotation datant de quelques minutes suffit pour préparer des plans. Indique le dernier prix, sa source et son heure réelle ; ne confonds jamais l'heure de consultation d'une page avec celle d'une cotation.
+
+Tous les niveaux sont en XAU/USD spot. Le contrat à terme (GC, COMEX) cote avec un écart variable par rapport au spot, et les flux de courtiers diffèrent légèrement : ne mélange pas leurs niveaux. Si un niveau vient d'un autre instrument, convertis-le avec l'écart mesuré au même moment ou signale-le.
 
 ## RÈGLES DE VÉRITÉ
 
@@ -459,7 +461,7 @@ Statuts : **PRÊT À SAISIR** (conditions réalisées, entrée et invalidation n
 Sous le tableau, deux ou trois phrases par trade : pourquoi cette opportunité, pourquoi ces niveaux, le principal risque, et ta conviction (forte, moyenne, faible) sans inventer de probabilité chiffrée.
 
 ### C. DÉCISION
-Ce que tu ferais maintenant, en quelques lignes : le trade prioritaire, ce qu'il faut préparer, ce qu'il faut attendre, ce qu'il ne faut pas cumuler. Puis 3 à 5 sources réellement consultées.
+Ce que tu ferais maintenant, en quelques lignes : le trade prioritaire, ce qu'il faut préparer, ce qu'il faut attendre, ce qu'il ne faut pas cumuler. Donne aussi le meilleur argument contre le trade prioritaire et pourquoi tu le maintiens malgré tout, ou l'abandonnes. Puis 3 à 5 sources réellement consultées.
 
 Avant de répondre, relis chaque « Contrôle d'état » : corrige tout trade dont l'entrée ou l'invalidation a déjà été touchée, ou dont une validation présentée comme future a déjà eu lieu.]==]
 
