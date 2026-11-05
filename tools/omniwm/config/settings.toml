@@ -338,6 +338,14 @@ id = "4883579F-7495-43B5-8E58-59821883576C"
 layout = "tile"
 
 [[appRules]]
+axRole = "AXWindow"
+axSubrole = "AXUnknown"
+assignToWorkspace = "4"
+bundleId = "com.blizzard.worldofwarcraft"
+id = "7FA10F24-3CF0-40C9-AA9B-40CE4226CC42"
+layout = "float"
+
+[[appRules]]
 assignToWorkspace = "4"
 bundleId = "org.mozilla.nightlyunofficial"
 id = "3B7AA8E9-3C37-4B03-B1D6-6661D2CABC3F"
