@@ -50,7 +50,7 @@ sketchybar --add item session left \
            --set session icon="⏻" icon.font="$FONT:Bold:15.0" icon.color="$ACCENT" icon.padding_left=11 \
                          icon.padding_right=11 label.drawing=off popup.height=24 script="$PLUGINS/session.sh" \
            --subscribe session mouse.clicked mouse.exited.global
-for a in "lock:󰌾:Verrouiller" "sleep:󰒲:Suspendre" "restart:󰜉:Redémarrer…" "shutdown:󰐥:Éteindre…"; do
+for a in "lock:󰌾:Verrouiller" "sleep:󰒲:Suspendre" "restart:󰜉:Redémarrer" "shutdown:󰐥:Éteindre"; do
   IFS=: read -r id ic lb <<<"$a"
   sketchybar --add item "session.$id" popup.session \
              --set "session.$id" icon="$ic" label="$lb" icon.padding_left=12 label.padding_right=14 background.height=22 \
