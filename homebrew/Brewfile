@@ -37,3 +37,7 @@ brew "egovelox/mozeidon/mozeidon-native-app"
 # Lume (Cua, MIT): macOS VMs on Apple silicon; the "agents" VM where AI agents work without touching the user's screen
 # (tools/agents-vm/README.md). Telemetry off: `lume config telemetry disable`.
 brew "lume"
+# System monitors opened by Raycast "btop" / "macmon" (scripts/geek-monitor): btop = processes, CPU, memory, network;
+# macmon = Apple Silicon GPU, power, temperatures without sudo.
+brew "btop"
+brew "macmon"

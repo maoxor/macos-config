@@ -1,0 +1,6 @@
+#!/bin/bash
+# geek-monitor btop|macmon: open a system monitor in a new Ghostty window (Raycast "btop" / "macmon", SketchyBar GPU
+# click). btop: processes, CPU, memory, disks, network. macmon: Apple Silicon CPU/GPU use, power, temperatures, no sudo.
+tool="${1:-btop}"
+case "$tool" in btop|macmon) ;; *) echo "usage: geek-monitor btop|macmon" >&2; exit 2 ;; esac
+exec open -na Ghostty --args -e "/opt/homebrew/bin/$tool"

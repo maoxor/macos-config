@@ -39,6 +39,10 @@ pill() {  # $1 bracket name, $2 fill, $3 border, rest: members
                            background.corner_radius=14 background.height=28 background.drawing=on
 }
 
+gap() {  # $1 name, $2 side: empty space between two pills
+  sketchybar --add item "$1" "$2" --set "$1" width=10 icon.drawing=off label.drawing=off background.drawing=off
+}
+
 sketchybar --add event omniwm_update
 
 # ---- Left: workspaces, each with the icons of its apps; the current one gets an accent chip.
@@ -53,7 +57,9 @@ done
 sketchybar --add item ws.logic left \
            --set ws.logic drawing=off updates=on script="$PLUGINS/workspaces.sh" \
            --subscribe ws.logic omniwm_update system_woke
+sketchybar --set ws.1 padding_left=6 --set ws.4 padding_right=6   # the 1 and the 4 off the pill's edges
 pill ws "$PILL" "$BORDER" ws.1 ws.2 ws.3 ws.4
+gap gap.l1 left
 
 sketchybar --add item title left \
            --set title icon.font="$APPFONT" icon.color="$ACCENT" icon.padding_left=12 label.padding_right=12 \
@@ -72,6 +78,7 @@ for i in 0 1 2 3 4 5 6 7; do
                                   label.padding_left=16 label.padding_right=10 background.height=20
 done
 pill clock.pill "$PILL_ACC" "$BORDER_ACC" clock
+gap gap.r1 right
 
 sketchybar --add item battery right \
            --set battery update_freq=120 label.padding_right=12 script="$PLUGINS/battery.sh" \
@@ -83,6 +90,7 @@ sketchybar --add item battery right \
            --set volume icon.padding_left=12 script="$PLUGINS/volume.sh" \
            --subscribe volume volume_change
 pill system "$PILL" "$BORDER" volume wifi battery
+gap gap.r2 right
 
 # Stats: one updater (stats.sh, every 2 s) sets all of them; the CPU graph scrolls with each sample.
 sketchybar --add item net right \
@@ -90,7 +98,7 @@ sketchybar --add item net right \
            --add item mem right \
            --set mem icon="󰍛" \
            --add item gpu right \
-           --set gpu icon="󰢮" \
+           --set gpu icon="󰢮" click_script="$HOME/.local/bin/geek-monitor macmon" \
            --add item cpu right \
            --set cpu icon="" icon.color="$ACCENT" label.width=40 label.align=right \
                      click_script="$PLUGINS/top.sh" script="$PLUGINS/popup-close.sh" popup.height=26 \

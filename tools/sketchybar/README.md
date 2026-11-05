@@ -12,6 +12,9 @@ The top bar, in place of the macOS menu bar (which stays auto-hidden, full scree
   current = accent chip, animated; hover highlight; a click switches), focused window with its app icon; CPU graph
   and share (red from 70 %), GPU use (IOAccelerator), memory in use, network down/up on the default interface;
   sound, Wi-Fi, battery (red at 20 % or less, green on power); date and time in French.
+- **Spacing:** a 10 pt gap between pills (`gap`), the first and last workspace 6 pt off their pill's edges.
+- **Monitors:** a click on GPU opens macmon; Raycast "btop" and "macmon" open them in a new Ghostty window
+  (`scripts/geek-monitor`).
 - **Popups:** click CPU = the five busiest processes, the memory-guard margin and the load average; click the clock =
   this month from Monday, this week in green. Leaving the bar closes them.
 - **Full screen:** macOS native full screen moves the window to its own Space, where SketchyBar is not drawn (the band

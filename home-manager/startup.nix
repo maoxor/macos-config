@@ -182,6 +182,9 @@ in {
   home.file.".local/bin/agents-vm".source =
     config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/agents-vm";
   # agents-browser: one headless browser per Claude Code session (MCP "browser"), never on the user's screen.
+  # geek-monitor: btop or macmon in a new Ghostty window (Raycast, SketchyBar GPU click).
+  home.file.".local/bin/geek-monitor".source =
+    config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/geek-monitor";
   home.file.".local/bin/agents-browser".source =
     config.lib.file.mkOutOfStoreSymlink "${identity.repoDir}/scripts/agents-browser";
   # agents-host-guard: Claude Code PreToolUse hook refusing commands that drive the user's browsers or screen.
