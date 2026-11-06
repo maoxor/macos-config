@@ -57,7 +57,7 @@ in {
     truecolor = True
     rounded_corners = True
     graph_symbol = "braille"
-    vim_keys = True
+    vim_keys = False                 # k = kill (with vim keys it moves up and kill becomes K)
     update_ms = 1000
     shown_boxes = "cpu mem net proc"
     proc_sorting = "cpu lazy"
