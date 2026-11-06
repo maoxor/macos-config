@@ -29,4 +29,14 @@ if [ -n "$out" ]; then
   [ -n "$out" ] && { osascript -e "display notification \"$(printf %s "$out" | sed 's/[\\"]/\\&/g')\" with title \"Wi-Fi : échec\""; exit 1; }
 fi
 sketchybar --trigger wifi_change
+# No address after 20 s (only a self-assigned 169.254.x.x): the network's DHCP never answered, so no login page can
+# appear. Seen on CESI_HotSpot 2026-11-06 with a rotating private Wi-Fi address (a new MAC at every join).
+for _ in $(seq 10); do
+  ip=$(ifconfig "$dev" | awk '/inet /{print $2}' | head -1)
+  case "$ip" in ""|169.254.*) sleep 2 ;; *) break ;; esac
+done
+case "$ip" in ""|169.254.*)
+  osascript -e "display notification \"Le réseau ne donne pas d'adresse IP. Réglages Wi-Fi → Détails du réseau → Adresse Wi-Fi privée : Fixe ou Désactivée, puis reconnecte-toi.\" with title \"Wi-Fi : $(printf %s "$ssid" | sed 's/[\\"]/\\&/g')\""
+  exit 1 ;;
+esac
 portal
