@@ -11,6 +11,7 @@ drduh/macOS-Security-and-Privacy-Guide, Objective-See tools.
 | Automatic security responses, system data, App Store updates (macOS upgrades stay manual: Nix hooks in /etc) | `harden.sh` |
 | SSH: keys only, no root, 3 tries (`/etc/ssh/sshd_config.d/000-hardening.conf`); Remote Login stays on for `docs/recovery.md` | `harden.sh` |
 | AirPlay receiver off (ports 5000/7000) | `home-manager/macos.nix` |
+| LuLu settings: Apple programs and pre-installed apps allowed, new ones ask, VirusTotal off | `lulu-prefs.sh` (root) |
 | LuLu, BlockBlock, OverSight, KnockKnock | `homebrew/Brewfile` (`askpass.sh` gives brew's sudo a password dialog) |
 
 Install: `osascript -e 'do shell script "<repo>/tools/security/harden.sh" with administrator privileges'`, then
