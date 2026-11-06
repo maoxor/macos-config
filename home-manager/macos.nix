@@ -54,6 +54,8 @@ in {
       "com.apple.sound.uiaudio.enabled" = false;  # no UI sound effects
       "com.apple.sound.beep.feedback" = 0;
     };
+    # fn/🌐 key does nothing (default: opens the Emoji & Symbols picker). 0 nothing, 1 input source, 2 emoji, 3 dictation.
+    "com.apple.HIToolbox".AppleFnUsageType = 0;
     "com.apple.AppleMultitouchTrackpad" = trackpad;
     # External Magic Trackpad: same gestures (the click/force keys only exist for the built-in one).
     "com.apple.driver.AppleBluetoothMultitouch.trackpad" = builtins.removeAttrs trackpad
