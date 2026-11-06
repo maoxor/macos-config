@@ -1,13 +1,15 @@
 <# : batch part (Windows). Double-click this file, or run it from CMD.
 @echo off
 chcp 65001 >nul
-powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ([IO.File]::ReadAllText('%~f0'))"
+set "WOW_ADDONS_SELF=%~f0"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ([IO.File]::ReadAllText($env:WOW_ADDONS_SELF))"
 echo.
 pause
 exit /b
 #>
 # Installs the WoW Forever addons set up on the Mac (2026-11-06): 18 addons (17 downloads), versions for Forever 1.60.1 (interface 16001).
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'   # Windows PowerShell 5.1: the progress bar makes downloads ~40x slower
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 function Say($m, $c = 'Gray') { Write-Host $m -ForegroundColor $c }
 
@@ -19,9 +21,10 @@ foreach ($k in 'HKLM:\SOFTWARE\WOW6432Node\Blizzard Entertainment\World of Warcr
   try { $p = (Get-ItemProperty $k -ErrorAction Stop).InstallPath; if ($p) { $roots += (Split-Path $p.TrimEnd('\')) } } catch {}
 }
 foreach ($d in (Get-PSDrive -PSProvider FileSystem).Root) {
-  $roots += "$d`Program Files (x86)\World of Warcraft", "$d`Program Files\World of Warcraft", "$d`World of Warcraft", "$d`Games\World of Warcraft", "$d`Jeux\World of Warcraft"
+  foreach ($sub in 'Program Files (x86)\World of Warcraft', 'Program Files\World of Warcraft', 'World of Warcraft', 'Games\World of Warcraft', 'Jeux\World of Warcraft', 'Battle.net\World of Warcraft') { $roots += (Join-Path $d $sub) }
 }
-$game = $roots | ForEach-Object { Join-Path $_ '_forever_' } | Where-Object { Test-Path $_ } | Select-Object -First 1
+# Live client folder is _forever_ (the beta one is _forever_beta_; addons for it go there instead)
+$game = $roots | Where-Object { $_ -and (Test-Path $_) } | ForEach-Object { Join-Path $_ '_forever_' } | Where-Object { Test-Path $_ } | Select-Object -First 1
 if (-not $game) {
   $root = $roots | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
   if ($root) { $game = Join-Path $root '_forever_' }
@@ -38,7 +41,7 @@ try { [IO.File]::WriteAllText((Join-Path $addons '.write-test'), 'x'); Remove-It
 catch { Say "Pas le droit d'ecrire dans $addons : clic droit sur ce fichier > Executer en tant qu'administrateur." Red; return }
 Say "Dossier des addons : $addons" Green
 
-if (Get-Process -Name 'Wow*' -ErrorAction SilentlyContinue) { Say "WoW est ouvert : ferme-le avant (les addons ne sont lus qu'au lancement)." Yellow; Read-Host "Entree quand WoW est ferme" | Out-Null }
+if (Get-Process | Where-Object { $_.Path -like "$game\*" } -ErrorAction SilentlyContinue) { Say "WoW est ouvert : ferme-le avant (les addons ne sont lus qu'au lancement)." Yellow; Read-Host "Entree quand WoW est ferme" | Out-Null }
 
 # 2. Addons: GitHub releases (official) and CurseForge file server (exact Forever files)
 function CF($id, $name) { "https://mediafilez.forgecdn.net/files/$([math]::Floor($id/1000))/$($id%1000)/$([uri]::EscapeDataString($name))" }
@@ -81,5 +84,6 @@ Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
 Say ""
 Say "$ok / $($list.Count) addons installes." Cyan
 if ($fail) { Say "A refaire plus tard : $($fail -join ', ')" Yellow }
+Say "Si un addon est marque perime : coche 'Charger les add-ons perimes' dans la liste." Yellow
 Say "Lance WoW Forever > ecran des personnages > Menu > Add-ons : verifie que tout est coche." Cyan
 Say "En jeu : /bugsack affiche les erreurs ; Shift+clic sur la carte = trajet (Shortest Path)."
