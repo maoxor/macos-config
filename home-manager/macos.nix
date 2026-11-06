@@ -94,6 +94,8 @@ in {
       SuppressSecureInputExplanation = true;      # no panel after 10 s of Secure Input (it stays on)
     };
   };
+  # AirPlay receiver off: it listened on ports 5000/7000 for the whole network (public Wi-Fi).
+  targets.darwin.currentHostDefaults."com.apple.controlcenter".AirplayRecieverEnabled = false;
   targets.darwin.currentHostDefaults.NSGlobalDomain = {
     "com.apple.trackpad.threeFingerHorizSwipeGesture" = 0;
     "com.apple.trackpad.threeFingerVertSwipeGesture" = 0;
