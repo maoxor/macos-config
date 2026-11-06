@@ -119,7 +119,7 @@ sketchybar --add item battery right \
            --set vpn icon="󰦝" label.font="$FONT:Bold:12.0" update_freq=10 script="$PLUGINS/vpn.sh" drawing=off \
            --subscribe vpn wifi_change system_woke \
            --add item wifi right \
-           --set wifi label.drawing=off script="$PLUGINS/wifi.sh" popup.height=24 \
+           --set wifi label.drawing=off script="$PLUGINS/wifi.sh" popup.height=24 update_freq=10 \
            --subscribe wifi wifi_change system_woke mouse.clicked mouse.exited.global \
            --add item volume right \
            --set volume icon.padding_left=12 script="$PLUGINS/volume.sh" \

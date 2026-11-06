@@ -1,6 +1,7 @@
 // WifiScan.app: lists Wi-Fi networks for the SketchyBar Wi-Fi menu. macOS (14+) hides network names from anything
 // without Location Services, so this is a tiny app bundle the user allows once; run with `open -g -W WifiScan.app`.
-// Writes ~/.cache/wifi-menu/scan.json: {"auth": "...", "current": "...", "networks": [{"ssid","rssi","secure"}]}
+// --cached: the networks macOS already knows from its last scan (instant); default: a fresh scan (~2-4 s).
+// Writes ~/.cache/wifi-menu/scan.json (or scan-cached.json): {"auth": "...", "current": "...", "networks": [{"ssid","rssi","secure"}]}
 import AppKit; import CoreLocation; import CoreWLAN
 final class D: NSObject, NSApplicationDelegate, CLLocationManagerDelegate {
   let lm = CLLocationManager()
@@ -17,7 +18,8 @@ final class D: NSObject, NSApplicationDelegate, CLLocationManagerDelegate {
       case .denied, .restricted: return "denied"; default: return "pending" } }()
     let i = CWWiFiClient.shared().interface()
     var nets: [[String: Any]] = []; var seen = Set<String>()
-    if let s = try? i?.scanForNetworks(withSSID: nil) {
+    let cached = CommandLine.arguments.contains("--cached")
+    if let s = cached ? i?.cachedScanResults() : try? i?.scanForNetworks(withSSID: nil) {
       for n in s.sorted(by: { $0.rssiValue > $1.rssiValue }) {
         guard let id = n.ssid, !id.isEmpty, seen.insert(id).inserted else { continue }
         nets.append(["ssid": id, "rssi": n.rssiValue, "secure": !n.supportsSecurity(.none)])
@@ -26,7 +28,7 @@ final class D: NSObject, NSApplicationDelegate, CLLocationManagerDelegate {
     let out: [String: Any] = ["auth": a, "power": i?.powerOn() ?? false, "current": i?.ssid() ?? "", "networks": nets]
     let dir = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".cache/wifi-menu")
     try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-    try? JSONSerialization.data(withJSONObject: out, options: [.prettyPrinted]).write(to: dir.appendingPathComponent("scan.json"))
+    try? JSONSerialization.data(withJSONObject: out, options: [.prettyPrinted]).write(to: dir.appendingPathComponent(cached ? "scan-cached.json" : "scan.json"))
     NSApp.terminate(nil)
   }
 }
