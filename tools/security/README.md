@@ -19,3 +19,4 @@ Install: `osascript -e 'do shell script "<repo>/tools/security/harden.sh" with a
 User only (cannot be scripted): SIP is **off** and nothing in this config needs it off (OmniWM README: "SIP stays
 enabled"; no yabai, no scripting addition): Recovery → Terminal → `csrutil enable`. Lock screen "Require password"
 → Immediately (System Settings → Lock Screen). LuLu's network extension approval.
+- Commits signed with the SSH key (gpg.format ssh, ~/.ssh/allowed_signers); key registered on GitHub as signing key.
