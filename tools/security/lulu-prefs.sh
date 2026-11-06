@@ -4,7 +4,7 @@
 set -euo pipefail
 [ "$(id -u)" = 0 ] || { echo "Run with sudo." >&2; exit 1; }
 P=/Library/Objective-See/LuLu/preferences.plist
-for kv in allowApple:true allowInstalled:true allowDNS:true passiveMode:false noVTMode:true; do
+for kv in allowApple:true allowInstalled:true allowDNS:true allowLocalHost:true passiveMode:false noVTMode:true; do
   /usr/libexec/PlistBuddy -c "Delete :${kv%%:*}" "$P" 2>/dev/null || true
   /usr/libexec/PlistBuddy -c "Add :${kv%%:*} bool ${kv#*:}" "$P"
 done
