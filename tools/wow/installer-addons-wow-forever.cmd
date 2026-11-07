@@ -7,7 +7,7 @@ echo.
 pause
 exit /b
 #>
-# Installs the WoW Forever addons set up on the Mac (2026-11-06): 18 addons (17 downloads), versions for Forever 1.60.1 (interface 16001).
+# Installs the WoW Forever addons set up on the Mac (2026-11-06): 19 addons (18 downloads), versions for Forever 1.60.1 (interface 16001).
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'   # Windows PowerShell 5.1: the progress bar makes downloads ~40x slower
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -63,6 +63,7 @@ $list = [ordered]@{
   'AtlasLoot Continued'   = CF 9471932 'AtlasLootClassic-Continued_12922.zip'
   'Pawn'                  = CF 9410140 'Pawn-2.14.1-Forever.zip'
   'BlizzMove'             = CF 9456490 'BlizzMove-v3.8.7.zip'
+  'Follow The Arrow'      = CF 9473623 'FollowTheArrow.zip'      # free leveling route 1-30, /fta
 }
 $tmp = Join-Path $env:TEMP ("wowaddons-" + [guid]::NewGuid().ToString('N')); New-Item -ItemType Directory -Path $tmp | Out-Null
 $ok = 0; $fail = @()
