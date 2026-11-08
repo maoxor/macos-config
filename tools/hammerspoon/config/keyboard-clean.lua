@@ -23,6 +23,7 @@ local function imageURI()
 end
 
 function M.show() -- also a preview without blocking the keyboard
+  if M.view then M.view:delete(); M.view = nil end -- never two cards: a leftover one would stay forever
   local f = io.open(PAGE); local html = f:read("a"); f:close()
   html = html:gsub("{{IMG}}", function() return imageURI() end):gsub("{{DURATION}}", tostring(DURATION))
   local s = hs.screen.mainScreen():frame()
@@ -39,7 +40,9 @@ function M.stop()
   if M.view then
     local v = M.view; M.view, M.content = nil, nil
     v:evaluateJavaScript("leave()")
-    hs.timer.doAfter(0.3, function() v:delete() end)
+    -- Keep a reference to the timer: an unreferenced hs.timer can be garbage-collected before it fires, which left
+    -- the transparent card on screen, swallowing clicks in the middle of every app (B25).
+    M.leave = hs.timer.doAfter(0.3, function() v:delete(); M.leave = nil end)
   end
 end
 

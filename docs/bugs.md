@@ -348,3 +348,13 @@ Before changing anything listed here, read the entry and keep its verification p
 - **Fix for (2):** restart Ghostty (Cmd+F5 reopens the Claude Code sessions). Check: the hover bench median, or
   `sample` showing `_copyWindows` near the top of the main thread.
 
+
+### B25 — An invisible card in the middle of the screen swallows clicks (2026-11-08)
+- **Symptom:** clicks in the centre of the screen did nothing in any app (seen in a game): the pointer hovered
+  buttons but a click made Hammerspoon or Finder active instead.
+- **Cause:** the F4 cleaning-mode card (`keyboard-clean.lua`, a transparent 520×680 webview at screen-saver level)
+  was removed by an `hs.timer.doAfter` nobody kept a reference to; the timer could be garbage-collected before it
+  fired, so the card stayed on screen, invisible, above every window.
+- **Fix:** the leave timer is kept in `M.leave`, and `show()` deletes any leftover card first.
+- **Check:** after F4 then a click on the card, no Hammerspoon window remains at the centre (a window list at the
+  screen centre shows the app below first).

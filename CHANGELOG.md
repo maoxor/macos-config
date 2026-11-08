@@ -4,6 +4,8 @@ All notable changes. Format: newest first; each entry says what changed and how 
 is not a plain `git revert`.
 
 ## Unreleased
+
+- Hammerspoon: the F4 cleaning-mode card can no longer stay on screen invisible and swallow clicks (B25).
 - OmniWM rebased on upstream 0d886db9 (2026-11-05, 759 commits newer): workspace swipe previews warmed from settled
   frames, parking fins no longer re-hidden every pass, chained swipes, Niri edge overscroll, resting pictures streamed
   instead of polled (tccd/replayd CPU). Patches 0008 and 0032 dropped (merged upstream as #1055 and #1056); 30 patches
