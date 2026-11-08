@@ -79,8 +79,8 @@ With `{ lockDown = true; }` in `~/.config/macos-config/profile.local.nix` (outsi
   Neru and Hammerspoon read the **characters** of the active layout instead.
 - OmniWM writes Hyper shortcuts as `Hyper+…` because `hyperKeyModifiers = "Control+Option+Command"`.
 - The macOS "previous/next Space" shortcuts (Ctrl+←/→, symbolichotkeys 79–82) are disabled so OmniWM can use them.
-- The Edit menu's « Emoji & Symbols » item has no shortcut (Ctrl+Cmd+Space, `NSUserKeyEquivalents` in `home-manager/macos.nix`), and the fn/🌐 key does nothing: emoji come from Raycast (`e`).
   Minor conflict: in Cocoa text fields Ctrl+←/→ (line start/end) is taken; Cmd+←/→ does the same.
+- The Edit menu's « Emoji & Symbols » item has no shortcut (Ctrl+Cmd+Space, `NSUserKeyEquivalents` in `home-manager/macos.nix`), and the fn/🌐 key does nothing: emoji come from Raycast (`e`).
 
 ## Adding a shortcut
 1. Check this registry and the `[[hotkeys]]` of `tools/omniwm/config/settings.toml` (no duplicates).
