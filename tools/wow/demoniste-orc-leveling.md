@@ -1,25 +1,34 @@
 # Démoniste orc : montée 1-60 sur WoW Forever (synthèse du 2026-11-08)
 
-Croisé entre Icy Veins, Method, Maxroll, Conquest Capped, WoW Forever Guides, Mobalytics et Zockify.
+Parcours PvP du propriétaire (guide de 36 pages), croisé avec Icy Veins, Method, Maxroll, Conquest Capped, WoW Forever Guides, Mobalytics et Zockify.
 Les niveaux 31-60 sont encore peu testés par ces guides : à revérifier après quelques jours de jeu.
 
-## Spécialisation : Affliction (consensus)
-| Niveau | Talents |
-|---|---|
-| 10-14 | Improved Corruption 5/5 (Corruption instantanée) |
-| 15-17 | Suppression 3/5 |
-| 18-19 | Grim Reach 2/2 (+20 % de portée des DoT et drains) |
-| 20-22 | Improved Drains 3/3 |
-| 23-25 | Pandemic 3/3 |
-| 26-27 | Nightfall 2/2 |
-| 28 | Amplify Curse 1/1 |
-| 29-30 | Improved Bane of Agony 2/2 |
-| 30-34 | Siphon Life 1/1, Soul Siphon 3/3 |
-| 35-39 | Shadow Mastery 5/5 |
-| 40 | Wrack 1/1 |
-| 41-60 | Démonologie : Demonic Embrace 5/5, Improved Health Funnel 2/2, Improved Voidwalker 3/3, Fel Vitality 3/3, Unholy Power 5/5 |
+## Parcours retenu : Démonologie → Pacte démoniaque → Affliction, base PvP finale 20/31/0
+Choix du propriétaire (PvP, démon piloté à la main). L'Affliction monte un peu plus vite en XP, mais ce parcours
+prépare le PvP pendant la montée. Niveaux sans le talent d'héritage Talented (avec lui : 5 niveaux plus tôt, même ordre).
 
-**Talents d'héritage** : Thrill of Adventure 5/5 en premier (5 % de vie et de mana rendus après chaque monstre tué hors donjon), puis Talented (talents plus tôt).
+| Niveau | Talent | Rang |
+|---|---|---|
+| 10-12 | Unholy Power (Puissance impie) | 3/5 |
+| 13-14 | Demonic Embrace (Baiser démoniaque) | 2/5 |
+| 15-16 | Demonic Energies | 2/2 |
+| 17-19 | Fel Vitality | 3/3 |
+| 20-21 | Master Summoner | 2/2 |
+| 22 | Demonic Sacrifice | 1/1 |
+| 23-24 | Demonic Embrace | 4/5 |
+| 25 | Fel Domination | 1/1 |
+| 26-28 | Demonic Brand | 3/3 |
+| 29 | Demonic Embrace | 5/5 |
+| 30 | Soul Link (Lien spirituel) | 1/1 |
+| 31 | Demonic Knowledge | 1/3 |
+| 32-34 | Improved Felhunter | 3/3 |
+| 35-39 | Master Demonologist | 5/5 |
+| 40 | Demonic Pact (Pacte démoniaque) | 1/1 → 0/31/0 |
+| 41-45 | Improved Corruption (Affliction) | 5/5 |
+| 46-60 | Affliction selon le guide PvP complet | → 20/31/0 |
+
+Vérifié en jeu le 2026-11-08 au niveau 13 : Unholy Power 3/5 et Demonic Embrace 1/5, conforme. Prochain point (14) :
+Demonic Embrace 2/5. Sorts clés : Spell Lock à 36 (pas à 30), Death Coil à 42.
 
 ## Démons
 - 1-10 **Diablotin** (Pacte de sang dès 4).
@@ -37,7 +46,8 @@ Les niveaux 31-60 sont encore peu testés par ces guides : à revérifier après
 - **Baguette avant l'armure** : Baguette magique inférieure (5), Baguette magique supérieure (13), Gravestone Scepter (quête de Profondeurs de Brassenoire), Baguette mystique supérieure (30).
 - Priorité : puissance des sorts > Endurance > Intelligence > Esprit (l'Esprit nourrit Connexion dans Forever).
 - Donjons qui valent le détour : Ruins of Lordaeron (15-20), Profondeurs de Brassenoire (24-32, ne pas sauter), Ombrecroc (22-30).
-- Métiers : **Couture + Enchantement** (baguettes et sacs), Secourisme.
+- Métiers : **Couture + Enchantement** (sacs, pièces en tissu, baguettes, désenchantement), Secourisme. Plus tard en PvP : remplacer
+  éventuellement Enchantement par Ingénierie, en gardant Couture.
 
 ## Entraîneur
 Aux niveaux 4, 6, 8, 10, 14, 18, 20, 24, 30, 34, 38, 40… (Follow The Arrow apprend tout seul les sorts recommandés).
