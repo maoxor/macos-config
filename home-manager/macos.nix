@@ -53,6 +53,13 @@ in {
       "com.apple.springing.delay" = 0.0035511255264282227;
       "com.apple.sound.uiaudio.enabled" = false;  # no UI sound effects
       "com.apple.sound.beep.feedback" = 0;
+      # The Edit menu's "Emoji & Symbols" item (Ctrl+Cmd+Space, next to Cmd+Space for Raycast) has no shortcut:
+      # it opened the picker while typing. "\0" removes a menu item's key equivalent in every app; both the
+      # English and the French titles, since apps show one or the other. Emoji stay in Raycast (`e`).
+      NSUserKeyEquivalents = {
+        "Emoji & Symbols" = "\\0";
+        "Emoji et symboles" = "\\0";
+      };
     };
     # fn/🌐 key does nothing (default: opens the Emoji & Symbols picker). 0 nothing, 1 input source, 2 emoji, 3 dictation.
     "com.apple.HIToolbox".AppleFnUsageType = 0;

@@ -5,6 +5,8 @@ is not a plain `git revert`.
 
 ## Unreleased
 
+- macOS: the Edit menu's « Emoji & Symbols » item has no shortcut any more (Ctrl+Cmd+Space opened the picker while typing).
+
 - Hammerspoon: the F4 cleaning-mode card can no longer stay on screen invisible and swallow clicks (B25).
 - OmniWM rebased on upstream 0d886db9 (2026-11-05, 759 commits newer): workspace swipe previews warmed from settled
   frames, parking fins no longer re-hidden every pass, chained swipes, Niri edge overscroll, resting pictures streamed
