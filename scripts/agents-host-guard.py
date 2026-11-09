@@ -69,7 +69,10 @@ def scripts_of(cmd, cwd):
 
 
 USER_ASKS = re.compile(r"\b(écran|ecran|screen|fenêtre|fenetre|window|onglet|tab|safari|zen|chrome|helium|raycast|"
-                       r"finder|souris|mouse|clavier|keyboard|mon (navigateur|mac|ordinateur)|host_gui_ok)\b", re.I)
+                       r"finder|souris|mouse|clavier|keyboard|mon (navigateur|mac|ordinateur)|host_gui_ok|"
+                       # 2026-11-09, the user: « autorise l'ouverture de pages dans mon navigateur ». Asking to open a
+                       # page, link or site in the latest message is enough for `open https://…` with HOST_GUI_OK=1.
+                       r"(ouvre|ouvrir|ouvres|affiche|afficher|montre|montrer|open|show)\b[^\n]{0,80}\b(page|lien|site|url|link)s?)\b", re.I)
 
 
 def last_user_text(transcript):

@@ -5,6 +5,8 @@ is not a plain `git revert`.
 
 ## Unreleased
 
+- agents-host-guard: HOST_GUI_OK=1 is also accepted when the user's latest message asks to open a page, link or site
+  (`open https://…` in their browser). Scripting their apps and synthetic input stay refused.
 - macOS: the Edit menu's « Emoji & Symbols » item has no shortcut any more (Ctrl+Cmd+Space opened the picker while typing).
 
 - Hammerspoon: the F4 cleaning-mode card can no longer stay on screen invisible and swallow clicks (B25).
