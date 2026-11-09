@@ -57,6 +57,24 @@ Durotar → Tous-Vents (10-20, Carrefour) → Mille pointes (sud des Tous-Vents)
 → Mille pointes, Strangleronce nord (30-35) → Riverglades (35-45, nouvelle zone) → Tanaris, Féralas (45-52) → Un'Goro (sens horaire)
 → Maleterres de l'Ouest puis de l'Est → Berceau-de-l'Hiver (57-60). Quitter une zone dès qu'elle devient verte.
 
-## Follow The Arrow (réglages appliqués à la fermeture de WoW)
-Accepter et rendre **toutes** les quêtes croisées (cases « Guide Only » décochées), vendre les objets gris, passer les dialogues,
-prendre les vols, passer seul à la zone suivante. Le guide gratuit couvre 1-30 ; au-delà, suivre le parcours ci-dessus avec Questie.
+## Guide de montée (contre-audit du 2026-11-09)
+- **RestedXP** (addon RXPGuides, installé) + **Questie** : le meilleur choix pour la vitesse selon le consensus. Routes Forever
+  1-20 gratuites ; guide Horde 30 $ (achat du propriétaire) avec routes Forever 1-35, puis routes Era jusqu'à 60 en attendant.
+  Alternatives écartées : Joana / Journey (Forever 1-30 seulement), Zygor (abonnement 15 $/mois, mise à jour Forever partielle),
+  Guidelime (aucune route Forever). Aucun guide n'a de mesure indépendante de vitesse.
+- **Necrosis** (v160001-fix5, installé) : démons, fragments, pierres. Follow The Arrow est mis de côté
+  (`~/.local/share/wow-reglages/addons-desactives/`).
+
+## Vitesse pure : Affliction
+Les guides Forever (Conquest Capped, Mobalytics/Kargoz, Zockify) classent l'Affliction comme la spécialisation la plus rapide :
+DoT qui travaillent seuls, lancement en mouvement, drain tank. La Démonologie est une seconde sûre, qui ne décolle qu'à 26-30
+(Demonic Brand, Soul Link) et boit plus. Le parcours PvP ci-dessus reste valable, mais il coûte de la vitesse jusqu'à 30.
+
+## Spécificités Forever à exploiter
+- Les DoT peuvent critiquer ; Malédiction d'agonie marque le monstre instantanément (le « tag » est gagné tout de suite).
+- Drain d'âme : chance croissante de fragment à chaque tick, sur un monstre tenu par le démon.
+- Les démons profitent de vos statistiques ; l'Esprit renforce Connexion.
+- Baguette : plus d'échelle avec la puissance des sorts et 0,5 s immobile avant le tir.
+- Pierre de feu et pierre de sort se cumulent avec l'huile de sorcier.
+- Feu de camp et nourriture d'XP donnent de l'XP bonus ; se déconnecter en auberge ou en ville pour l'XP de repos.
+- Horde, 13-15 : Gouffre de Ragefeu une fois avec ses 5 quêtes. Prendre les quêtes de donjon d'abord, nettoyer une ou deux fois.
