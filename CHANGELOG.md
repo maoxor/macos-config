@@ -5,6 +5,10 @@ is not a plain `git revert`.
 
 ## Unreleased
 
+- WoW: « Aventure facile » pack for players who follow Storylines without a levelling guide (`tools/wow/aventure-facile`):
+  an addon that routes to the nearest next step on its own (objective, turn-in or next Storylines quest, through
+  Shortest Path Forever), a quest-mob sound alert and comfort presets, plus Windows/Mac installers with a one-click
+  « Annuler » that restores the previous AddOns folder. Build: `python3 -I tools/wow/aventure-facile/construire.py`.
 - agents-browser login: the sign-in window opens desktop-sized, floating on workspace 2 (`AGENTS_BROWSER_WS`), and
   no longer steals focus every 2 s (it saved with `storageState()`, which opens hidden pages; docs/bugs.md B26).
   Rollback: revert this commit and `scripts/apply.sh home-manager --write`.

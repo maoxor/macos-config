@@ -1,0 +1,7 @@
+## Interface: 11509, 38002, 50504, 120007, 120105, 16001
+## Title: Aventure facile
+## Notes: Guidage automatique vers la prochaine étape (objectif, rendu, suite de Storylines), alerte sonore sur les monstres de quête et réglages de confort. /af
+## Version: 1.0.0
+## OptionalDeps: Questie, ShortestPathForever, Storylines
+## SavedVariables: AventureFacileDB
+AventureFacile.lua
