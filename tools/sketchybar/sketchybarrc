@@ -98,6 +98,14 @@ for m in "auto:Automatique (macOS)" "eco:Économie (basse consommation)" "equili
                    click_script="$PLUGINS/fan.sh ${m%%:*}"
 done
 pill fan.pill "$PILL" "$BORDER" fan
+# Power draw and CPU temperature (macmon), left of the notch since the Bluetooth item (2026-11-10): the right half
+# reached the camera.
+gap gap.l4 left
+sketchybar --add item power left \
+           --set power icon="󱐋" icon.color="$ACCENT" icon.padding_left=12 label.padding_right=12 update_freq=5 \
+                       script="$PLUGINS/power.sh" \
+           --subscribe power system_woke
+pill power.pill "$PILL" "$BORDER" power
 
 # ---- Right (added right to left): clock, system, stats.
 sketchybar --add item clock right \
@@ -131,10 +139,7 @@ pill system "$PILL" "$BORDER" volume bluetooth wifi vpn battery
 gap gap.r2 right
 
 # Stats: one updater (stats.sh, every 2 s) sets all of them; the CPU graph scrolls with each sample.
-sketchybar --add item power right \
-           --set power icon="󱐋" icon.color="$ACCENT" label.padding_right=12 update_freq=5 script="$PLUGINS/power.sh" \
-           --subscribe power system_woke \
-           --add item net right \
+sketchybar --add item net right \
            --set net icon="󰇚" icon.color="$OK" label.font="$FONT:Medium:12.0" label.width=135 label.align=left \
            --add item mem right \
            --set mem icon="󰍛" \
@@ -155,7 +160,7 @@ for i in 0 1 2 3 4 5 6; do
                                 icon.width=62 icon.align=right icon.padding_left=10 label.padding_left=10 \
                                 label.padding_right=14 background.height=22
 done
-pill stats "$PILL" "$BORDER" cpu.graph cpu gpu mem net power
+pill stats "$PILL" "$BORDER" cpu.graph cpu gpu mem net
 
 # OmniWM events -> omniwm_update (one watcher; a reload replaces it).
 pkill -f "omniwmctl watch focus,active-workspace,windows-changed" 2>/dev/null
