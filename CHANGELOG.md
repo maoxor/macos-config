@@ -5,6 +5,9 @@ is not a plain `git revert`.
 
 ## Unreleased
 
+- Top bar: Bluetooth item between sound and Wi-Fi: on, off or connected (blueutil, added to the Brewfile), with the
+  battery of the connected accessories that report one (`pmset -g accps`, e.g. a game controller), red at 20 % or less;
+  click opens the Bluetooth settings. Rollback: revert this commit and `scripts/apply.sh home-manager --write`.
 - agents-host-guard: HOST_GUI_OK=1 is also accepted when the user's latest message asks to open a page, link or site
   (`open https://…` in their browser). Scripting their apps and synthetic input stay refused.
 - macOS: the Edit menu's « Emoji & Symbols » item has no shortcut any more (Ctrl+Cmd+Space opened the picker while typing).

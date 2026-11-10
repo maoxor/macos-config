@@ -2,7 +2,7 @@
 # SketchyBar, "pills" style, geek edition (2026-11-04). It takes the band of the macOS menu bar (auto-hidden, 39 pt on
 # this screen, notch 222 pt in the middle), one glass pill per group:
 #   left   workspaces with the app icons of their windows (sketchybar-app-font), focused window
-#   right  CPU graph + %, GPU %, memory, network down/up | sound, Wi-Fi, battery | date and time
+#   right  CPU graph + %, GPU %, memory, network down/up | sound, Bluetooth (+ accessory batteries), Wi-Fi, battery | date and time
 #   popups click CPU: busiest processes and memory-guard; click the clock: the month
 # Colours: colors.sh, written by Home Manager from the wallpaper palette (home-manager/sketchybar.nix). OmniWM events
 # come from `omniwmctl watch` (custom event omniwm_update). topmost=on puts the bar at window level 25, above the
@@ -121,10 +121,13 @@ sketchybar --add item battery right \
            --add item wifi right \
            --set wifi label.drawing=off script="$PLUGINS/wifi.sh" popup.height=24 update_freq=10 \
            --subscribe wifi wifi_change system_woke mouse.clicked mouse.exited.global \
+           --add item bluetooth right \
+           --set bluetooth update_freq=60 script="$PLUGINS/bluetooth.sh" \
+           --subscribe bluetooth system_woke mouse.clicked \
            --add item volume right \
            --set volume icon.padding_left=12 script="$PLUGINS/volume.sh" \
            --subscribe volume volume_change
-pill system "$PILL" "$BORDER" volume wifi vpn battery
+pill system "$PILL" "$BORDER" volume bluetooth wifi vpn battery
 gap gap.r2 right
 
 # Stats: one updater (stats.sh, every 2 s) sets all of them; the CPU graph scrolls with each sample.

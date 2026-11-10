@@ -43,6 +43,8 @@ brew "btop"
 brew "macmon"
 # Now playing in the top bar: macOS restricts MediaRemote; media-control goes through its adapter.
 brew "media-control"
+# Bluetooth on/off and connected devices for the top bar item (tools/sketchybar/plugins/bluetooth.sh).
+brew "blueutil"
 
 # Objective-See security tools (free, open source; tools/security/README.md): LuLu outbound firewall, BlockBlock
 # persistence alerts, OverSight camera/microphone alerts, KnockKnock autostart scan.
