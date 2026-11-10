@@ -21,25 +21,61 @@ case "${1:-mcp}" in
   login)
     name="${2:?usage: agents-browser login <name> <url>}"; url="${3:?usage: agents-browser login <name> <url>}"
     mkdir -p "$D/state" && chmod 700 "$D/state"
+    # A desktop-sized window (sites switch to their tablet layout below ~1200 px and hide FranceConnect), moved
+    # floating to workspace AGENTS_BROWSER_WS (default 2, Web) and shown there: OmniWM's rule tiles test browsers on
+    # workspace 4, where test-browsers.lua hands focus back to the user's app. Saved every 2 s from the open page
+    # only (cookies + its localStorage): ctx.storageState() opens a hidden page per origin, which kept grabbing focus.
     cd "$D" && exec "$NODE" -e '
       const fs = require("fs");
+      const { execFileSync } = require("child_process");
       const { chromium } = require("playwright-core");
+      const sleep = ms => new Promise(r => setTimeout(r, ms));
       (async () => {
-        const [state, url] = process.argv.slice(1);
-        const browser = await chromium.launch({ headless: false });
-        const ctx = await browser.newContext(fs.existsSync(state) ? { storageState: state } : {});
+        const [state, url, ws, ctl] = process.argv.slice(1);
+        const tag = "--agents-login=" + process.pid;
+        const browser = await chromium.launch({ headless: false, args: [tag, "--window-size=1480,1000", "--window-position=120,60"] });
+        const prev = fs.existsSync(state) ? JSON.parse(fs.readFileSync(state, "utf8")) : { cookies: [], origins: [] };
+        const ctx = await browser.newContext({ viewport: null, storageState: prev });
         const page = await ctx.newPage();
+        // omniwmctl exits non-zero on "ignored: no_change" (already there): each step is tried on its own, once.
+        const run = a => { try { execFileSync(ctl, a, { stdio: "ignore" }); } catch (e) {} };
+        const place = () => {
+          let w;
+          try {
+            const pids = new Set(execFileSync("/usr/bin/pgrep", ["-f", "--", tag]).toString().trim().split(/\s+/).map(Number));
+            const out = JSON.parse(execFileSync(ctl, ["query", "windows", "--format", "json"]).toString());
+            w = out.result.payload.windows.find(x => pids.has(x.pid));
+          } catch (e) {}
+          if (!w) return false;
+          if (w.mode !== "floating") run(["window", "toggle-floating", w.id]);
+          if (!w.workspace || String(w.workspace.number) !== ws) run(["window", "move-to-workspace", w.id, ws]);
+          run(["command", "switch-workspace", ws]);
+          run(["window", "focus", w.id]);
+          return true;
+        };
+        for (let i = 0; i < 40 && !place(); i++) await sleep(250);
         await page.goto(url);
         console.log("Sign in, then close the window. Saved to " + state);
-        let open = true;
-        page.on("close", () => { open = false; });
-        browser.on("disconnected", () => { open = false; });
-        while (open) {
-          try { await ctx.storageState({ path: state }); fs.chmodSync(state, 0o600); } catch (e) {}
-          await new Promise(r => setTimeout(r, 2000));
-        }
+        const origins = new Map((prev.origins || []).map(o => [o.origin, o]));
+        const save = async () => {
+          for (const p of ctx.pages()) {
+            try {
+              const o = new URL(p.url()).origin;
+              if (!o.startsWith("http")) continue;
+              const ls = await p.evaluate(() => Object.entries(localStorage).map(([name, value]) => ({ name, value })));
+              origins.set(o, { origin: o, localStorage: ls });
+            } catch (e) {}
+          }
+          try {
+            fs.writeFileSync(state, JSON.stringify({ cookies: await ctx.cookies(), origins: [...origins.values()] }), { mode: 0o600 });
+            fs.chmodSync(state, 0o600);
+          } catch (e) {}
+        };
+        while (browser.isConnected() && ctx.pages().length > 0) { await save(); await sleep(2000); }
+        if (browser.isConnected()) await save();
         await browser.close().catch(() => {});
-      })().catch(e => { console.error(e.message); process.exit(1); });' "$D/state/$name.json" "$url" ;;
+      })().catch(e => { console.error(e.message); process.exit(1); });' "$D/state/$name.json" "$url" "${AGENTS_BROWSER_WS:-2}" \
+      "$(command -v omniwmctl || echo "$HOME/.local/bin/omniwmctl")" ;;
   states) ls -1 "$D/state" 2>/dev/null | sed 's/\.json$//' ;;
   *) sed -n '2,9p' "$0"; exit 2 ;;
 esac

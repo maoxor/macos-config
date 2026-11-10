@@ -5,6 +5,9 @@ is not a plain `git revert`.
 
 ## Unreleased
 
+- agents-browser login: the sign-in window opens desktop-sized, floating on workspace 2 (`AGENTS_BROWSER_WS`), and
+  no longer steals focus every 2 s (it saved with `storageState()`, which opens hidden pages; docs/bugs.md B26).
+  Rollback: revert this commit and `scripts/apply.sh home-manager --write`.
 - Top bar: Bluetooth item between sound and Wi-Fi: on, off or connected (blueutil, added to the Brewfile), with the
   battery of the connected accessories that report one (`pmset -g accps`, e.g. a game controller), red at 20 % or less;
   click opens the Bluetooth settings. Rollback: revert this commit and `scripts/apply.sh home-manager --write`.

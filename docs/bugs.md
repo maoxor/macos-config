@@ -358,3 +358,15 @@ Before changing anything listed here, read the entry and keep its verification p
 - **Fix:** the leave timer is kept in `M.leave`, and `show()` deletes any leftover card first.
 - **Check:** after F4 then a click on the card, no Hammerspoon window remains at the centre (a window list at the
   screen centre shows the app below first).
+
+### B26 — A sign-in window keeps stealing focus and opens at tablet size (2026-11-10)
+- **Symptom:** an `agents-browser login` window took the keyboard back every two seconds, and its pages showed their
+  tablet layout (no FranceConnect button), so the user could not sign in.
+- **Cause:** the window saved the session with `ctx.storageState()` every 2 s, which opens a hidden page per origin
+  to read its localStorage: each one was a new test-browser window that macOS made frontmost and `test-browsers.lua`
+  handed back, in a loop. The OmniWM rule also tiles test browsers on workspace 4, next to whatever is there.
+- **Fix:** the login saves cookies (`ctx.cookies()`) and the localStorage of the pages already open only; it starts
+  with `--window-size=1480,1000` and `viewport: null`, then floats its window, moves it to `AGENTS_BROWSER_WS`
+  (default 2) and focuses it. `omniwmctl` exits non-zero on `ignored: no_change`, so each step runs on its own.
+- **Check:** during `agents-browser login x https://example.com`, the frontmost app stays Google Chrome for Testing
+  for 10 s and `omniwmctl query windows --bundle-id com.google.chrome.for.testing` shows it floating on workspace 2.
