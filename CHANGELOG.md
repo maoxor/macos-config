@@ -5,6 +5,9 @@ is not a plain `git revert`.
 
 ## Unreleased
 
+- macOS 27: top bar items visible again (strip drawn as the first bracket, B27), Nix loaded from `~/.zshenv`
+  (B27), theme follows the detected wallpaper (B28); the bar's Restart and Shut down now close every app by force
+  (SIGTERM, SIGKILL after 5 s) before restarting. Roll back: `git revert`, then `scripts/apply.sh home-manager --write`.
 - WoW: « Aventure facile » pack for players who follow Storylines without a levelling guide (`tools/wow/aventure-facile`):
   an addon that routes to the nearest next step on its own (objective, turn-in or next Storylines quest, through
   Shortest Path Forever), a quest-mob sound alert and comfort presets, plus Windows/Mac installers with a one-click

@@ -59,7 +59,7 @@ if ! git -C "$REPO" diff --quiet HEAD -- home-manager ':!home-manager/palette.ni
   osascript -e 'display notification "Uncommitted changes in home-manager/: theme not applied (run scripts/theme-sync.sh after committing)" with title "Theme"'
   exit 0
 fi
-"$REPO/scripts/theme-sync.sh" || { echo "theme-sync failed"; osascript -e 'display notification "Theme update failed (see ~/Library/Logs/macos-config/theme-auto.log)" with title "Theme"'; exit 1; }
+THEME_SRC="$src" "$REPO/scripts/theme-sync.sh" || { echo "theme-sync failed"; osascript -e 'display notification "Theme update failed (see ~/Library/Logs/macos-config/theme-auto.log)" with title "Theme"'; exit 1; }
 echo "$sum" > "$REPO/wallpapers/source.sha256"; echo "$fp" > "$FP"
 "$REPO/scripts/capture.sh" >/dev/null
 # Accept only the theme files; anything else stays pending for review.

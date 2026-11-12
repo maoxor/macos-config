@@ -24,6 +24,9 @@ urls = [u for u in walk(d) if re.search(r"\.(png|jpe?g|heic|tiff?)$", u, re.I)]
 print(urllib.parse.unquote(urls[0][7:]) if urls else "")
 PY
 )"
+  # theme-auto.sh passes the image it detected: re-reading the index a few seconds later can still see the previous
+  # wallpaper, and the theme then stayed on the old image while source.sha256 recorded the new one (2026-11-12).
+  [ -n "${THEME_SRC:-}" ] && [ -f "$THEME_SRC" ] && src="$THEME_SRC"
   [ -n "$src" ] && [ -f "$src" ] || { echo "Current wallpaper file not found (dynamic or system wallpaper?)." >&2; exit 2; }
   tmpdir="$(mktemp -d)"; trap 'rm -rf "$tmpdir"' EXIT
   tmpimg="$tmpdir/w.png"; sips -s format png "$src" --out "$tmpimg" >/dev/null

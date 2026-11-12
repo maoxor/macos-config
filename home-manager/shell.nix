@@ -21,6 +21,11 @@ in lib.mkIf profile.enableShell {
       exec "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --profile-directory=Default "$@" >/dev/null 2>&1 &
     '';
   };
+  # Nix from our own ~/.zshenv: every macOS upgrade rewrites /etc/zshrc and drops the installer's hook (27.2.1 on
+  # 2026-11-12: `sketchybar`, `home-manager`… no longer on PATH). nix-daemon.sh guards against a second sourcing.
+  programs.zsh.envExtra = ''
+    [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ] && . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+  '';
   # Migrated from the old ~/.zprofile (Homebrew) and ~/.zshrc (~/.local/bin: Claude Code).
   programs.zsh.profileExtra = ''
     eval "$(/opt/homebrew/bin/brew shellenv zsh)"

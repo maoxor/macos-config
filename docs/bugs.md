@@ -370,3 +370,23 @@ Before changing anything listed here, read the entry and keep its verification p
   (default 2) and focuses it. `omniwmctl` exits non-zero on `ignored: no_change`, so each step runs on its own.
 - **Check:** during `agents-browser login x https://example.com`, the frontmost app stays Google Chrome for Testing
   for 10 s and `omniwmctl query windows --bundle-id com.google.chrome.for.testing` shows it floating on workspace 2.
+
+### B27 — After the macOS 27 upgrade: empty top bar, no `nix` in zsh (2026-11-12)
+- **Symptom:** after 26.6 → 27.2.1 the top bar showed only its wallpaper strip, no item; `sketchybar`,
+  `home-manager` and `nix` were "command not found" in new shells.
+- **Cause:** (1) macOS 27 draws the bar's own `image` above the items. (2) The upgrade rewrote `/etc/zshrc` and
+  dropped the Nix installer's hook (a known effect of every macOS upgrade; `/etc/bashrc` kept it).
+- **Fix:** (1) the strip is the background of the first bracket (`strip`, between two 8 pt edge items that replace
+  the bar padding); brackets are drawn in creation order, so the pills created after it stay on top.
+  (2) `programs.zsh.envExtra` sources `nix-daemon.sh` from our own `~/.zshenv`.
+- **Check:** a screenshot of the top 40 pt shows the pills; `env -i HOME=$HOME zsh -c 'command -v nix sketchybar'`
+  prints both paths.
+
+### B28 — The theme stays on the previous wallpaper (2026-11-12)
+- **Symptom:** a new wallpaper was detected ("new wallpaper: …") but the theme kept the old colours, and later
+  changes were ignored.
+- **Cause:** `theme-auto.sh` read the new image, then `theme-sync.sh` re-read the index a few seconds later while it
+  still named the previous one ("wallpaper: unchanged", old saved palette); `theme-auto` still recorded the new
+  image in `wallpapers/source.sha256`, so it then believed the theme was current.
+- **Fix:** `theme-auto` passes the image it detected (`THEME_SRC`) and `theme-sync` uses it.
+- **Check:** after a wallpaper change, the log shows "wallpaper: copied from <new file>".
