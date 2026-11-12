@@ -33,7 +33,16 @@ case "${1:-mcp}" in
       (async () => {
         const [state, url, ws, ctl] = process.argv.slice(1);
         const tag = "--agents-login=" + process.pid;
-        const browser = await chromium.launch({ headless: false, args: [tag, "--window-size=1480,1000", "--window-position=120,60"] });
+        // Google refuses sign-ins in an automated browser (« Ce navigateur ou cette application ne sont peut-être pas
+        // sécurisés », 2026-11-12): the login window uses the installed Google Chrome when present, without the
+        // automation switch and with navigator.webdriver off. The headless agent browser is unchanged.
+        const fsChrome = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+        const browser = await chromium.launch({
+          headless: false,
+          ...(fs.existsSync(fsChrome) ? { channel: "chrome" } : {}),
+          ignoreDefaultArgs: ["--enable-automation"],
+          args: [tag, "--window-size=1480,1000", "--window-position=120,60", "--disable-blink-features=AutomationControlled"],
+        });
         const prev = fs.existsSync(state) ? JSON.parse(fs.readFileSync(state, "utf8")) : { cookies: [], origins: [] };
         const ctx = await browser.newContext({ viewport: null, storageState: prev });
         const page = await ctx.newPage();
