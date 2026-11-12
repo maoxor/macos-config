@@ -5,6 +5,8 @@ is not a plain `git revert`.
 
 ## Unreleased
 
+- Ghostty: `desktop-notifications = false` (no macOS notification from terminal programs such as Claude Code; owner's choice).
+  Roll back: remove the line in `home-manager/theme.nix`, apply home-manager, reload Ghostty (Cmd+Shift+,).
 - Login: no work app at login any more (Ghostty, Zen, Safari and Discord agents removed from `startup.nix`, owner's
   choice); only the technical tools start. Roll back: `git revert`, then `scripts/apply.sh home-manager --write`.
 - macOS 27: top bar items visible again (strip drawn as the first bracket, B27), Nix loaded from `~/.zshenv`

@@ -57,6 +57,9 @@ in {
       background-blur = true;
       # Stylix converts the size to px (x4/3 = 17.3) while Ghostty on macOS expects points: keep 13.
       font-size = lib.mkForce 13;
+      # No macOS notification from the terminal (owner, 2026-11-12: Claude Code sessions kept posting alerts that
+      # stayed on screen). Applies to OSC 9/777 notifications from any program running in Ghostty.
+      desktop-notifications = false;
     };
   };
 }
