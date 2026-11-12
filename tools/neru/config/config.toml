@@ -30,11 +30,11 @@ on_accent_alt = "#F8FAFF"
 text = "#17327A"
 
 [theme.dark]
-surface = "#1D1D20"
-accent = "#E0859C"
-accent_alt = "#B0B8BF"
-on_accent_alt = "#1D1D20"
-text = "#E1DFDF"
+surface = "#230F24"
+accent = "#6878DF"
+accent_alt = "#6CD1DA"
+on_accent_alt = "#230F24"
+text = "#DBD3EE"
 
 # Hotkeys
 # See https://github.com/y3owk1n/neru/blob/main/docs/reference/configuration.md#hotkeys

@@ -1,4 +1,4 @@
-schemaVersion = 4
+schemaVersion = 5
 
 [appearance]
 mode = "dark"
@@ -10,9 +10,9 @@ width = 2.0
 
 [borders.color]
 alpha = 0.85
-blue = 0.6118
-green = 0.5216
-red = 0.8784
+blue = 0.8745
+green = 0.4706
+red = 0.4078
 
 [clipboard]
 historyEnabled = false
@@ -31,7 +31,9 @@ useGlobalGaps = true
 
 [focus]
 crossesMonitorAtEdge = false
+edgeNavigationInterval = 1.5
 followsMouse = true
+followsMouseOnlyFullyVisible = false
 followsWindowToMonitor = true
 lockModifier = "off"
 moveCrossesMonitorAtEdge = false
@@ -59,14 +61,20 @@ ipcEnabled = true
 preventSleepEnabled = false
 systemHyperTrigger = "None"
 updateChecksEnabled = false
+workspaceAutoBackAndForth = false
 
 [gestures]
+adoptNativeMoveAcrossDisplays = false
+adoptNativeResize = false
+dwindleGroupDragAcrossDisplays = "group"
 fingerCount = 3
 invertDirection = true
 mouseMoveModifierKey = "option"
 mouseResizeModifierKey = "option"
+mouseWheelSensitivity = 1.0
 overviewGestureEnabled = true
 overviewGestureFingerCount = 4
+resizePreviewStyle = "live"
 scrollEnabled = true
 scrollModifierKey = "optionShift"
 scrollSensitivity = 5.0
@@ -77,6 +85,7 @@ windowMoveFingerCount = 4
 windowResizeEnabled = false
 windowResizeFingerCount = 3
 workspaceSwipeAxis = "vertical"
+workspaceSwipeEdgeBehavior = "cycle"
 workspaceSwipeEnabled = true
 workspaceSwipeFingerCount = 3
 
@@ -88,18 +97,31 @@ rehideIntervalSeconds = 5.0
 [island]
 enabled = false
 
+[keyboardModes]
+
+[launcher]
+appFolders = []
+cliFolders = []
+entries = []
+shell = "system"
+shellExecutable = ""
+terminal = "terminal"
+
 [mouseWarp]
 constrainToArrangement = false
 enabled = true
 margin = 1
 
 [niri]
+allowOverscroll = false
 alwaysCenterSingleColumn = false
 centerFocusedColumn = "never"
 containerPrimarySpanPresets = [0.3333333333333333, 0.5, 0.6666666666666666]
 defaultContainerPrimarySpan = 0.5
 edgeGaps = false
 infiniteLoop = false
+moveWindowStacksIntoColumn = true
+overscrollVisibleStripPercent = 5
 resizeStepPercent = 5
 singleWindowFit = "2058x1324"
 visibleContainerCount = 2
@@ -148,6 +170,7 @@ heightPercent = 50.0
 monitorMode = "focusedWindow"
 opacity = 1.0
 position = "center"
+provider = "ghostty"
 widthPercent = 50.0
 
 [routing]
@@ -158,11 +181,34 @@ mode = "macOS"
 
 [scratchpads.labels]
 
+[shellPermissions]
+programs = []
+widgets = []
+
+[shellPermissions.services]
+lyrics = true
+weather = true
+
 [statusBar]
 showAppNames = false
 showIcon = true
 showWorkspaceName = false
 useWorkspaceId = false
+
+[statusMenu]
+hiddenControls = []
+hiddenMenuItems = []
+showControlHelp = true
+showControls = true
+showMenuItems = true
+
+[windowSwitcher]
+commandTab = "activeWorkspace"
+enabled = false
+optionTab = "allWorkspaces"
+order = "omniLayout"
+scope = "allWorkspaces"
+showFooter = true
 
 [workspaceBar]
 autoHide = false
@@ -338,18 +384,18 @@ id = "4883579F-7495-43B5-8E58-59821883576C"
 layout = "tile"
 
 [[appRules]]
-axRole = "AXWindow"
-axSubrole = "AXUnknown"
-assignToWorkspace = "4"
-bundleId = "com.blizzard.worldofwarcraft"
-id = "7FA10F24-3CF0-40C9-AA9B-40CE4226CC42"
-layout = "float"
-
-[[appRules]]
 assignToWorkspace = "4"
 bundleId = "org.mozilla.nightlyunofficial"
 id = "3B7AA8E9-3C37-4B03-B1D6-6661D2CABC3F"
 layout = "tile"
+
+[[appRules]]
+assignToWorkspace = "4"
+axRole = "AXWindow"
+axSubrole = "AXUnknown"
+bundleId = "com.blizzard.worldofwarcraft"
+id = "7FA10F24-3CF0-40C9-AA9B-40CE4226CC42"
+layout = "float"
 
 [[hotkeys]]
 binding = "Unassigned"
@@ -973,27 +1019,27 @@ id = "resetWindowSecondarySpan"
 
 [[hotkeys]]
 binding = "Unassigned"
-id = "setContainerPrimarySpan.decrease10Percent"
+id = "resizeContainerPrimarySpan.shrink"
 
 [[hotkeys]]
 binding = "Unassigned"
-id = "setContainerPrimarySpan.increase10Percent"
+id = "resizeContainerPrimarySpan.grow"
 
 [[hotkeys]]
 binding = "Unassigned"
-id = "setWindowPrimarySpan.decrease10Percent"
+id = "resizeWindowPrimarySpan.shrink"
 
 [[hotkeys]]
 binding = "Unassigned"
-id = "setWindowPrimarySpan.increase10Percent"
+id = "resizeWindowPrimarySpan.grow"
 
 [[hotkeys]]
 binding = "Unassigned"
-id = "setWindowSecondarySpan.decrease10Percent"
+id = "resizeWindowSecondarySpan.shrink"
 
 [[hotkeys]]
 binding = "Unassigned"
-id = "setWindowSecondarySpan.increase10Percent"
+id = "resizeWindowSecondarySpan.grow"
 
 [[hotkeys]]
 binding = "Control+Option+R"
@@ -1080,6 +1126,30 @@ binding = "Unassigned"
 id = "mediaPrevious"
 
 [[hotkeys]]
+binding = "Unassigned"
+id = "toggleShortcutPause"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "beginPrefix"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleWindowMode"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "exitKeyboardMode"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "openShellApp.example"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "newShellAppWindow.example"
+
+[[hotkeys]]
 binding = "Hyper+Space"
 id = "openCommandPalette"
 
@@ -1162,18 +1232,6 @@ id = "toggleOverview"
 [[hotkeys]]
 binding = "Unassigned"
 id = "toggleSystemStats"
-
-[[hotkeys]]
-binding = "Unassigned"
-id = "toggleShellWidget.hidden-bar"
-
-[[hotkeys]]
-binding = "Unassigned"
-id = "toggleShellWidget.system-stats"
-
-[[hotkeys]]
-binding = "Unassigned"
-id = "toggleShellWidget.workspaces"
 
 [[workspaces]]
 displayName = "Focus"
