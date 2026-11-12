@@ -34,12 +34,8 @@ in {
     omniwm = openApp "OmniWM";
     hammerspoon = openApp "Hammerspoon";
     stats = openApp "Stats";
-    # Work apps reopened at login (Ghostty restores its windows, Zen and Safari their last session), then
-    # apply-window-rules.sh puts every restored window back on its rule's workspace.
-    ghostty = openApp "Ghostty";
-    zen = openApp "Zen";
-    safari = openApp "Safari";
-    discord = openApp "Discord";
+    # No work app at login (owner, 2026-11-12: "rien au démarrage, juste la config technique"): Ghostty, Zen, Safari
+    # and Discord are opened by hand. apply-window-rules.sh still places their windows when they open.
     # Every minute: open Claude Code sessions and their workspace, for Cmd+F5 (restore-session.py) after a crash.
     # Playwright test pages open behind the user's windows, in a screen corner (scripts/playwright-background-pages.py).
     # playwright-watch patches each new copy as it is written (FSEvents, ~0.4 s); the hourly walk (~5 s of CPU) is

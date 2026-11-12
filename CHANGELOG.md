@@ -5,6 +5,8 @@ is not a plain `git revert`.
 
 ## Unreleased
 
+- Login: no work app at login any more (Ghostty, Zen, Safari and Discord agents removed from `startup.nix`, owner's
+  choice); only the technical tools start. Roll back: `git revert`, then `scripts/apply.sh home-manager --write`.
 - macOS 27: top bar items visible again (strip drawn as the first bracket, B27), Nix loaded from `~/.zshenv`
   (B27), theme follows the detected wallpaper (B28); the bar's Restart and Shut down now close every app by force
   (SIGTERM, SIGKILL after 5 s) before restarting. Roll back: `git revert`, then `scripts/apply.sh home-manager --write`.
