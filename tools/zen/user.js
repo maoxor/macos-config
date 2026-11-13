@@ -41,3 +41,7 @@ user_pref("browser.toolbars.bookmarks.visibility", "never");
 // audio stuttered whenever WoW was in front. Background threads keep their normal priority.
 user_pref("threads.use_low_power.enabled", false);
 user_pref("threads.lower_mainthread_priority_in_background.enabled", false);
+// Checked live on 2026-11-13 with WoW in front: the YouTube content process and the media utility process dropped
+// to Darwin priority 4 (background band) while Zen's window sat on another workspace. The process priority manager
+// is what lowers them; with it off, every Zen process keeps its normal priority.
+user_pref("dom.ipc.processPriorityManager.enabled", false);
