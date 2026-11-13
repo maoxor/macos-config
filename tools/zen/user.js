@@ -35,3 +35,9 @@ user_pref("zen.view.compact.enable-at-startup", true);
 user_pref("zen.view.compact.hide-toolbar", true);
 user_pref("zen.view.compact.hide-tabbar", false);
 user_pref("browser.toolbars.bookmarks.visibility", "never");
+
+// Music stays clean while a game is in front (2026-11-13): with its window on another workspace, Zen moved its
+// processes to low-power threads (efficiency cores), already busy with the agents' background work, and YouTube
+// audio stuttered whenever WoW was in front. Background threads keep their normal priority.
+user_pref("threads.use_low_power.enabled", false);
+user_pref("threads.lower_mainthread_priority_in_background.enabled", false);
