@@ -108,6 +108,17 @@ in {
         ProcessType = "Background";
       };
     };
+    # Background-item notices: every change in ~/Library/LaunchAgents (a project agent installed or reloaded) posts
+    # a macOS notice that stays on screen; this clears it a few seconds later (scripts/clear-btm-notices.sh).
+    clear-btm-notices = {
+      enable = true;
+      config = {
+        ProgramArguments = [ "/bin/bash" "${identity.repoDir}/scripts/clear-btm-notices.sh" ];
+        WatchPaths = [ "${config.home.homeDirectory}/Library/LaunchAgents" ];
+        ThrottleInterval = 10;
+        ProcessType = "Background";
+      };
+    };
     # Every minute: memory, CPU and GPU per process, one week kept (scripts/perf-journal.py; `report` summarises).
     perf-journal = {
       enable = true;
